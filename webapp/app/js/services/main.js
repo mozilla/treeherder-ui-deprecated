@@ -1,140 +1,26 @@
 'use strict';
 
 /* Services */
-treeherder.factory('thUrl',
-                   ['$rootScope', 'thServiceDomain',
-                   function($rootScope, thServiceDomain) {
-    return {
+treeherder.factory('thUrl',['$rootScope', 'thServiceDomain', '$log', function($rootScope, thServiceDomain, $log) {
+
+   var thUrl =  {
         getRootUrl: function(uri) {
             return thServiceDomain + "/api" + uri;
         },
         getProjectUrl: function(uri) {
             return thServiceDomain + "/api/project/" + $rootScope.repoName + uri;
         },
-        getLogViewerUrl: function(artifactId) {
-            return "logviewer.html#?id=" + artifactId + "&repo=" + $rootScope.repoName;
+        getLogViewerUrl: function(job_id) {
+            return "logviewer.html#?job_id=" + job_id + "&repo=" + $rootScope.repoName;
         },
         getSocketEventUrl: function() {
             var port = thServiceDomain.indexOf("https:") !== -1 ? 443 :80;
             return thServiceDomain + ':' + port + '/events';
         }
-    };
-    return thUrl;
+   };
+   return thUrl;
 
 }]);
-
-treeherder.factory('thArtifact',
-                   ['$http', 'thUrl',
-                   function($http, thUrl) {
-
-    // get the artifacts for this tree
-    return {
-        getArtifact: function(id) {
-            return $http.get(thUrl.getProjectUrl(
-                "/artifact/" + id + "/"));
-        }
-    }
-}]);
-
-treeherder.factory('thJobs',
-                   ['$http', 'thUrl',
-                   function($http, thUrl) {
-
-    return {
-        getJobs: function(offset, count, joblist) {
-            offset = typeof offset == 'undefined'?  0: offset;
-            count = typeof count == 'undefined'?  10: count;
-            var params = {
-                offset: offset,
-                count: count,
-                format: "json"
-            }
-
-            if (joblist) {
-                _.extend(params, {
-                    offset: 0,
-                    count: joblist.length,
-                    id__in: joblist.join()
-                })
-            }
-            return $http.get(thUrl.getProjectUrl("/jobs/"),
-                             {params: params}
-            );
-        }
-    }
-}]);
-
-treeherder.factory('thRepos',
-                   ['$http', 'thUrl', '$rootScope', '$log',
-                   function($http, thUrl, $rootScope, $log) {
-
-    // get the repositories (aka trees)
-    // sample: 'resources/menu.json'
-    var byName = function(name) {
-        if ($rootScope.repos !== undefined) {
-            for (var i = 0; i < $rootScope.repos.length; i++) {
-                var repo = $rootScope.repos[i];
-                if (repo.name === name) {
-                    return repo;
-                }
-            }
-        } else {
-            $log.warn("Repos list has not been loaded.");
-        }
-        $log.warn("'" + name + "' not found in repos list.");
-        return null;
-    };
-
-    return {
-        // load the list of repos into $rootScope, and set the current repo.
-        load: function(name) {
-            return $http.get(thUrl.getRootUrl("/repository/")).
-                success(function(data) {
-                    $rootScope.repos = data;
-                    if (name) {
-                        $rootScope.currentRepo = byName(name)
-                    }
-                });
-        },
-        // return the currently selected repo
-        getCurrent: function() {
-            return $rootScope.currentRepo;
-        },
-        // set the current repo to one in the repos list
-        setCurrent: function(name) {
-            $rootScope.currentRepo = byName(name)
-        },
-        // get a repo object without setting anything
-        getRepo: function(name) {
-            return byName(name);
-        }
-    };
-}]);
-
-treeherder.factory('thJobNote', function($resource, $http, thUrl) {
-    return {
-        get: function() {
-            var JobNote = $resource(thUrl.getProjectUrl("/note/"));
-            // Workaround to the fact that $resource strips trailing slashes
-            // out of urls.  This causes a 301 redirect on POST because it does a
-            // preflight OPTIONS call.  Tastypie gives up on the POST after this
-            // and nothing happens.  So this alternative "thSave" command avoids
-            // that by using the trailing slash directly in a POST call.
-            // @@@ This may be fixed in later versions of Angular.  Or perhaps there's
-            // a better way?
-            JobNote.prototype.thSave = function() {
-                $http.post(thUrl.getProjectUrl("/note/"), {
-                    job_id: this.job_id,
-                    note: this.note,
-                    who: this.who,
-                    failure_classification_id: this.failure_classification_id
-                });
-            };
-            return JobNote;
-        }
-    };
-});
-
 
 treeherder.factory('thSocket', function ($rootScope, $log, thUrl) {
     var socket = io.connect(thUrl.getSocketEventUrl());
@@ -161,4 +47,25 @@ treeherder.factory('thSocket', function ($rootScope, $log, thUrl) {
       });
     }
   };
+});
+
+treeherder.factory('ThPaginator', function(){
+    //dead-simple implementation of an in-memory paginator
+
+    var ThPaginator = function(data, limit){
+        this.data = data;
+        this.length = data.length;
+        this.limit = limit;
+    };
+
+    ThPaginator.prototype.get_page = function(n){
+        return this.data.slice(n * limit - limit, n * limit);
+    }
+
+    ThPaginator.prototype.get_all = function(){
+        return data
+    };
+
+    return ThPaginator
+
 });
