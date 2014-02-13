@@ -33,8 +33,8 @@ treeherder.factory('thResultSets',
 }]);
 
 treeherder.factory('thResultSetModelManager',
-                   ['$log', '$rootScope', 'thResultSets', 'thSocket', 'thJobs',
-                   function($log, $rootScope, thResultSets, thSocket, thJobs) {
+                   ['$log', '$rootScope', 'thResultSets', 'thSocket', 'ThJobModel',
+                   function($log, $rootScope, thResultSets, thSocket, ThJobModel) {
 
    /******
     * Handle updating the resultset datamodel based on a queue of jobs
@@ -263,9 +263,11 @@ treeherder.factory('thResultSetModelManager',
 
             // make an ajax call to get the job details
 
-            thJobs.getJobs(0, jobFetchList.length, jobFetchList).
-                success(updateJobs).
-                error(function(data) {
+            ThJobModel.get_list({
+                id__in: jobFetchList.join()
+            }).then(
+                updateJobs,
+                function(data) {
                     $log.error("Error fetching jobUpdateQueue: " + data);
                 });
         }
