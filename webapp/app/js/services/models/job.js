@@ -1,25 +1,33 @@
-treeherder.factory('thJobs', ['$http', 'thUrl', function($http, thUrl) {
+treeherder.factory('ThJobModel', ['$http', '$log', 'thUrl', function($http, $log, thUrl) {
+    // ThJobArtifactModel is the js counterpart of job_artifact
 
-    return {
-        getJobs: function(offset, count, joblist) {
-            offset = typeof offset == 'undefined'?  0: offset;
-            count = typeof count == 'undefined'?  10: count;
-            var params = {
-                offset: offset,
-                count: count,
-                format: "json"
-            }
+    var ThJobModel = function(data) {
+        // creates a new instance of ThJobArtifactModel
+        // using the provided properties
+        angular.extend(this, data);
+    };
 
-            if (joblist) {
-                _.extend(params, {
-                    offset: 0,
-                    count: joblist.length,
-                    id__in: joblist.join()
-                })
-            }
-            return $http.get(thUrl.getProjectUrl("/jobs/"),
-                             {params: params}
-            );
-        }
-    }
+    ThJobModel.get_uri = function(){return thUrl.getProjectUrl("/jobs/");}
+
+    ThJobModel.get_list = function(options) {
+        // a static method to retrieve a list of ThJobModel
+        var query_string = $.param(options)
+        return $http.get(ThJobModel.get_uri()+"?"+query_string)
+            .then(function(response) {
+                var item_list = [];
+                angular.forEach(response.data, function(elem){
+                    item_list.push(new ThJobModel(elem));
+                });
+                return item_list;
+        });
+    };
+
+    ThJobModel.get = function(pk) {
+        // a static method to retrieve a single instance of ThJobModel
+        return $http.get(ThJobModel.get_uri()+pk).then(function(response) {
+            return new ThJobModel(response.data);
+        });
+    };
+
+    return ThJobModel;
 }]);

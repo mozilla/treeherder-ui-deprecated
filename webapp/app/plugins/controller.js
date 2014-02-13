@@ -3,12 +3,23 @@
 
 treeherder.controller('PluginCtrl',
     function PluginCtrl($scope, $rootScope, $resource, $http,
-                        thServiceDomain, thUrl, ThJobNoteModel, thStarTypes, $log) {
+                        thServiceDomain, thUrl, ThJobNoteModel, ThJobModel, thStarTypes, $log) {
+
+
 
         $scope.$watch('selectedJob', function(newValue, oldValue) {
             // preferred way to get access to the selected job
             if (newValue) {
+
                 $scope.job = newValue;
+
+                // get the details of the current job
+                ThJobModel.get($scope.job.id).then(function(data){
+                    _.extend($scope.job, data);
+                    $scope.logs = data.logs;
+                    $log.log($scope.job)
+                });
+
                 $scope.artifacts = {};
 
                 var undef = "---undefined---";
@@ -25,12 +36,10 @@ treeherder.controller('PluginCtrl',
 
                 $scope.tab_loading = true;
                 $scope.lvUrl = thUrl.getLogViewerUrl($scope.job.id);
-                $http.get(thServiceDomain + $scope.job.resource_uri)
-                    .success(function(data) {
-                        _.extend($scope.job, data);
-                        $scope.logs = data.logs;
-                    });
+
                 $scope.updateNotes();
+
+
             }
         }, true);
 

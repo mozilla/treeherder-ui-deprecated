@@ -1,0 +1,9 @@
+<h5>Similar jobs</h5>
+<input ng-change="update_similar_jobs()" type="checkbox" ng-model="similar_jobs_filters.machine_id"/>Same machine
+<input ng-change="update_similar_jobs()" type="checkbox" ng-model="similar_jobs_filters.job_type_id"/>Same platform
+<input ng-change="update_similar_jobs()" type="checkbox" ng-model="similar_jobs_filters.build_platform_id"/>Same job type
+<div class="btn-toolbar" role="toolbar">
+    <div class="btn-group btn-group-xs">
+        <button ng-repeat="job in similar_jobs">{{job.id}}</button>
+    </div>
+</div>
