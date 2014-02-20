@@ -23,14 +23,11 @@
                     </form>
                 </div>
             </div>
-            <div class="panel-body">
-                <th-similar-jobs job=></th-similar-jobs>
-            </div>
         </div>
     </div>
     <div id="bottom_center_panel">
         <div class="panel shadowed-panel">
-            <div class="panel-body">
+            <div class="panel-body resizable">
                 <tabset class="tabs-below">
                     <tab ng-repeat="(tab_id, tab) in tabs"  active="tab.active" disabled="tab.disabled">
                         <tab-heading>{{ tab.title }}

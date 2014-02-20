@@ -820,4 +820,5 @@ fieldset[disabled] .btn-repo.active {
 .waiter-large{ background: url("../img/waiter64.png") no-repeat center center; width: 64px; height: 64px; display: inline-block;}
 
 .deleted{ text-decoration: line-through;}
-.plugin_controls{ margin: 5px; }
+.plugin_controls{ margin: 5px;}
+.btn-similar-jobs{ margin: 5px;}

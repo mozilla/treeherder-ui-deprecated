@@ -5,7 +5,7 @@ treeherder.controller('PluginCtrl',
     function PluginCtrl($scope, $rootScope, $resource, $http,
                         thServiceDomain, thUrl, ThJobNoteModel, ThJobModel, thStarTypes, $log) {
 
-
+        $scope.job = {};
 
         $scope.$watch('selectedJob', function(newValue, oldValue) {
             // preferred way to get access to the selected job
@@ -17,7 +17,6 @@ treeherder.controller('PluginCtrl',
                 ThJobModel.get($scope.job.id).then(function(data){
                     _.extend($scope.job, data);
                     $scope.logs = data.logs;
-                    $log.log($scope.job)
                 });
 
                 $scope.artifacts = {};
@@ -100,6 +99,10 @@ treeherder.controller('PluginCtrl',
             "bugs_suggestions": {
                 title: "Bugs suggestions",
                 content: "plugins/bugs_suggestions/main.html"
+            },
+            "similar_jobs": {
+                title: "Similar jobs",
+                content: "plugins/similar_jobs/main.html"
             }
         };
 
