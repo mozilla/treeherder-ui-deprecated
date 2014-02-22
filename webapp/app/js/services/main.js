@@ -142,3 +142,46 @@ treeherder.factory('BrowserId', function($http, $q, $log,  thServiceDomain){
     }
     return browserid;
 });
+
+treeherder.factory('thNotify', function($log){
+    //a growl-like notification system
+
+    var thNotify =  {
+        // message queue
+        notifications: [],
+        // the currently displayed message
+        current: {},
+        
+        /*
+        * send a message to the notification queue
+        * @severity can be one of success|info|warning|danger
+        * @sticky is a boolean indicating if you want to message to disappear
+        * after a while or not
+        */ 
+        send: function(message, severity, sticky){
+            $log.log("received message");
+            $log.log(message);
+            var severity = severity || 'info';
+            var sticky = sticky || false;
+            thNotify.notifications.push({
+                message: message,
+                severity: severity,
+                sticky: sticky
+            });
+            thNotify.fetch();
+        },
+        fetch: function(){
+            thNotify.current=thNotify.notifications.shift() || {};
+            
+            if(thNotify.current.message && !thNotify.current.sticky){
+                window.setTimeout(thNotify.remove, 5000);
+            }
+        },
+        remove: function(){
+            thNotify.current = {};
+            thNotify.fetch();
+        }
+    }
+    return thNotify;
+
+});
