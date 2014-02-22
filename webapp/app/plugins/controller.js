@@ -3,14 +3,22 @@
 
 treeherder.controller('PluginCtrl',
     function PluginCtrl($scope, $rootScope, $resource, $http,
-                        thServiceDomain, thUrl, thJobNote, thStarTypes, $log) {
+                        thServiceDomain, thUrl, ThJobNoteModel, ThJobModel, thStarTypes, $log) {
 
-        var JobNote = null;
+        $scope.job = {};
 
         $scope.$watch('selectedJob', function(newValue, oldValue) {
             // preferred way to get access to the selected job
             if (newValue) {
+
                 $scope.job = newValue;
+
+                // get the details of the current job
+                ThJobModel.get($scope.job.id).then(function(data){
+                    _.extend($scope.job, data);
+                    $scope.logs = data.logs;
+                });
+
                 $scope.artifacts = {};
 
                 var undef = "---undefined---";
@@ -26,34 +34,11 @@ treeherder.controller('PluginCtrl',
                 };
 
                 $scope.tab_loading = true;
+                $scope.lvUrl = thUrl.getLogViewerUrl($scope.job.id);
 
-                $http.get(thServiceDomain + $scope.job.resource_uri).
-                    success(function(data) {
-
-                        _.extend($scope.job, data);
-
-                        $scope.logs = data.logs;
-
-                        data.artifacts.forEach(function(artifact) {
-                            if (artifact.name !== "Structured Log") {
-                                // we don't return the blobs with job, just
-                                // resource_uris to them.  For the Job Artifact,
-                                // we want that blob, so we need to fetch the
-                                // detail to get the blob which has the
-                                // tinderbox_printlines, etc.
-                                $scope.artifacts[artifact.name] =$resource(
-                                    thServiceDomain + artifact.resource_uri).get();
-                            } else {
-                                // for the structured log, we don't need the blob
-                                // here, we have everything we need in the artifact
-                                // as is, so just save it.
-                                $scope.lvUrl = thUrl.getLogViewerUrl(artifact.id);
-                            }
-                        });
-                        $scope.tab_loading = false;
-                    });
-                JobNote = thJobNote.get();
                 $scope.updateNotes();
+
+
             }
         }, true);
 
@@ -62,7 +47,9 @@ treeherder.controller('PluginCtrl',
         // load the list of existing notes (including possibly a new one just
         // added).
         $scope.updateNotes = function() {
-            $scope.notes = JobNote.query({job_id: $scope.job.job_id});
+            ThJobNoteModel.get_list({job_id: $scope.job.id}).then(function(response){
+                $scope.notes = response;
+            });
         };
         // when notes comes in, then set the latest note for the job
         $scope.$watch('notes', function(newValue, oldValue) {
@@ -77,8 +64,8 @@ treeherder.controller('PluginCtrl',
             if ($scope.notes && $scope.notes.length > 0) {
                 fci = $scope.notes[0].failure_classification_id;
             }
-            $scope.newNote = new JobNote({
-                job_id: $scope.job.job_id,
+            $scope.newNote = new ThJobNoteModel({
+                job_id: $scope.job.id,
                 note: "",
                 who: $scope.username,
                 failure_classification_id: fci
@@ -93,35 +80,31 @@ treeherder.controller('PluginCtrl',
 
         // save the note and hide the form
         $scope.saveNote = function() {
-            $scope.newNote.thSave();
-            $scope.updateNotes();
-            $scope.clearNewNote();
+            $scope.newNote.create()
+                .then(function(response){
+                    $scope.updateNotes();
+                    $scope.clearNewNote();
+                });
         };
 
-        $scope.tabs = [
-            {
-                id: "tinderbox",
+        $scope.tabs = {
+            "tinderbox": {
                 title: "Job Details",
                 content: "plugins/tinderbox/main.html"
             },
-            {
-                id: "notes",
+            "notes": {
                 title: "Notes",
                 content: "plugins/notes/main.html"
             },
-            {
-                id: "open-bugs",
-                title: "Open Bugs",
-                content: "plugins/open_bugs_suggestions/main.html"
+            "bugs_suggestions": {
+                title: "Bugs suggestions",
+                content: "plugins/bugs_suggestions/main.html"
             },
-            {
-                id: "closed-bugs",
-                title: "Closed Bugs",
-                content: "plugins/closed_bugs_suggestions/main.html"
+            "similar_jobs": {
+                title: "Similar jobs",
+                content: "plugins/similar_jobs/main.html"
             }
-        ];
-
-        $scope.tab_loading = false;
+        };
 
     }
 );
