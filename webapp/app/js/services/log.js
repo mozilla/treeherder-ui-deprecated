@@ -1,6 +1,10 @@
 'use strict';
 
-treeherder.factory('ThLog', function($log, ThLogConfig) {
+treeherder.factory('ThLog', ['$log',
+//'ThLogConfig',
+function($log
+//ThLogConfig
+) {
     // a logger that states the object doing the logging
 
     var ThLog = function(name) {
@@ -11,8 +15,10 @@ treeherder.factory('ThLog', function($log, ThLogConfig) {
      * If ``whitelist`` has values, then only show messages from those.
      * If ``whitelist`` is empty, then skip any messages from ``blacklist`` items.
      */
-    var whitelist = ThLogConfig.whitelist;
-    var blacklist = ThLogConfig.blacklist;
+    var whitelist = [];
+    var blacklist = [];
+//    var whitelist = ThLogConfig.whitelist;
+//    var blacklist = ThLogConfig.blacklist;
 
     ThLog.prototype.getClassName = function() {
         return this.name;
@@ -35,7 +41,7 @@ treeherder.factory('ThLog', function($log, ThLogConfig) {
     };
 
     return ThLog;
-});
+}]);
 
 
 /**
@@ -50,38 +56,27 @@ treeherder.factory('ThLog', function($log, ThLogConfig) {
  * Note: even though this is called ThLogConfig, when you configure it, you must
  * refer to it as a ``ThLogConfigProvider`` in ``local.conf.js``.
  */
-treeherder.provider('ThLogConfig', function() {
-    this.whitelist = [];
-    this.blacklist = [];
-
-    this.setBlacklist = function(bl) {
-        this.blacklist = bl;
-    };
-    this.setWhitelist = function(wl) {
-        this.whitelist = wl;
-    };
-
-    this.$get = function() {
-        var self = this;
-
-        return {
-
-            whitelist: self.whitelist,
-            blacklist: self.blacklist
-
-        };
-    };
-
-});
-
-treeherder.config(["$provide", function($provide, ThLog) {
-    $provide.decorator("$log", ["$delegate", function($delegate) {
-
-        $delegate.getInstance = function(className) {
-            return new ThLog(className);
-        };
-        return $delegate;
-
-    }]);
-
-}]);
+//treeherder.provider('ThLogConfig', function() {
+//    this.whitelist = [];
+//    this.blacklist = [];
+//
+//    this.setBlacklist = function(bl) {
+//        this.blacklist = bl;
+//    };
+//    this.setWhitelist = function(wl) {
+//        this.whitelist = wl;
+//    };
+//
+//    this.$get = function() {
+//        var self = this;
+//
+//        return {
+//
+//            whitelist: self.whitelist,
+//            blacklist: self.blacklist
+//
+//        };
+//    };
+//
+//});
+//

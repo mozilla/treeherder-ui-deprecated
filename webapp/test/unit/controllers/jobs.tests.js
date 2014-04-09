@@ -7,7 +7,8 @@ describe('JobsCtrl', function(){
 
     beforeEach(module('treeherder'));
 
-    beforeEach(inject(function ($injector, $rootScope, $controller, thUrl) {
+    beforeEach(inject(function ($injector, $rootScope, $controller
+    ) {
 
         $httpBackend = $injector.get('$httpBackend');
         jasmine.getJSONFixtures().fixturesPath='base/test/mock';
@@ -43,6 +44,16 @@ describe('JobsCtrl', function(){
         $httpBackend.whenGET('resources/job_groups.json').respond(
             getJSONFixture('job_groups.json')
         );
+
+        $httpBackend.whenGET('https://treestatus.mozilla.org/mozilla-inbound?format=json').respond(
+            {
+                "status": "closed",
+                "message_of_the_day": "See the <a href=\"https://wiki.mozilla.org/Tree_Rules/Inbound\">Inbound tree rules</a> before pushing. <a href=\"https://sheriffs.etherpad.mozilla.org/sheriffing-notes\">Sheriff notes/current issues</a>.",
+                "tree": "mozilla-inbound",
+                "reason": "Bustage"
+            }
+        );
+
 
         jobScope = $rootScope.$new();
 
