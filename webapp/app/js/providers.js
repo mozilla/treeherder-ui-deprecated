@@ -1,11 +1,11 @@
-"use strict";
+'use strict';
 
 treeherder.provider('thServiceDomain', function() {
     this.$get = function() {
         if (window.thServiceDomain) {
             return window.thServiceDomain;
         } else {
-            return "";
+            return '';
         }
     };
 });
@@ -20,7 +20,7 @@ treeherder.provider('thResultStatus', function() {
     this.$get = function() {
         return function(job) {
             var rs = job.result;
-            if (job.state !== "completed") {
+            if (job.state !== 'completed') {
                 rs = job.state;
             }
             return rs;
@@ -29,21 +29,21 @@ treeherder.provider('thResultStatus', function() {
 });
 
 treeherder.provider('thResultStatusObject', function() {
-    var getResultStatusObject = function(){
+    var getResultStatusObject = function() {
         return {
-            'success':0,
-            'testfailed':0,
-            'busted':0,
-            'exception':0,
-            'retry':0,
-            'running':0,
-            'pending':0
+            'success': 0,
+            'testfailed': 0,
+            'busted': 0,
+            'exception': 0,
+            'retry': 0,
+            'running': 0,
+            'pending': 0
             };
     };
 
     this.$get = function() {
         return {
-            getResultStatusObject:getResultStatusObject
+            getResultStatusObject: getResultStatusObject
             };
     };
 });
@@ -55,100 +55,100 @@ treeherder.provider('thResultStatusInfo', function() {
             var resultStatusInfo = {
                 severity: 100,
                 isCollapsedResults: true,
-                btnClass: "btn-default",
-                showButtonIcon: "glyphicon glyphicon-time",
-                jobButtonIcon: ""
+                btnClass: 'btn-default',
+                showButtonIcon: 'glyphicon glyphicon-time',
+                jobButtonIcon: ''
             };
 
             switch (resultState) {
-                case "busted":
+                case 'busted':
                     resultStatusInfo = {
                         severity: 1,
                         isCollapsedResults: false,
-                        btnClass: "btn-red",
-                        showButtonIcon: "glyphicon glyphicon-fire",
-                        jobButtonIcon: "glyphicon glyphicon-fire",
-                        countText: "busted"
+                        btnClass: 'btn-red',
+                        showButtonIcon: 'glyphicon glyphicon-fire',
+                        jobButtonIcon: 'glyphicon glyphicon-fire',
+                        countText: 'busted'
                     };
                     break;
-                case "exception":
+                case 'exception':
                     resultStatusInfo = {
                         severity: 2,
                         isCollapsedResults: false,
-                        btnClass: "btn-purple",
-                        showButtonIcon: "glyphicon glyphicon-fire",
-                        jobButtonIcon: "glyphicon glyphicon-fire",
-                        countText: "exception"
+                        btnClass: 'btn-purple',
+                        showButtonIcon: 'glyphicon glyphicon-fire',
+                        jobButtonIcon: 'glyphicon glyphicon-fire',
+                        countText: 'exception'
                     };
                     break;
-                case "testfailed":
+                case 'testfailed':
                     resultStatusInfo = {
                         severity: 3,
                         isCollapsedResults: false,
-                        btnClass: "btn-orange",
-                        showButtonIcon: "glyphicon glyphicon-warning-sign",
-                        jobButtonIcon: "glyphicon glyphicon-warning-sign",
-                        countText: "failed"
+                        btnClass: 'btn-orange',
+                        showButtonIcon: 'glyphicon glyphicon-warning-sign',
+                        jobButtonIcon: 'glyphicon glyphicon-warning-sign',
+                        countText: 'failed'
                     };
                     break;
-                case "unknown":
+                case 'unknown':
                     resultStatusInfo = {
                         severity: 4,
                         isCollapsedResults: false,
-                        btnClass: "btn-black",
-                        showButtonIcon: "glyphicon glyphicon-warning-sign",
-                        jobButtonIcon: "",
-                        countText: "unknown"
+                        btnClass: 'btn-black',
+                        showButtonIcon: 'glyphicon glyphicon-warning-sign',
+                        jobButtonIcon: '',
+                        countText: 'unknown'
                     };
                     break;
-                case "usercancel":
+                case 'usercancel':
                     resultStatusInfo = {
                         severity: 5,
                         isCollapsedResults: true,
-                        btnClass: "btn-pink",
-                        showButtonIcon: "glyphicon glyphicon-stop",
-                        jobButtonIcon: "",
-                        countText: "cancel"
+                        btnClass: 'btn-pink',
+                        showButtonIcon: 'glyphicon glyphicon-stop',
+                        jobButtonIcon: '',
+                        countText: 'cancel'
                     };
                     break;
-                case "retry":
+                case 'retry':
                     resultStatusInfo = {
                         severity: 6,
                         isCollapsedResults: true,
-                        btnClass: "btn-dkblue",
-                        showButtonIcon: "glyphicon glyphicon-time",
-                        jobButtonIcon: "",
-                        countText: "retry"
+                        btnClass: 'btn-dkblue',
+                        showButtonIcon: 'glyphicon glyphicon-time',
+                        jobButtonIcon: '',
+                        countText: 'retry'
                     };
                     break;
-                case "success":
+                case 'success':
                     resultStatusInfo = {
                         severity: 7,
                         isCollapsedResults: true,
-                        btnClass: "btn-green",
-                        showButtonIcon: "glyphicon glyphicon-ok",
-                        jobButtonIcon: "",
-                        countText: "success"
+                        btnClass: 'btn-green',
+                        showButtonIcon: 'glyphicon glyphicon-ok',
+                        jobButtonIcon: '',
+                        countText: 'success'
                     };
                     break;
-                case "running":
+                case 'running':
                     resultStatusInfo = {
                         severity: 8,
                         isCollapsedResults: true,
-                        btnClass: "btn-dkgray",
-                        showButtonIcon: "glyphicon glyphicon-time",
-                        jobButtonIcon: "",
-                        countText: "running"
+                        btnClass: 'btn-dkgray',
+                        showButtonIcon: 'glyphicon glyphicon-time',
+                        jobButtonIcon: '',
+                        countText: 'running'
                     };
                     break;
-                case "pending":
+                case 'pending':
                     resultStatusInfo = {
                         severity: 100,
                         isCollapsedResults: true,
-                        btnClass: "btn-ltgray",
-                        showButtonIcon: "glyphicon glyphicon-time",
-                        jobButtonIcon: "",
-                        countText: "pending"
+                        btnClass: 'btn-ltgray',
+                        showButtonIcon: 'glyphicon glyphicon-time',
+                        jobButtonIcon: '',
+                        countText: 'pending'
                     };
                     break;
             }
@@ -169,77 +169,77 @@ treeherder.provider('thEvents', function() {
         return {
 
             // fired when a list of revisions has been loaded by button-click
-            revisionsLoaded: "revisions-loaded-EVT",
+            revisionsLoaded: 'revisions-loaded-EVT',
 
             // fired (surprisingly) when a job is clicked
-            jobClick: "job-click-EVT",
+            jobClick: 'job-click-EVT',
 
             // fired when the job details are loaded
-            jobDetailLoaded: "job-detail-loaded-EVT",
+            jobDetailLoaded: 'job-detail-loaded-EVT',
 
             // fired when a job is shift-clicked
-            jobPin: "job-pin-EVT",
+            jobPin: 'job-pin-EVT',
 
             // fired when the user middle-clicks on a job to view the log
-            jobContextMenu: "job-context-menu-EVT",
+            jobContextMenu: 'job-context-menu-EVT',
 
             // fired when jobs are either classified locally, or we are
             // notified about a classification over socket.io
-            jobsClassified: "jobs-classified-EVT",
+            jobsClassified: 'jobs-classified-EVT',
 
             // fired when bugs are associated to jobs locally, or we are
             // notified about a bug association over socket.io
-            bugsAssociated: "bugs-associated-EVT",
+            bugsAssociated: 'bugs-associated-EVT',
 
             // after loading a group of jobs queued during socket.io events
-            jobsLoaded: "jobs-loaded-EVT",
+            jobsLoaded: 'jobs-loaded-EVT',
 
             // fired when a global filter has changed
-            globalFilterChanged: "status-filter-changed-EVT",
+            globalFilterChanged: 'status-filter-changed-EVT',
 
             // fired when filtering on a specific resultset has changed
-            resultSetFilterChanged: "resultset-filter-changed-EVT",
+            resultSetFilterChanged: 'resultset-filter-changed-EVT',
 
-            toggleRevisions: "toggle-revisions-EVT",
+            toggleRevisions: 'toggle-revisions-EVT',
 
-            toggleJobs: "toggle-jobs-EVT",
+            toggleJobs: 'toggle-jobs-EVT',
 
-            toggleUnclassifiedFailures: "toggle-unclassified-failures-EVT",
+            toggleUnclassifiedFailures: 'toggle-unclassified-failures-EVT',
 
-            selectNextUnclassifiedFailure: "next-unclassified-failure-EVT",
+            selectNextUnclassifiedFailure: 'next-unclassified-failure-EVT',
 
-            selectPreviousUnclassifiedFailure: "previous-unclassified-failure-EVT",
+            selectPreviousUnclassifiedFailure: 'previous-unclassified-failure-EVT',
 
-            searchPage: "search-page-EVT",
+            searchPage: 'search-page-EVT',
 
-            repoChanged: "repo-changed-EVT",
+            repoChanged: 'repo-changed-EVT',
 
             // throwing this event will filter jobs to only show failures
             // that have no classification.
-            showUnclassifiedFailures: "show-unclassified-failures-EVT",
+            showUnclassifiedFailures: 'show-unclassified-failures-EVT',
 
-            selectJob: "select-job-EVT"
+            selectJob: 'select-job-EVT'
         };
     };
 });
 
 treeherder.provider('thAggregateIds', function() {
     var getPlatformRowId = function(
-        repoName, resultsetId, platformName, platformOptions){
-        return  repoName +
+        repoName, resultsetId, platformName, platformOptions) {
+        return repoName +
                 resultsetId +
                 platformName +
                 platformOptions;
     };
 
-    var getResultsetTableId = function(repoName, resultsetId, revision){
+    var getResultsetTableId = function(repoName, resultsetId, revision) {
         return repoName + resultsetId + revision;
     };
 
     this.$get = function() {
         return {
-            getPlatformRowId:getPlatformRowId,
-            getResultsetTableId:getResultsetTableId
+            getPlatformRowId: getPlatformRowId,
+            getResultsetTableId: getResultsetTableId
             };
     };
 });

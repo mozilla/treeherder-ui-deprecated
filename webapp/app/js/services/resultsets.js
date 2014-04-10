@@ -6,15 +6,15 @@ treeherder.factory('thResultSets',
     // get the resultsets for this repo
     return {
         getResultSets: function(rsOffsetId, count, resultsetlist) {
-            rsOffsetId = typeof rsOffsetId === 'undefined'?  0: rsOffsetId;
-            count = typeof count === 'undefined'?  10: count;
+            rsOffsetId = typeof rsOffsetId === 'undefined' ? 0 : rsOffsetId;
+            count = typeof count === 'undefined' ? 10 : count;
             var params = {
                 count: count,
                 full: false,
-                format: "json"
+                format: 'json'
             };
 
-            if(rsOffsetId > 0){
+            if (rsOffsetId > 0) {
                 params['id__lt'] = rsOffsetId;
             }
 
@@ -33,12 +33,12 @@ treeherder.factory('thResultSets',
                     id__in: resultsetlist.join()
                 });
             }
-            return $http.get(thUrl.getProjectUrl("/resultset/"),
+            return $http.get(thUrl.getProjectUrl('/resultset/'),
                              {params: params}
             );
         },
         get: function(uri) {
-            return $http.get(thServiceDomain + uri, {params: {format: "json"}});
+            return $http.get(thServiceDomain + uri, {params: {format: 'json'}});
         }
     };
 });

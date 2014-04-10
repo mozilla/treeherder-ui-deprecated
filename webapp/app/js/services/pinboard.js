@@ -4,7 +4,7 @@ treeherder.factory('thPinboard',
                    function($http, thUrl, ThJobClassificationModel, $rootScope,
                             thEvents, ThBugJobMapModel, thNotify, ThLog) {
 
-    var $log = new ThLog("thPinboard");
+    var $log = new ThLog('thPinboard');
 
     var pinnedJobs = {};
     var relatedBugs = {};
@@ -19,9 +19,9 @@ treeherder.factory('thPinboard',
             classification.job_id = job.id;
             classification.create().
                 success(function(data) {
-                    thNotify.send("classification saved for " + job.platform + ": " + job.job_type_name, "success");
+                    thNotify.send('classification saved for ' + job.platform + ': ' + job.job_type_name, 'success');
                 }).error(function(data) {
-                    thNotify.send("error saving classification for " + job.platform + ": " + job.job_type_name, "danger");
+                    thNotify.send('error saving classification for ' + job.platform + ': ' + job.job_type_name, 'danger');
                 });
         }
     };
@@ -29,15 +29,15 @@ treeherder.factory('thPinboard',
     var saveBugs = function(job) {
         _.forEach(relatedBugs, function(bug) {
             var bjm = new ThBugJobMapModel({
-                bug_id : bug.id,
+                bug_id: bug.id,
                 job_id: job.id,
                 type: 'annotation'
             });
             bjm.create().
             success(function(data) {
-                thNotify.send("bug association saved for " + job.platform + ": " + job.job_type_name, "success");
+                thNotify.send('bug association saved for ' + job.platform + ': ' + job.job_type_name, 'success');
             }).error(function(data) {
-                thNotify.send("error saving bug association for " + job.platform + ": " + job.job_type_name, "danger");
+                thNotify.send('error saving bug association for ' + job.platform + ': ' + job.job_type_name, 'danger');
             });
             api.removeBug(bug.id);
         });
@@ -49,7 +49,7 @@ treeherder.factory('thPinboard',
                 pinnedJobs[job.id] = job;
                 api.count.numPinnedJobs = _.size(pinnedJobs);
             } else {
-                thNotify.send("Pinboard is already at maximum size of " + api.maxNumPinned, "danger", true);
+                thNotify.send('Pinboard is already at maximum size of ' + api.maxNumPinned, 'danger', true);
             }
         },
 
@@ -68,10 +68,10 @@ treeherder.factory('thPinboard',
         },
 
         addBug: function(bug) {
-            $log.debug("adding bug ", bug);
+            $log.debug('adding bug ', bug);
             relatedBugs[bug.id] = bug;
             api.count.numRelatedBugs = _.size(relatedBugs);
-            $log.debug("related bugs", relatedBugs);
+            $log.debug('related bugs', relatedBugs);
 
         },
 
@@ -83,7 +83,7 @@ treeherder.factory('thPinboard',
         // open form to create a new note
         createNewClassification: function() {
             return new ThJobClassificationModel({
-                note: "",
+                note: '',
                 who: null,
                 failure_classification_id: -1
             });

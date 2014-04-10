@@ -1,20 +1,20 @@
 'use strict';
 
 /* Services */
-treeherder.factory('thUrl',['$rootScope', 'thServiceDomain', 'ThLog', function($rootScope, thServiceDomain, ThLog) {
+treeherder.factory('thUrl', ['$rootScope', 'thServiceDomain', 'ThLog', function($rootScope, thServiceDomain, ThLog) {
 
-   var thUrl =  {
+   var thUrl = {
         getRootUrl: function(uri) {
-            return thServiceDomain + "/api" + uri;
+            return thServiceDomain + '/api' + uri;
         },
         getProjectUrl: function(uri) {
-            return thServiceDomain + "/api/project/" + $rootScope.repoName + uri;
+            return thServiceDomain + '/api/project/' + $rootScope.repoName + uri;
         },
         getLogViewerUrl: function(job_id) {
-            return "logviewer.html#?job_id=" + job_id + "&repo=" + $rootScope.repoName;
+            return 'logviewer.html#?job_id=' + job_id + '&repo=' + $rootScope.repoName;
         },
         getSocketEventUrl: function() {
-            var port = thServiceDomain.indexOf("https:") !== -1 ? 443 :80;
+            var port = thServiceDomain.indexOf('https:') !== -1 ? 443 : 80;
             return thServiceDomain + ':' + port + '/events';
         }
    };
@@ -22,26 +22,26 @@ treeherder.factory('thUrl',['$rootScope', 'thServiceDomain', 'ThLog', function($
 
 }]);
 
-treeherder.factory('thSocket', function ($rootScope, ThLog, thUrl) {
-    var $log = new ThLog("thSocket");
+treeherder.factory('thSocket', function($rootScope, ThLog, thUrl) {
+    var $log = new ThLog('thSocket');
 
     var socket = io.connect(thUrl.getSocketEventUrl());
-    socket.on('connect', function () {
+    socket.on('connect', function() {
         $log.debug('socketio connected');
     });
     return {
-        on: function (eventName, callback) {
-            socket.on(eventName, function () {
+        on: function(eventName, callback) {
+            socket.on(eventName, function() {
                 var args = arguments;
-                $rootScope.$apply(function () {
+                $rootScope.$apply(function() {
                     callback.apply(socket, args);
                 });
             });
         },
-        emit: function (eventName, data, callback) {
-            socket.emit(eventName, data, function () {
+        emit: function(eventName, data, callback) {
+            socket.emit(eventName, data, function() {
                 var args = arguments;
-                $rootScope.$apply(function () {
+                $rootScope.$apply(function() {
                     if (callback) {
                         callback.apply(socket, args);
                     }
@@ -66,50 +66,50 @@ treeherder.factory('thCloneHtml', function($interpolate) {
     var templateId, templateName, templateTxt, i;
 
     var cloneHtmlObjs = {};
-    for(i=0; i<cloneTemplateIds.length; i++){
+    for (i = 0; i < cloneTemplateIds.length; i++) {
 
         templateId = cloneTemplateIds[i];
         templateName = templateId.replace('.html', '');
 
         templateTxt = document.getElementById(templateId);
         cloneHtmlObjs[templateName] = {
-            interpolator:$interpolate(templateTxt.text),
-            text:templateTxt.text
+            interpolator: $interpolate(templateTxt.text),
+            text: templateTxt.text
             };
     }
 
-    var getClone = function(templateName){
+    var getClone = function(templateName) {
         return cloneHtmlObjs[templateName];
     };
 
     return {
-        get:getClone
+        get: getClone
         };
 
 });
 
-treeherder.factory('ThPaginator', function(){
+treeherder.factory('ThPaginator', function() {
     //dead-simple implementation of an in-memory paginator
 
-    var ThPaginator = function(data, limit){
+    var ThPaginator = function(data, limit) {
         this.data = data;
         this.length = data.length;
         this.limit = limit;
     };
 
-    ThPaginator.prototype.get_page = function(n){
+    ThPaginator.prototype.get_page = function(n) {
         return this.data.slice(n * limit - limit, n * limit);
-    }
-
-    ThPaginator.prototype.get_all = function(){
-        return data
     };
 
-    return ThPaginator
+    ThPaginator.prototype.get_all = function() {
+        return data;
+    };
+
+    return ThPaginator;
 
 });
 
-treeherder.factory('BrowserId', function($http, $q, ThLog,  thServiceDomain){
+treeherder.factory('BrowserId', function($http, $q, ThLog,  thServiceDomain) {
 
     /*
     * BrowserId is a wrapper for the persona authentication service
@@ -118,7 +118,7 @@ treeherder.factory('BrowserId', function($http, $q, ThLog,  thServiceDomain){
     * This is mostly inspired by the django_browserid jquery implementation.
     */
     var browserid = {
-        info: $http.get(thServiceDomain+'/browserid/info/'),
+        info: $http.get(thServiceDomain + '/browserid/info/'),
         requestDeferred: null,
         logoutDeferred: null,
 
@@ -127,7 +127,7 @@ treeherder.factory('BrowserId', function($http, $q, ThLog,  thServiceDomain){
         * and send it to the treeherder verification endpoints.
         *
         */
-        login: function(requestArgs){
+        login: function(requestArgs) {
             return browserid.getAssertion(requestArgs)
             .then(function(response) {
                 return browserid.verifyAssertion(response);
@@ -139,13 +139,13 @@ treeherder.factory('BrowserId', function($http, $q, ThLog,  thServiceDomain){
         * The logoutDeferred promise is resolved by the onLogout callback
         * of navigator.id.watch
         */
-        logout: function(){
-            return browserid.info.then(function(response){
+        logout: function() {
+            return browserid.info.then(function(response) {
                 browserid.logoutDeferred = $q.defer();
                 navigator.id.logout();
-                return browserid.logoutDeferred.promise.then(function(){
+                return browserid.logoutDeferred.promise.then(function() {
                     return $http.post(response.data.logoutUrl);
-                })
+                });
             });
         },
         /*
@@ -153,8 +153,8 @@ treeherder.factory('BrowserId', function($http, $q, ThLog,  thServiceDomain){
         * The requestDeferred promise is resolved by the onLogin callback
         * of navigator.id.watch.
         */
-        getAssertion: function(requestArgs){
-            return browserid.info.then(function(response){
+        getAssertion: function(requestArgs) {
+            return browserid.info.then(function(response) {
                 requestArgs = _.extend({}, response.data.requestArgs, requestArgs);
                 browserid.requestDeferred = $q.defer();
                 navigator.id.request(requestArgs);
@@ -165,8 +165,8 @@ treeherder.factory('BrowserId', function($http, $q, ThLog,  thServiceDomain){
         * Verify the assertion provided by persona against the treeherder verification endpoint.
         * The django_browserid endpoint accept a post request with form-urlencoded fields.
         */
-        verifyAssertion: function(assertion){
-            return browserid.info.then(function(response){
+        verifyAssertion: function(assertion) {
+            return browserid.info.then(function(response) {
                 return $http.post(
                     response.data.loginUrl, {assertion: assertion},{
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
@@ -175,19 +175,19 @@ treeherder.factory('BrowserId', function($http, $q, ThLog,  thServiceDomain){
             });
         },
 
-        transform_data: function(data){
+        transform_data: function(data) {
             return $.param(data);
         }
-    }
+    };
     return browserid;
 });
 
-treeherder.factory('thNotify', function($timeout, ThLog){
+treeherder.factory('thNotify', function($timeout, ThLog) {
     //a growl-like notification system
 
-    var $log = new ThLog("thNotify");
+    var $log = new ThLog('thNotify');
 
-    var thNotify =  {
+    var thNotify = {
         // message queue
         notifications: [],
 
@@ -197,8 +197,8 @@ treeherder.factory('thNotify', function($timeout, ThLog){
         * @sticky is a boolean indicating if you want the message to disappear
         * after a while or not
         */
-        send: function(message, severity, sticky){
-            $log.debug("received message", message);
+        send: function(message, severity, sticky) {
+            $log.debug('received message', message);
             var severity = severity || 'info';
             var sticky = sticky || false;
             thNotify.notifications.push({
@@ -206,7 +206,7 @@ treeherder.factory('thNotify', function($timeout, ThLog){
                 severity: severity,
                 sticky: sticky
             });
-            if(!sticky){
+            if (!sticky) {
                 $timeout(thNotify.shift, 5000, true);
             }
         },
@@ -214,9 +214,9 @@ treeherder.factory('thNotify', function($timeout, ThLog){
         /*
         * Delete the first non-sticky element from the notifications queue
         */
-        shift: function(){
-            for(var i=0;i<thNotify.notifications.length; i++){
-                if(!thNotify.notifications[i].sticky){
+        shift: function() {
+            for (var i = 0; i < thNotify.notifications.length; i++) {
+                if (!thNotify.notifications[i].sticky) {
                     thNotify.remove(i);
                     return;
                 }
@@ -225,10 +225,10 @@ treeherder.factory('thNotify', function($timeout, ThLog){
         /*
         * remove an arbitrary element from the notifications queue
         */
-        remove: function(index){
-            thNotify.notifications.splice(index, 1)
+        remove: function(index) {
+            thNotify.notifications.splice(index, 1);
         }
-    }
+    };
     return thNotify;
 
 });

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 treeherder.controller('RepositoryPanelCtrl',
     function RepositoryPanelCtrl($scope, $rootScope, $routeParams, $location, ThLog,
@@ -6,9 +6,9 @@ treeherder.controller('RepositoryPanelCtrl',
         var $log = new ThLog(this.constructor.name);
 
         for (var repo in $scope.watchedRepos) {
-            if($scope.watchedRepos[repo]){
-                thSocket.emit('subscribe', repo+".job_failure");
-                $log.debug("subscribing to "+repo+".job_failure");
+            if ($scope.watchedRepos[repo]) {
+                thSocket.emit('subscribe', repo + '.job_failure');
+                $log.debug('subscribing to '+ repo + '.job_failure');
             }
         }
         $scope.toggleRepo = function(repoName) {

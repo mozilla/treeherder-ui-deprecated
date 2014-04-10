@@ -6,7 +6,7 @@ treeherder.factory('ThResultSetModel',
                    function($rootScope, thResultSets, thSocket,
                             ThJobModel, thEvents, thAggregateIds, ThLog) {
 
-    var $log = new ThLog("ThResultSetModel");
+    var $log = new ThLog('ThResultSetModel');
 
    /******
     * Handle updating the resultset datamodel based on a queue of jobs
@@ -26,29 +26,29 @@ treeherder.factory('ThResultSetModel',
 
     var updateQueueInterval = 10000;
 
-    var addRepository = function(repoName){
+    var addRepository = function(repoName) {
         //Initialize a new repository in the repositories structure
 
-        if(_.isEmpty(repositories[repoName])){
+        if (_.isEmpty(repositories[repoName])) {
             repositories[repoName] = {
 
-                name:repoName,
+                name: repoName,
 
                 //This is set to the id of the last resultset loaded
                 //and used as the offset in paging
-                rsOffsetId:0,
+                rsOffsetId: 0,
 
                 // queues of updates that have come over socket.io.
                 // Processed at intervals
-                jobUpdateQueue:[],
-                rsUpdateQueue:[],
+                jobUpdateQueue: [],
+                rsUpdateQueue: [],
 
                 // maps to help finding objects to update/add
-                rsMap:{},
-                jobMap:{},
-                jobMapOldestId:null,
-                rsMapOldestTimestamp:null,
-                resultSets:[],
+                rsMap: {},
+                jobMap: {},
+                jobMapOldestId: null,
+                rsMapOldestTimestamp: null,
+                resultSets: [],
 
                 // this is "watchable" by the controller now to update its scope.
                 loadingStatus: {
@@ -58,7 +58,7 @@ treeherder.factory('ThResultSetModel',
             };
 
             // Add a connect listener
-            thSocket.on('connect',function() {
+            thSocket.on('connect', function() {
                 // subscribe to all the events for this repo
                 thSocket.emit('subscribe', repoName);
                 });
@@ -71,13 +71,13 @@ treeherder.factory('ThResultSetModel',
 
             //Set up the socket listener
             thSocket.on(
-                "job",
+                'job',
                 _.bind(processSocketData, $rootScope, repoName)
                 );
         }
     };
 
-    var processSocketData = function(repoName, data){
+    var processSocketData = function(repoName, data) {
         /******
          * Process a new ``job`` event notification.
          * Check the job's ``result_set_id``.  If the id belongs to a resulset
@@ -112,9 +112,9 @@ treeherder.factory('ThResultSetModel',
         return 'key' + job.id;
     };
 
-    var getPlatformKey = function(name, option){
+    var getPlatformKey = function(name, option) {
         var key = name;
-        if(option !== undefined){
+        if (option !== undefined) {
             key += option;
         }
         return key;
@@ -141,15 +141,15 @@ treeherder.factory('ThResultSetModel',
 
             // keep track of the oldest push_timestamp, so we don't auto-fetch resultsets
             // that are out of the range we care about.
-            if ( !repositories[repoName].rsMapOldestTimestamp ||
+            if (!repositories[repoName].rsMapOldestTimestamp ||
                  (repositories[repoName].rsMapOldestTimestamp > rs_obj.push_timestamp)) {
                 repositories[repoName].rsMapOldestTimestamp = rs_obj.push_timestamp;
             }
 
             //Keep track of the last resultset id for paging
             var resultsetId = parseInt(rs_obj.id, 10);
-            if( (resultsetId < repositories[repoName].rsOffsetId) ||
-                (repositories[repoName].rsOffsetId === 0) ){
+            if ((resultsetId < repositories[repoName].rsOffsetId) ||
+                (repositories[repoName].rsOffsetId === 0)) {
                 repositories[repoName].rsOffsetId = resultsetId;
             }
 
@@ -200,9 +200,9 @@ treeherder.factory('ThResultSetModel',
 
         repositories[repoName].resultSets.sort(rsCompare);
 
-        $log.debug("oldest job: ", repositories[repoName].jobMapOldestId);
-        $log.debug("oldest result set: ", repositories[repoName].rsMapOldestTimestamp);
-        $log.debug("done mapping:", repositories[repoName].rsMap);
+        $log.debug('oldest job: ', repositories[repoName].jobMapOldestId);
+        $log.debug('oldest result set: ', repositories[repoName].rsMapOldestTimestamp);
+        $log.debug('done mapping:', repositories[repoName].rsMap);
     };
 
     /**
@@ -222,7 +222,7 @@ treeherder.factory('ThResultSetModel',
      * Ensure that the platform for ``newJob`` exists.  Create it if
      * necessary.  Add to the datamodel AND the map
      * @param newJob
-     * @returns plMapElement
+     * @return plMapElement
      */
     var getOrCreatePlatform = function(repoName, newJob) {
         var rsMapElement = repositories[repoName].rsMap[newJob.result_set_id];
@@ -230,7 +230,7 @@ treeherder.factory('ThResultSetModel',
         var plMapElement = rsMapElement.platforms[platformKey];
         if (!plMapElement) {
             // this platform wasn't in the resultset, so add it.
-            $log.debug("adding new platform");
+            $log.debug('adding new platform');
 
             var pl_obj = {
                 name: newJob.platform,
@@ -256,13 +256,13 @@ treeherder.factory('ThResultSetModel',
      * Ensure that the group and platform for ``newJob`` exist.
      * Create it if necessary.  Add to the datamodel AND the map
      * @param newJob
-     * @returns grpMapElement
+     * @return grpMapElement
      */
     var getOrCreateGroup = function(repoName, newJob) {
         var plMapElement = getOrCreatePlatform(repoName, newJob);
         var grMapElement = plMapElement.groups[newJob.job_group_name];
         if (!grMapElement) {
-            $log.debug("adding new group");
+            $log.debug('adding new group');
             var grp_obj = {
                 symbol: newJob.job_group_symbol,
                 name: newJob.job_group_name,
@@ -296,9 +296,9 @@ treeherder.factory('ThResultSetModel',
      * appropriate resultset.
      */
     var processUpdateQueues = function(repoName) {
-        $log.debug("Processing update queue.  jobs: " +
+        $log.debug('Processing update queue.  jobs: ' +
             repositories[repoName].jobUpdateQueue.length +
-            ", resultsets: " +
+            ', resultsets: ' +
             repositories[repoName].rsUpdateQueue.length);
         // clear the ``jobUpdateQueue`` so we won't miss items that get
         // added while in the process of fetching the current queue items.
@@ -311,12 +311,12 @@ treeherder.factory('ThResultSetModel',
 
         if (rsFetchList.length > 0) {
             // fetch these resultsets in a batch and put them into the model
-            $log.debug("processing the rsFetchList");
+            $log.debug('processing the rsFetchList');
             fetchNewResultSets(repoName, rsFetchList);
         }
 
         if (jobFetchList.length > 0) {
-            $log.debug("processing jobFetchList", jobFetchList);
+            $log.debug('processing jobFetchList', jobFetchList);
 
             // make an ajax call to get the job details
             fetchJobs(repoName, jobFetchList);
@@ -332,10 +332,10 @@ treeherder.factory('ThResultSetModel',
         }).then(
             _.bind(updateJobs, $rootScope, repoName),
             function(data) {
-                $log.error("Error fetching jobs: " + data);
+                $log.error('Error fetching jobs: ' + data);
             });
     };
-    var aggregateJobPlatform = function(repoName, job, platformData){
+    var aggregateJobPlatform = function(repoName, job, platformData) {
 
         var resultsetId, platformName, platformOption, platformAggregateId,
             platformKey, jobUpdated, resultsetAggregateId, revision,
@@ -345,7 +345,7 @@ treeherder.factory('ThResultSetModel',
 
         //the job was not updated or added to the model, don't include it
         //in the jobsLoaded broadcast
-        if(jobUpdated === false){
+        if (jobUpdated === false) {
             return;
         }
 
@@ -353,7 +353,7 @@ treeherder.factory('ThResultSetModel',
         platformName = job.platform;
         platformOption = job.platform_option;
 
-        if(_.isEmpty(repositories[repoName].rsMap[ resultsetId ])){
+        if (_.isEmpty(repositories[repoName].rsMap[resultsetId])) {
             //We don't have this resultset
             return;
         }
@@ -365,9 +365,9 @@ treeherder.factory('ThResultSetModel',
             job.platform_option
             );
 
-        if(!platformData[platformAggregateId]){
+        if (!platformData[platformAggregateId]) {
 
-            if(!_.isEmpty(repositories[repoName].rsMap[resultsetId])){
+            if (!_.isEmpty(repositories[repoName].rsMap[resultsetId])) {
 
                 revision = repositories[repoName].rsMap[resultsetId].rs_obj.revision;
 
@@ -377,17 +377,17 @@ treeherder.factory('ThResultSetModel',
 
                 platformKey = getPlatformKey(platformName, platformOption);
 
-                $log.debug("aggregateJobPlatform", repoName, resultsetId, platformKey, repositories);
+                $log.debug('aggregateJobPlatform', repoName, resultsetId, platformKey, repositories);
                 jobGroups = repositories[repoName].rsMap[resultsetId].platforms[platformKey].pl_obj.groups;
                 platformData[platformAggregateId] = {
-                    platformName:platformName,
-                    revision:revision,
-                    platformOrder:repositories[repoName].rsMap[resultsetId].rs_obj.platforms,
-                    resultsetId:resultsetId,
-                    resultsetAggregateId:resultsetAggregateId,
-                    platformOption:platformOption,
-                    jobGroups:jobGroups,
-                    jobs:[]
+                    platformName: platformName,
+                    revision: revision,
+                    platformOrder: repositories[repoName].rsMap[resultsetId].rs_obj.platforms,
+                    resultsetId: resultsetId,
+                    resultsetAggregateId: resultsetAggregateId,
+                    platformOption: platformOption,
+                    jobGroups: jobGroups,
+                    jobs: []
                     };
             }
         }
@@ -401,7 +401,7 @@ treeherder.factory('ThResultSetModel',
      */
     var updateJobs = function(repoName, jobList) {
 
-        $log.debug("number of jobs returned for add/update: ", jobList.length);
+        $log.debug('number of jobs returned for add/update: ', jobList.length);
 
         var platformData = {};
 
@@ -411,7 +411,7 @@ treeherder.factory('ThResultSetModel',
             aggregateJobPlatform(repoName, jobList[i], platformData);
         }
 
-        if(!_.isEmpty(platformData)){
+        if (!_.isEmpty(platformData)) {
             $rootScope.$broadcast(thEvents.jobsLoaded, platformData);
         }
     };
@@ -453,7 +453,7 @@ treeherder.factory('ThResultSetModel',
 
         var key = getJobMapKey(newJob);
         var loadedJobMap = repositories[repoName].jobMap[key];
-        var loadedJob = loadedJobMap? loadedJobMap.job_obj: null;
+        var loadedJob = loadedJobMap ? loadedJobMap.job_obj : null;
         var rsMapElement = repositories[repoName].rsMap[newJob.result_set_id];
 
         //We don't have this resultset id yet
@@ -462,11 +462,11 @@ treeherder.factory('ThResultSetModel',
         }
 
         if (loadedJob) {
-            $log.debug("updating existing job", loadedJob, newJob);
+            $log.debug('updating existing job', loadedJob, newJob);
             _.extend(loadedJob, newJob);
         } else {
             // this job is not yet in the model or the map.  add it to both
-            $log.debug("adding new job", newJob);
+            $log.debug('adding new job', newJob);
 
             var grpMapElement = getOrCreateGroup(repoName, newJob);
 
@@ -498,11 +498,11 @@ treeherder.factory('ThResultSetModel',
         var added = [];
         for (var i = data.length - 1; i > -1; i--) {
             if (data[i].push_timestamp > repositories[repoName].rsMapOldestTimestamp) {
-                $log.debug("prepending resultset: ", data[i].id);
+                $log.debug('prepending resultset: ', data[i].id);
                 repositories[repoName].resultSets.push(data[i]);
                 added.push(data[i]);
             } else {
-                $log.debug("not prepending.  timestamp is older");
+                $log.debug('not prepending.  timestamp is older');
             }
         }
 
@@ -513,7 +513,7 @@ treeherder.factory('ThResultSetModel',
 
     var appendResultSets = function(repoName, data) {
 
-        if(data.length > 0){
+        if (data.length > 0) {
 
 
             Array.prototype.push.apply(
@@ -526,7 +526,7 @@ treeherder.factory('ThResultSetModel',
         repositories[repoName].loadingStatus.appending = false;
     };
 
-    var loadRevisions = function(repoName, resultsetId){
+    var loadRevisions = function(repoName, resultsetId) {
         var rs = repositories[repoName].rsMap[resultsetId].rs_obj;
         if (rs && rs.revisions.length === 0) {
             // these revisions have never been loaded; do so now.
@@ -540,40 +540,40 @@ treeherder.factory('ThResultSetModel',
         }
     };
 
-    var getResultSetsArray = function(repoName){
+    var getResultSetsArray = function(repoName) {
         // this is "watchable" for when we add new resultsets and have to
         // sort them
         return repositories[repoName].resultSets;
     };
 
-    var getResultSetsMap = function(repoName){
+    var getResultSetsMap = function(repoName) {
         return repositories[repoName].rsMap;
     };
 
-    var getJobMap = function(repoName){
+    var getJobMap = function(repoName) {
         // this is a "watchable" for jobs
         return repositories[repoName].jobMap;
     };
-    var getLoadingStatus = function(repoName){
+    var getLoadingStatus = function(repoName) {
         return repositories[repoName].loadingStatus;
     };
-    var isNotLoaded = function(repoName){
+    var isNotLoaded = function(repoName) {
         return _.isEmpty(repositories[repoName].rsMap);
     };
 
-    var fetchNewResultSets = function(repoName, resultsetList){
+    var fetchNewResultSets = function(repoName, resultsetList) {
         /**
          * For fetching new resultsets via the web socket queue
          * @param resultsetlist list of result set ids to fetch.
          */
-        if(resultsetList.length > 0){
+        if (resultsetList.length > 0) {
             repositories[repoName].loadingStatus.prepending = true;
             thResultSets.getResultSets(0, resultsetList.length, resultsetList).
-            success( _.bind(prependResultSets, $rootScope, repoName) );
+            success(_.bind(prependResultSets, $rootScope, repoName));
         }
     };
 
-    var fetchResultSets = function(repoName, count){
+    var fetchResultSets = function(repoName, count) {
         /**
          * Get the next batch of resultsets based on our current offset.
          * @param count How many to fetch
@@ -581,7 +581,7 @@ treeherder.factory('ThResultSetModel',
         repositories[repoName].loadingStatus.appending = true;
         thResultSets.getResultSets(
             repositories[repoName].rsOffsetId, count
-            ).success( _.bind(appendResultSets, $rootScope, repoName) );
+            ).success(_.bind(appendResultSets, $rootScope, repoName));
 
     };
 

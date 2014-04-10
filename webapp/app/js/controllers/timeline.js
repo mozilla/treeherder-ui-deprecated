@@ -1,5 +1,5 @@
-"use strict";
+'use strict';
 
 treeherder.controller('TimelineCtrl',
-	function TimelineCtrl($scope){}
+	function TimelineCtrl($scope) {}
 );

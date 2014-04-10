@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 treeherder.controller('PluginCtrl',
     function PluginCtrl($scope, $rootScope, thUrl, ThJobClassificationModel,
@@ -6,7 +6,7 @@ treeherder.controller('PluginCtrl',
                         numberFilter, ThBugJobMapModel, thResultStatus, thSocket,
                         ThResultSetModel, ThLog) {
 
-        var $log = new ThLog("PluginCtrl");
+        var $log = new ThLog('PluginCtrl');
 
         $scope.job = {};
 
@@ -17,7 +17,7 @@ treeherder.controller('PluginCtrl',
                 $scope.job = newValue;
 
                 // get the details of the current job
-                ThJobModel.get($scope.job.id).then(function(data){
+                ThJobModel.get($scope.job.id).then(function(data) {
                     $scope.job = data;
                     $scope.$broadcast(thEvents.jobDetailLoaded);
 
@@ -28,16 +28,16 @@ treeherder.controller('PluginCtrl',
                 $scope.artifacts = {};
 
                 $scope.visibleFields = {
-                    "Job Name": $scope.job.job_type_name,
-                    "Start time": "",
-                    "Duration":  "",
-                    "Machine ": "",
-                    "Build": ""
+                    'Job Name': $scope.job.job_type_name,
+                    'Start time': '',
+                    'Duration': '',
+                    'Machine ': '',
+                    'Build': ''
                 };
 
                 $scope.tab_loading = true;
                 $scope.lvUrl = thUrl.getLogViewerUrl($scope.job.id);
-                $scope.resultStatusShading = "result-status-shading-" + thResultStatus($scope.job);
+                $scope.resultStatusShading = 'result-status-shading-' + thResultStatus($scope.job);
 
                 $scope.updateClassifications();
                 $scope.updateBugs();
@@ -45,21 +45,21 @@ treeherder.controller('PluginCtrl',
         };
 
         var updateVisibleFields = function() {
-                var undef = "";
+                var undef = '';
                 // fields that will show in the job detail panel
-                var duration = ($scope.job.end_timestamp-$scope.job.start_timestamp)/60;
+                var duration = ($scope.job.end_timestamp - $scope.job.start_timestamp) / 60;
                 if (duration) {
-                    duration = numberFilter(duration, 0) + " minutes";
+                    duration = numberFilter(duration, 0) + ' minutes';
                 }
 
                 $scope.visibleFields = {
-                    "Job Name": $scope.job.job_type_name || undef,
-                    "Start time": dateFilter($scope.job.start_timestamp*1000, 'short') || undef,
-                    "Duration":  duration || undef,
-                    "Machine ": $scope.job.machine_platform_architecture + " " +
+                    'Job Name': $scope.job.job_type_name || undef,
+                    'Start time': dateFilter($scope.job.start_timestamp * 1000, 'short') || undef,
+                    'Duration': duration || undef,
+                    'Machine ': $scope.job.machine_platform_architecture + ' ' +
                                 $scope.job.machine_platform_os || undef,
-                    "Build": $scope.job.build_architecture + " " +
-                             $scope.job.build_platform  + " " +
+                    'Build': $scope.job.build_architecture + ' ' +
+                             $scope.job.build_platform + ' ' +
                              $scope.job.build_os || undef
                 };
         };
@@ -69,7 +69,7 @@ treeherder.controller('PluginCtrl',
          */
         $scope.isReftest = function() {
             if ($scope.selectedJob) {
-                return $scope.selectedJob.job_group_symbol === "R";
+                return $scope.selectedJob.job_group_symbol === 'R';
             } else {
                 return false;
             }
@@ -100,7 +100,7 @@ treeherder.controller('PluginCtrl',
         // when classifications comes in, then set the latest note for the job
         $scope.$watch('classifications', function(newValue, oldValue) {
             if (newValue && newValue.length > 0) {
-                $scope.job.note=newValue[0];
+                $scope.job.note = newValue[0];
             }
         });
 
@@ -112,19 +112,19 @@ treeherder.controller('PluginCtrl',
             });
         };
 
-        var updateClassification = function(classification){
-            if(classification.who !== $scope.user.email){
+        var updateClassification = function(classification) {
+            if (classification.who !== $scope.user.email) {
                 // get a fresh version of the job
-                ThJobModel.get_list({id:classification.id})
-                .then(function(job_list){
-                    if(job_list.length > 0){
+                ThJobModel.get_list({id: classification.id})
+                .then(function(job_list) {
+                    if (job_list.length > 0) {
                         var job = job_list[0];
                         // get the list of jobs we know about
-                        var jobMap  = ThResultSetModel.getJobMap(classification.branch);
-                        var map_key = "key"+job.id;
-                        if(jobMap.hasOwnProperty(map_key)){
+                        var jobMap = ThResultSetModel.getJobMap(classification.branch);
+                        var map_key = 'key'+ job.id;
+                        if (jobMap.hasOwnProperty(map_key)) {
                             // update the old job with the new info
-                            _.extend(jobMap[map_key].job_obj,job);
+                            _.extend(jobMap[map_key].job_obj, job);
                             var params = { jobs: {}};
                             params.jobs[job.id] = jobMap[map_key].job_obj;
                             // broadcast the job classification event
@@ -138,24 +138,24 @@ treeherder.controller('PluginCtrl',
 
         };
 
-        thSocket.on("job_classification", updateClassification);
+        thSocket.on('job_classification', updateClassification);
 
         $scope.tabs = {
-            "tinderbox": {
-                title: "Job Details",
-                content: "plugins/tinderbox/main.html"
+            'tinderbox': {
+                title: 'Job Details',
+                content: 'plugins/tinderbox/main.html'
             },
-            "annotations": {
-                title: "Annotations",
-                content: "plugins/annotations/main.html"
+            'annotations': {
+                title: 'Annotations',
+                content: 'plugins/annotations/main.html'
             },
-            "bugs_suggestions": {
-                title: "Bugs suggestions",
-                content: "plugins/bugs_suggestions/main.html"
+            'bugs_suggestions': {
+                title: 'Bugs suggestions',
+                content: 'plugins/bugs_suggestions/main.html'
             },
-            "similar_jobs": {
-                title: "Similar jobs",
-                content: "plugins/similar_jobs/main.html"
+            'similar_jobs': {
+                title: 'Similar jobs',
+                content: 'plugins/similar_jobs/main.html'
             }
         };
 
