@@ -3,17 +3,17 @@
 treeherder.factory('ThRepositoryModel',
                    function($http, thUrl, $rootScope, ThLog, localStorageService,
                             thSocket, treeStatus) {
-    var $log = new ThLog("ThRepositoryModel");
+    var $log = new ThLog('ThRepositoryModel');
 
     var new_failures = {};
     var repos = {};
 
-    thSocket.on('job_failure', function(msg){
-        if (! new_failures.hasOwnProperty(msg.branch)){
+    thSocket.on('job_failure', function(msg) {
+        if (! new_failures.hasOwnProperty(msg.branch)) {
             new_failures[msg.branch] = [];
         }
         new_failures[msg.branch].push(msg.id);
-        $log.debug("new failure on branch ", msg.branch);
+        $log.debug('new failure on branch ', msg.branch);
     });
 
     // get the repositories (aka trees)
@@ -27,7 +27,7 @@ treeherder.factory('ThRepositoryModel',
                 }
             }
         } else {
-            $log.warn("Repos list has not been loaded.");
+            $log.warn('Repos list has not been loaded.');
         }
         $log.warn("'" + name + "' not found in repos list.");
         return null;
@@ -70,7 +70,7 @@ treeherder.factory('ThRepositoryModel',
                 unclassifiedFailureCount: 0
             };
             updateTreeStatus(repoName);
-            $log.debug("watchedRepo", repoName, repos[repoName]);
+            $log.debug('watchedRepo', repoName, repos[repoName]);
         }
     };
 
@@ -83,9 +83,9 @@ treeherder.factory('ThRepositoryModel',
 
     var load = function(name) {
 
-        var storedWatchedRepos = localStorageService.get("watchedRepos");
+        var storedWatchedRepos = localStorageService.get('watchedRepos');
 
-        return $http.get(thUrl.getRootUrl("/repository/")).
+        return $http.get(thUrl.getRootUrl('/repository/')).
             success(function(data) {
                 $rootScope.repos = data;
                 $rootScope.groupedRepos = getByGroup();
@@ -94,7 +94,7 @@ treeherder.factory('ThRepositoryModel',
                 if (storedWatchedRepos) {
                     _.each(storedWatchedRepos, addAsWatched);
                 }
-                localStorageService.add("watchedRepos", repos);
+                localStorageService.add('watchedRepos', repos);
 
                 if (name) {
                     $rootScope.currentRepo = getByName(name);
@@ -110,16 +110,16 @@ treeherder.factory('ThRepositoryModel',
 
     var setCurrent = function(name) {
         $rootScope.currentRepo = getByName(name);
-        $log.debug("repoModel", "setCurrent", name, "watchedRepos", repos);
+        $log.debug('repoModel', 'setCurrent', name, 'watchedRepos', repos);
     };
 
-    var repo_has_failures = function(repo_name){
+    var repo_has_failures = function(repo_name) {
         return ($rootScope.new_failures.hasOwnProperty(repo_name) &&
             $rootScope.new_failures[repo_name].length > 0);
     };
 
     var watchedReposUpdated = function(repoName) {
-        localStorageService.add("watchedRepos", repos);
+        localStorageService.add('watchedRepos', repos);
         if (repoName) {
             updateTreeStatus(repoName);
         } else {
@@ -129,12 +129,12 @@ treeherder.factory('ThRepositoryModel',
 
     var updateTreeStatus = function(repoName) {
         if (repos[repoName].isWatched) {
-            $log.debug("updateTreeStatus", "updating", repoName);
+            $log.debug('updateTreeStatus', 'updating', repoName);
             treeStatus.get(repoName).then(function(data) {
                     repos[repoName].treeStatus = data.data;
                 }, function(data) {
                     repos[repoName].treeStatus = {
-                        status: "unavailable",
+                        status: 'unavailable',
                         message_of_the_day: repoName +
                             ' is not supported in <a href="https://treestatus.mozilla.org">treestatus.mozilla.org</a>'
                     };

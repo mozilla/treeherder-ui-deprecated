@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 treeherder.controller('JobsCtrl',
     function JobsCtrl($scope, $http, $rootScope, $routeParams, ThLog, $cookies,
@@ -13,11 +13,11 @@ treeherder.controller('JobsCtrl',
         };
 
         // set the default repo to mozilla-inbound if not specified
-        if ($routeParams.hasOwnProperty("repo") &&
-            $routeParams.repo !== "") {
+        if ($routeParams.hasOwnProperty('repo') &&
+            $routeParams.repo !== '') {
             $rootScope.repoName = $routeParams.repo;
         } else {
-            $rootScope.repoName = "mozilla-inbound";
+            $rootScope.repoName = 'mozilla-inbound';
         }
 
         // load the list of repos into $rootScope, and set the current repo.
@@ -30,7 +30,7 @@ treeherder.controller('JobsCtrl',
         $scope.job_map = ThResultSetModel.getJobMap($scope.repoName);
         $scope.statusList = thResultStatusList;
 
-        if(ThResultSetModel.isNotLoaded($scope.repoName)){
+        if (ThResultSetModel.isNotLoaded($scope.repoName)) {
             // get our first set of resultsets
             $scope.fetchResultSets(10);
         }
@@ -62,14 +62,14 @@ treeherder.controller('ResultSetCtrl',
 
             $http.get(thServiceDomain + job_uri).
                 success(function(data) {
-                    if (data.hasOwnProperty("artifacts")) {
+                    if (data.hasOwnProperty('artifacts')) {
                         data.artifacts.forEach(function(artifact) {
-                            if (artifact.name === "Structured Log") {
+                            if (artifact.name === 'Structured Log') {
                                 window.open(thUrl.getLogViewerUrl(artifact.id));
                             }
                         });
                     } else {
-                        $log.warn("Job had no artifacts: " + job_uri);
+                        $log.warn('Job had no artifacts: ' + job_uri);
                     }
                 });
 
@@ -112,8 +112,8 @@ treeherder.controller('ResultSetCtrl',
                 thEvents.resultSetFilterChanged, $scope.resultset
                 );
 
-            $log.debug("toggled: ", resultStatus);
-            $log.debug("resultStatusFilters", $scope.resultStatusFilters);
+            $log.debug('toggled: ', resultStatus);
+            $log.debug('resultStatusFilters', $scope.resultStatusFilters);
         };
 
         /**
@@ -125,8 +125,8 @@ treeherder.controller('ResultSetCtrl',
             return thJobFilters.showJob(job, $scope.resultStatusFilters);
         };
 
-        $scope.revisionResultsetFilterUrl = $scope.urlBasePath + "?repo=" + $scope.repoName + "&revision=" + $scope.resultset.revision;
-        $scope.authorResultsetFilterUrl = $scope.urlBasePath + "?repo=" + $scope.repoName + "&author=" + encodeURIComponent($scope.resultset.author);
+        $scope.revisionResultsetFilterUrl = $scope.urlBasePath + '?repo=' + $scope.repoName + '&revision=' + $scope.resultset.revision;
+        $scope.authorResultsetFilterUrl = $scope.urlBasePath + '?repo=' + $scope.repoName + '&author=' + encodeURIComponent($scope.resultset.author);
 
         $scope.resultStatusFilters = thJobFilters.copyResultStatusFilters();
 
@@ -135,8 +135,8 @@ treeherder.controller('ResultSetCtrl',
         // whether or not revision list for a resultset is collapsed
         $scope.isCollapsedRevisions = true;
 
-        $rootScope.$on(thEvents.jobContextMenu, function(event, job){
-            $log.debug("caught", thEvents.jobContextMenu);
+        $rootScope.$on(thEvents.jobContextMenu, function(event, job) {
+            $log.debug('caught', thEvents.jobContextMenu);
             //$scope.viewLog(job.resource_uri);
         });
     }

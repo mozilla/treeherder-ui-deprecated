@@ -4,7 +4,7 @@
 //window.thServiceDomain = "http://dev.treeherder.mozilla.org";
 
 // local vagrant instance of service
-window.thServiceDomain = "http://local.treeherder.mozilla.org";
+window.thServiceDomain = 'http://local.treeherder.mozilla.org';
 
 treeherder.config(['$logProvider', 'ThLogConfigProvider',
     function($logProvider, ThLogConfigProvider) {

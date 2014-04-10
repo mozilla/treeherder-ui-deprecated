@@ -9,15 +9,15 @@ treeherder.factory('ThJobClassificationModel', function($http, ThLog, thUrl) {
         angular.extend(this, data);
     };
 
-    ThJobClassificationModel.get_uri = function(){return thUrl.getProjectUrl("/note/");};
+    ThJobClassificationModel.get_uri = function() {return thUrl.getProjectUrl('/note/');};
 
     ThJobClassificationModel.get_list = function(options) {
         // a static method to retrieve a list of ThJobClassificationModel
         var query_string = $.param(options);
-        return $http.get(ThJobClassificationModel.get_uri()+"?"+query_string)
+        return $http.get(ThJobClassificationModel.get_uri() + '?'+ query_string)
             .then(function(response) {
                 var item_list = [];
-                angular.forEach(response.data, function(elem){
+                angular.forEach(response.data, function(elem) {
                     item_list.push(new ThJobClassificationModel(elem));
                 });
                 return item_list;
@@ -26,7 +26,7 @@ treeherder.factory('ThJobClassificationModel', function($http, ThLog, thUrl) {
 
     ThJobClassificationModel.get = function(pk) {
         // a static method to retrieve a single instance of ThJobClassificationModel
-        return $http.get(ThJobClassificationModel.get_uri()+pk).then(function(response) {
+        return $http.get(ThJobClassificationModel.get_uri() + pk).then(function(response) {
             return new ThJobClassificationModel(response.data);
         });
     };
@@ -38,8 +38,8 @@ treeherder.factory('ThJobClassificationModel', function($http, ThLog, thUrl) {
     };
 
     // an instance method to delete a ThJobClassificationModel object
-    ThJobClassificationModel.prototype.delete = function(){
-        return $http.delete(ThJobClassificationModel.get_uri()+this.id+"/");
+    ThJobClassificationModel.prototype.delete = function() {
+        return $http.delete(ThJobClassificationModel.get_uri() + this.id + '/');
     };
 
     return ThJobClassificationModel;

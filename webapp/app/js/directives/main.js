@@ -6,7 +6,7 @@ treeherder.directive('ngRightClick', function($parse) {
         element.bind('contextmenu', function(event) {
             scope.$apply(function() {
                 event.preventDefault();
-                fn(scope, {$event:event});
+                fn(scope, {$event: event});
             });
         });
     };
@@ -20,7 +20,7 @@ treeherder.directive('focusMe', function($timeout) {
   return {
     link: function(scope, element, attrs) {
       scope.$watch(attrs.focusMe, function(value) {
-        if(value === true) {
+        if (value === true) {
           $timeout(function() {
             element[0].focus();
             scope[attrs.focusMe] = false;
@@ -31,28 +31,28 @@ treeherder.directive('focusMe', function($timeout) {
   };
 });
 
-treeherder.directive('thNotificationBox', function(thNotify){
+treeherder.directive('thNotificationBox', function(thNotify) {
     return {
-        restrict: "E",
-        templateUrl: "partials/thNotificationsBox.html",
+        restrict: 'E',
+        templateUrl: 'partials/thNotificationsBox.html',
         link: function(scope, element, attr) {
-            scope.notifier = thNotify
-            scope.alert_class_prefix = "alert-"
+            scope.notifier = thNotify;
+            scope.alert_class_prefix = 'alert-';
         }
-    }
+    };
 });
 
-treeherder.directive('numbersOnly', function(){
+treeherder.directive('numbersOnly', function() {
    return {
      require: 'ngModel',
      link: function(scope, element, attrs, modelCtrl) {
-       modelCtrl.$parsers.push(function (inputValue) {
+       modelCtrl.$parsers.push(function(inputValue) {
            // this next is necessary for when using ng-required on your input.
            // In such cases, when a letter is typed first, this parser will be called
            // again, and the 2nd time, the value will be undefined
-           if (inputValue == undefined) return ''
+           if (inputValue == undefined) return '';
            var transformedInput = inputValue.replace(/[^0-9]/g, '');
-           if (transformedInput!=inputValue) {
+           if (transformedInput != inputValue) {
               modelCtrl.$setViewValue(transformedInput);
               modelCtrl.$render();
            }

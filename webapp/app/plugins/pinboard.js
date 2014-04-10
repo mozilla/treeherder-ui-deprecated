@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 treeherder.controller('PinboardCtrl',
     function PinboardCtrl($scope, $rootScope, thEvents, thPinboard, thNotify, ThLog) {
@@ -48,7 +48,7 @@ treeherder.controller('PinboardCtrl',
                 thPinboard.save($scope.classification);
                 $rootScope.selectedJob = null;
             } else {
-                thNotify.send("must be logged in to classify jobs", "danger");
+                thNotify.send('must be logged in to classify jobs', 'danger');
             }
         };
 
@@ -57,7 +57,7 @@ treeherder.controller('PinboardCtrl',
                 $scope.classification.who = $scope.user.email;
                 thPinboard.saveClassificationOnly($scope.classification);
             } else {
-                thNotify.send("must be logged in to classify jobs", "danger");
+                thNotify.send('must be logged in to classify jobs', 'danger');
             }
         };
 
@@ -65,7 +65,7 @@ treeherder.controller('PinboardCtrl',
             if ($scope.user.loggedin) {
                 thPinboard.saveBugsOnly();
             } else {
-                thNotify.send("must be logged in to classify jobs", "danger");
+                thNotify.send('must be logged in to classify jobs', 'danger');
             }
         };
 
@@ -79,8 +79,8 @@ treeherder.controller('PinboardCtrl',
         };
 
         $scope.saveEnteredBugNumber = function() {
-            $log.debug("new bug number to be saved: ", $scope.newEnteredBugNumber);
-            thPinboard.addBug({id:$scope.newEnteredBugNumber});
+            $log.debug('new bug number to be saved: ', $scope.newEnteredBugNumber);
+            thPinboard.addBug({id: $scope.newEnteredBugNumber});
             $scope.newEnteredBugNumber = null;
             $scope.toggleEnterBugNumber();
         };

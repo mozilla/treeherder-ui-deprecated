@@ -1,25 +1,25 @@
 'use strict';
 
-treeherder.directive('thActionButton', function () {
+treeherder.directive('thActionButton', function() {
 
     return {
-        restrict: "E",
+        restrict: 'E',
         templateUrl: 'partials/thActionButton.html'
     };
 });
 
-treeherder.directive('thResultCounts', function () {
+treeherder.directive('thResultCounts', function() {
 
     return {
-        restrict: "E",
+        restrict: 'E',
         templateUrl: 'partials/thResultCounts.html'
     };
 });
 
-treeherder.directive('thResultStatusCount', function () {
+treeherder.directive('thResultStatusCount', function() {
 
     return {
-        restrict: "E",
+        restrict: 'E',
         link: function(scope, element, attrs) {
             scope.resultCountText = scope.getCountText(scope.resultStatus);
             scope.resultStatusCountClassPrefix = scope.getCountClass(scope.resultStatus);
@@ -29,14 +29,14 @@ treeherder.directive('thResultStatusCount', function () {
             scope.unclassifiedResultCount = scope.resultCount;
             var getCountAlertClass = function() {
                 if (scope.unclassifiedResultCount) {
-                    return scope.resultStatusCountClassPrefix + "-count-unclassified";
+                    return scope.resultStatusCountClassPrefix + '-count-unclassified';
                 } else {
-                    return scope.resultStatusCountClassPrefix + "-count-classified";
+                    return scope.resultStatusCountClassPrefix + '-count-classified';
                 }
             };
             scope.countAlertClass = getCountAlertClass();
 
-            scope.$watch("resultset.job_counts", function(newValue) {
+            scope.$watch('resultset.job_counts', function(newValue) {
                 scope.resultCount = scope.resultset.job_counts[scope.resultStatus];
                 scope.unclassifiedResultCount = scope.resultCount;
                 scope.countAlertClass = getCountAlertClass();
@@ -50,11 +50,11 @@ treeherder.directive('thResultStatusCount', function () {
 treeherder.directive('thRevision', function($parse) {
 
     return {
-        restrict: "E",
+        restrict: 'E',
         link: function(scope, element, attrs) {
             scope.$watch('resultset.revisions', function(newVal) {
                 if (newVal) {
-                    scope.revisionUrl = scope.currentRepo.url + "/rev/" + scope.revision.revision;
+                    scope.revisionUrl = scope.currentRepo.url + '/rev/' + scope.revision.revision;
                 }
             }, true);
         },
@@ -62,13 +62,13 @@ treeherder.directive('thRevision', function($parse) {
     };
 });
 
-treeherder.directive('thAuthor', function () {
+treeherder.directive('thAuthor', function() {
 
     return {
-        restrict: "E",
+        restrict: 'E',
         link: function(scope, element, attrs) {
             var userTokens = attrs.author.split(/[<>]+/);
-            var email = "";
+            var email = '';
             if (userTokens.length > 1) {
                 email = userTokens[1];
             }

@@ -25,7 +25,7 @@ treeherder.factory('thJobFilters',
                    function(thResultStatusList, ThLog, $rootScope,
                             ThResultSetModel, thPinboard, thNotify) {
 
-    var $log = new ThLog("thJobFilters");
+    var $log = new ThLog('thJobFilters');
 
     /**
      * If a custom resultStatusList is passed in (like for individual
@@ -36,7 +36,7 @@ treeherder.factory('thJobFilters',
      * means it must have a value set, ``false`` means it must be null.
      */
     var checkFilter = function(field, job, resultStatusList) {
-        $log.debug("checkFilter", field, job, resultStatusList);
+        $log.debug('checkFilter', field, job, resultStatusList);
         if (field === api.resultStatus) {
             // resultStatus is a special case that spans two job fields
             var filterList = resultStatusList || filters[field].values;
@@ -58,7 +58,7 @@ treeherder.factory('thJobFilters',
                 return true;
             }
 
-            $log.debug("jobField filter", field, job);
+            $log.debug('jobField filter', field, job);
             switch (filters[field].matchType) {
                 case api.matchType.isnull:
                     jobFieldValue = !_.isNull(jobFieldValue);
@@ -92,7 +92,7 @@ treeherder.factory('thJobFilters',
                 // the original string
                 platform = result;
             }
-            result = platform + " " + job.platform_option;
+            result = platform + ' ' + job.platform_option;
         }
         return result;
     };
@@ -145,8 +145,8 @@ treeherder.factory('thJobFilters',
 
             filterKeys = _.keys(filters);
 
-            $log.debug("adding ", field, ": ", value);
-            $log.debug("filters", filters);
+            $log.debug('adding ', field, ': ', value);
+            $log.debug('filters', filters);
         },
         removeFilter: function(field, value) {
             if (filters.hasOwnProperty(field)) {
@@ -155,8 +155,8 @@ treeherder.factory('thJobFilters',
                     value = value.toLowerCase();
                 }
                 var idx = filters[field].values.indexOf(value);
-                if(idx > -1) {
-                    $log.debug("removing ", value);
+                if (idx > -1) {
+                    $log.debug('removing ', value);
                     filters[field].values.splice(idx, 1);
                 }
             }
@@ -168,7 +168,7 @@ treeherder.factory('thJobFilters',
             }
 
             filterKeys = _.keys(filters);
-            $log.debug("filters", filters);
+            $log.debug('filters', filters);
         },
         /**
          * used mostly for resultStatus doing group toggles
@@ -178,8 +178,8 @@ treeherder.factory('thJobFilters',
          * @param add - true if adding, false if removing
          */
         toggleFilters: function(field, values, add) {
-            $log.debug("toggling: ", add);
-            var action = add? api.addFilter: api.removeFilter;
+            $log.debug('toggling: ', add);
+            var action = add ? api.addFilter : api.removeFilter;
             for (var i = 0; i < values.length; i++) {
                 action(field, values[i]);
             }
@@ -196,16 +196,16 @@ treeherder.factory('thJobFilters',
          *        that can be used for individual resultsets
          */
         showJob: function(job, resultStatusList) {
-            for(var i = 0; i < filterKeys.length; i++) {
+            for (var i = 0; i < filterKeys.length; i++) {
                 if (!checkFilter(filterKeys[i], job, resultStatusList)) {
                     return false;
                 }
             }
-            if(typeof $rootScope.searchQuery === 'string'){
+            if (typeof $rootScope.searchQuery === 'string') {
                 //Confirm job matches search query
-                if(job.searchableStr.toLowerCase().indexOf(
+                if (job.searchableStr.toLowerCase().indexOf(
                     $rootScope.searchQuery.toLowerCase()
-                    ) === -1){
+                    ) === -1) {
                     return false;
                 }
             }
@@ -232,8 +232,8 @@ treeherder.factory('thJobFilters',
 
             if (_.size(jobsToPin) > thPinboard.spaceRemaining()) {
                 jobsToPin = jobsToPin.splice(0, thPinboard.spaceRemaining());
-                thNotify.send("Pinboard max size exceeded.  Pinning only the first " + thPinboard.spaceRemaining(),
-                              "danger",
+                thNotify.send('Pinboard max size exceeded.  Pinning only the first ' + thPinboard.spaceRemaining(),
+                              'danger',
                               true);
             }
 
@@ -242,8 +242,8 @@ treeherder.factory('thJobFilters',
         },
 
         // CONSTANTS
-        failure_classification_id: "failure_classification_id",
-        resultStatus: "resultStatus",
+        failure_classification_id: 'failure_classification_id',
+        resultStatus: 'resultStatus',
         matchType: {
             exactstr: 0,
             substr: 1,

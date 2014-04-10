@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 treeherder.controller('FilterPanelCtrl',
     function FilterPanelCtrl($scope, $rootScope, $routeParams, $location, ThLog,
@@ -10,22 +10,22 @@ treeherder.controller('FilterPanelCtrl',
 
         $scope.filterGroups = {
             failures: {
-                value: "failures",
-                name: "failures",
+                value: 'failures',
+                name: 'failures',
                 allChecked: true,
-                resultStatuses: ["testfailed", "busted", "exception"]
+                resultStatuses: ['testfailed', 'busted', 'exception']
             },
             nonfailures: {
-                value: "nonfailures",
-                name: "non-failures",
+                value: 'nonfailures',
+                name: 'non-failures',
                 allChecked: true,
-                resultStatuses: ["success", "retry"]
+                resultStatuses: ['success', 'retry']
             },
             inProgress: {
-                value: "inProgress",
-                name: "in progress",
+                value: 'inProgress',
+                name: 'in progress',
                 allChecked: true,
-                resultStatuses: ["pending", "running"]
+                resultStatuses: ['pending', 'running']
             }
         };
 
@@ -99,7 +99,7 @@ treeherder.controller('FilterPanelCtrl',
          * neither or both.
          */
         $scope.toggleClassificationFilter = function(isClassified) {
-            var isChecked = !(isClassified? $scope.classifiedFilter: $scope.unClassifiedFilter);
+            var isChecked = !(isClassified ? $scope.classifiedFilter : $scope.unClassifiedFilter);
             $scope.setClassificationFilter(isClassified, isChecked, false);
         };
 
@@ -111,11 +111,11 @@ treeherder.controller('FilterPanelCtrl',
          *                       (when false)
          */
         $scope.setClassificationFilter = function(isClassified, isChecked, quiet) {
-            var field = "failure_classification_id";
+            var field = 'failure_classification_id';
             // this function is called before the checkbox value has actually
             // changed the scope model value, so change to the inverse.
-            var func = isChecked? thJobFilters.addFilter: thJobFilters.removeFilter;
-            var target = isClassified? "classified": "unclassified";
+            var func = isChecked ? thJobFilters.addFilter : thJobFilters.removeFilter;
+            var target = isClassified ? 'classified': 'unclassified';
 
             func(field, isClassified, thJobFilters.matchType.bool);
 
@@ -126,7 +126,7 @@ treeherder.controller('FilterPanelCtrl',
         };
 
         $scope.createFieldFilter = function() {
-            $scope.newFieldFilter = {field: "", value: ""};
+            $scope.newFieldFilter = {field: '', value: ''};
         };
         $scope.cancelFieldFilter = function() {
             $scope.newFieldFilter = null;
@@ -134,8 +134,8 @@ treeherder.controller('FilterPanelCtrl',
 
 
         $scope.addFieldFilter = function() {
-            $log.debug("adding filter", $scope.newFieldFilter.field);
-            if (!$scope.newFieldFilter || $scope.newFieldFilter.field === "" || $scope.newFieldFilter.value === "") {
+            $log.debug('adding filter', $scope.newFieldFilter.field);
+            if (!$scope.newFieldFilter || $scope.newFieldFilter.field === '' || $scope.newFieldFilter.value === '') {
                 return;
             }
             thJobFilters.addFilter(
@@ -158,12 +158,12 @@ treeherder.controller('FilterPanelCtrl',
                 thJobFilters.removeFilter(ff.field, ff.value);
             });
             $rootScope.$broadcast(thEvents.globalFilterChanged,
-                                  {target: "allFieldFilters", newValue: null});
+                                  {target: 'allFieldFilters', newValue: null});
             $scope.fieldFilters = [];
         };
 
         $scope.removeFilter = function(index) {
-            $log.debug("removing index", index);
+            $log.debug('removing index', index);
             thJobFilters.removeFilter(
                 $scope.fieldFilters[index].field,
                 $scope.fieldFilters[index].value
@@ -193,27 +193,27 @@ treeherder.controller('FilterPanelCtrl',
         $scope.fieldFilters = [];
         $scope.fieldChoices = {
             job_type_name: {
-                name: "job name",
+                name: 'job name',
                 matchType: thJobFilters.matchType.substr
             },
             job_type_symbol: {
-                name: "job symbol",
+                name: 'job symbol',
                 matchType: thJobFilters.matchType.exactstr
             },
             job_group_name: {
-                name: "group name",
+                name: 'group name',
                 matchType: thJobFilters.matchType.substr
             },
             job_group_symbol: {
-                name: "group symbol",
+                name: 'group symbol',
                 matchType: thJobFilters.matchType.exactstr
             },
             machine_name: {
-                name: "machine name",
+                name: 'machine name',
                 matchType: thJobFilters.matchType.substr
             },
             platform: {
-                name: "platform",
+                name: 'platform',
                 matchType: thJobFilters.matchType.substr
             }
         };
@@ -221,14 +221,14 @@ treeherder.controller('FilterPanelCtrl',
 );
 
 treeherder.controller('SearchCtrl',
-    function SearchCtrl($scope, $rootScope, thEvents){
+    function SearchCtrl($scope, $rootScope, thEvents) {
 
-        $rootScope.searchQuery = "";
+        $rootScope.searchQuery = '';
 
-        $scope.search = function(ev){
+        $scope.search = function(ev) {
             //User hit enter
-            if( (ev.keyCode === 13) ||
-                ($scope.searchQuery === "") ){
+            if ((ev.keyCode === 13) ||
+                ($scope.searchQuery === '')) {
 
                 $rootScope.searchQuery = $scope.searchQuery;
 

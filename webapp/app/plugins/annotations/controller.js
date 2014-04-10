@@ -1,13 +1,13 @@
-"use strict";
+'use strict';
 
 treeherder.controller('AnnotationsPluginCtrl',
     function AnnotationsPluginCtrl($scope, $rootScope, ThLog, ThJobClassificationModel,
                                    thNotify, thEvents, ThResultSetModel, ThBugJobMapModel) {
         var $log = new ThLog(this.constructor.name);
 
-        $log.debug("annotations plugin initialized");
+        $log.debug('annotations plugin initialized');
 
-        $scope.$watch('classifications', function(newValue, oldValue){
+        $scope.$watch('classifications', function(newValue, oldValue) {
 
             $scope.tabs.annotations.num_items = newValue ? $scope.classifications.length : 0;
         }, true);
@@ -16,8 +16,8 @@ treeherder.controller('AnnotationsPluginCtrl',
             var jcModel = new ThJobClassificationModel(classification);
             jcModel.delete()
                 .then(
-                    function(){
-                        thNotify.send("Classification successfully deleted", "success", false);
+                    function() {
+                        thNotify.send('Classification successfully deleted', 'success', false);
                         var jobs = {};
                         jobs[$scope.selectedJob.id] = $scope.selectedJob;
 
@@ -27,8 +27,8 @@ treeherder.controller('AnnotationsPluginCtrl',
 
                         $rootScope.$broadcast(thEvents.jobsClassified, {jobs: jobs});
                     },
-                    function(){
-                        thNotify.send("Classification deletion failed", "danger", true);
+                    function() {
+                        thNotify.send('Classification deletion failed', 'danger', true);
                     }
                 );
         };
@@ -37,15 +37,15 @@ treeherder.controller('AnnotationsPluginCtrl',
             var bjmModel = new ThBugJobMapModel(bug);
             bjmModel.delete()
                 .then(
-                    function(){
-                        thNotify.send("Association to bug " + bug.bug_id + " successfully deleted", "success", false);
+                    function() {
+                        thNotify.send('Association to bug ' + bug.bug_id + ' successfully deleted', 'success', false);
                         var jobs = {};
                         jobs[$scope.selectedJob.id] = $scope.selectedJob;
 
                         $rootScope.$broadcast(thEvents.bugsAssociated, {jobs: jobs});
                     },
-                    function(){
-                        thNotify.send("Association to bug " + bug.bug_id + " deletion failed", "danger", true);
+                    function() {
+                        thNotify.send('Association to bug ' + bug.bug_id + ' deletion failed', 'danger', true);
                     }
                 );
         };
