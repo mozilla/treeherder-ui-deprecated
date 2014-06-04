@@ -1,0 +1,7 @@
+<span class="result-status-count text-right {{countAlertClass}}"
+      ng-class="{'result-status-count-{{resultStatus}}': (windowWidth >= 1400), 'result-status-count-min-width': (windowWidth < 1400)}"
+      ng-click="toggleResultSetResultStatusFilter(resultStatus)"
+      title="toggle {{resultStatus}}">
+        <span ng-bind="resultCount"></span>
+        <span ng-show="windowWidth >= 1400"> {{resultCountText}}</span>
+    </span>
