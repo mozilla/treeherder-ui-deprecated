@@ -190,6 +190,7 @@ treeherder.factory('thJobFilters', [
             // the string types are case insensitive
             value = value.toLowerCase();
         }
+
         if (filters.hasOwnProperty(field)) {
             if (!_.contains(filters[field].values, value)) {
                 filters[field].values.push(value);
@@ -211,6 +212,8 @@ treeherder.factory('thJobFilters', [
     };
 
     var removeFilter = function(field, value) {
+        var removed = false;
+
         if (filters.hasOwnProperty(field)) {
             if (_.isString(value)) {
                 // the string types are case insensitive
@@ -220,7 +223,7 @@ treeherder.factory('thJobFilters', [
             if(idx > -1) {
                 $log.debug("removing ", value);
                 filters[field].values.splice(idx, 1);
-                $rootScope.$broadcast(thEvents.globalFilterChanged);
+                removed = true;
             }
         }
 
@@ -231,6 +234,11 @@ treeherder.factory('thJobFilters', [
         }
 
         filterKeys = _.keys(filters);
+
+        if (removed) {
+            $rootScope.$broadcast(thEvents.globalFilterChanged);
+        }
+
         $log.debug("filters", filters);
     };
 

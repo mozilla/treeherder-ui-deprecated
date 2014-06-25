@@ -22,6 +22,10 @@
         <span class="col-xs-4 result-set-buttons">
             <span class="revision-text">{{resultset.revision}}</span>
             <span class="btn btn-default btn-sm"
+                  title="show performance data"
+                  ng-click="togglePerformanceView()">
+                <i class="glyphicon glyphicon-stats"></i></span>
+            <span class="btn btn-default btn-sm"
                   title="copy revision link to clipboard"
                   clip-copy="revisionResultsetFilterUrl"
                   clip-click="revisionUrlCopied(resultset.revision)">

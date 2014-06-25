@@ -116,11 +116,23 @@ treeherder.controller('ResultSetCtrl', [
                 $rootScope.repoName, $scope.resultset.id
                 );
 
-            $rootScope.$broadcast(
+            $rootScope.$emit(
                 thEvents.toggleRevisions, $scope.resultset
                 );
 
         };
+
+        $scope.togglePerformanceView = function() {
+            $scope.toggleRevisions();
+            $scope.performanceViewVisible = !$scope.performanceViewVisible;
+
+            if ($scope.performanceViewVisible) {
+                thJobFilters.addFilter('job_group_symbol', 'T');
+            } else {
+                thJobFilters.removeFilter('job_group_symbol', 'T');
+            }
+        };
+
         $scope.toggleJobs = function() {
 
             $rootScope.$broadcast(
