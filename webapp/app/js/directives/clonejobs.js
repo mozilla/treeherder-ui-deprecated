@@ -2,12 +2,12 @@
 
 /* Directives */
 treeherder.directive('thCloneJobs', [
-    '$rootScope', '$http', 'ThLog', 'thUrl', 'thCloneHtml',
+    '$rootScope', '$http', '$compile', 'ThLog', 'thUrl', 'thCloneHtml',
     'thServiceDomain', 'thResultStatusInfo', 'thEvents', 'thAggregateIds',
     'thJobFilters', 'thResultStatusObject', 'ThResultSetModel',
     'ThJobModel', 'linkifyBugsFilter', 'thResultStatus',
     function(
-        $rootScope, $http, ThLog, thUrl, thCloneHtml,
+        $rootScope, $http, $compile, ThLog, thUrl, thCloneHtml,
         thServiceDomain, thResultStatusInfo, thEvents, thAggregateIds,
         thJobFilters, thResultStatusObject, ThResultSetModel,
         ThJobModel, linkifyBugsFilter, thResultStatus){
@@ -974,6 +974,9 @@ treeherder.directive('thCloneJobs', [
         var targetEl = $(
             tableInterpolator({ aggregateId:resultsetAggregateId })
             );
+
+        // allow angularness inside template
+        $compile(targetEl)(scope);
 
         //Retrieve table el for appending
         var tableEl = targetEl.find('table');

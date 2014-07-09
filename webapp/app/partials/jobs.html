@@ -31,6 +31,8 @@
                   clip-click="revisionUrlCopied(resultset.revision)">
                 <i class="glyphicon glyphicon-link"></i></span>
             <span class="btn btn-default btn-sm"
+                  title="pin all visible jobs in this resultset"
+                  ng-click="pinAllShownJobs()">
                 <span class="glyphicon glyphicon-pushpin"></span>
             </span>
             <th-action-button ng-hide="isLoadingJobs"></th-action-button>

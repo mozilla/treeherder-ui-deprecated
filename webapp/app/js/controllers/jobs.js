@@ -72,14 +72,19 @@ treeherder.controller('ResultSetCtrl', [
     '$scope', '$rootScope', '$http', 'ThLog', '$location',
     'thUrl', 'thServiceDomain', 'thResultStatusInfo',
     'ThResultSetModel', 'thEvents', 'thJobFilters', 'thNotify',
-    'thBuildApi',
+    'thBuildApi', 'ThPerformanceDataModel',
     function ResultSetCtrl(
         $scope, $rootScope, $http, ThLog, $location,
         thUrl, thServiceDomain, thResultStatusInfo,
         ThResultSetModel, thEvents, thJobFilters, thNotify,
-        thBuildApi) {
+        thBuildApi, ThPerformanceDataModel) {
 
         var $log = new ThLog(this.constructor.name);
+        $scope.revisionsVisible = true;
+        $scope.jobsVisible = true;
+        $scope.performanceViewVisible = false;
+
+        var PerformanceData = new ThPerformanceDataModel();
 
         $scope.getCountClass = function(resultStatus) {
             return thResultStatusInfo(resultStatus).btnClass;
@@ -116,20 +121,53 @@ treeherder.controller('ResultSetCtrl', [
                 $rootScope.repoName, $scope.resultset.id
                 );
 
-            $rootScope.$emit(
-                thEvents.toggleRevisions, $scope.resultset
-                );
+            $scope.revisionsVisible = !$scope.revisionsVisible;
+
+            // $rootScope.$emit(
+            //     thEvents.toggleRevisions, $scope.resultset
+            //     );
 
         };
 
         $scope.togglePerformanceView = function() {
             $scope.toggleRevisions();
-            $scope.performanceViewVisible = !$scope.performanceViewVisible;
 
-            if ($scope.performanceViewVisible) {
+
+            if (!$scope.performanceViewVisible) {
                 thJobFilters.addFilter('job_group_symbol', 'T');
+
+                PerformanceData.get_signatures_from_property_list({
+                    job_group_symbol: 'T',
+                    job_type_symbol: 'cm'
+                }).then(function (signatureData) {
+                    signatureData = signatureData.data;
+                    var signatures = [];
+
+                    for (var i in signatureData) {
+                        if (!signatureData.hasOwnProperty(i)) continue;
+                        signatures.push(i);
+                    }
+
+                    PerformanceData.get_from_signatures(signatures).then(
+                            function (performanceData) {
+                        $scope.data = [];
+
+                        performanceData.data.forEach(function (datum) {
+                            var chartData = signatureData[datum.series_signature];
+
+                            $scope.data.push({
+                                data: datum.blob,
+                                suite: chartData.suite,
+                                test: chartData.test
+                            });
+                        });
+
+                        $scope.performanceViewVisible = true;
+                    })
+                });
             } else {
                 thJobFilters.removeFilter('job_group_symbol', 'T');
+                $scope.performanceViewVisible = false;
             }
         };
 

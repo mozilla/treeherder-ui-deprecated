@@ -12,6 +12,7 @@
         <link href="css/font-awesome.min.css" rel="stylesheet" media="screen">
         <link href="css/treeherder.css" rel="stylesheet" media="screen">
         <link href="css/persona-buttons.css" rel="stylesheet" media="screen">
+        <link href="css/charts.css" rel="stylesheet" media="screen">
         <!-- endbuild -->
 
     </head>
@@ -39,6 +40,8 @@
 
         <th-notification-box></th-notification-box>
 
+        <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../../excanvas.min.js"></script><![endif]-->
+
         <!-- build:js js/index.min.js -->
         <script src="vendor/jquery-2.0.3.js"></script>
         <script src="vendor/angular/angular.js"></script>
@@ -51,6 +54,8 @@
         <script src="vendor/socket.io.js"></script>
         <script src="vendor/angular-local-storage.min.js"></script>
         <script src="vendor/underscore-min.js"></script>
+        <script src="vendor/jquery.flot.min.js"></script>
+        <script src="vendor/jquery.flot.canvas.min.js"></script>
 
         <script src="js/app.js"></script>
         <script src="js/services/log.js"></script>
@@ -63,6 +68,7 @@
         <script src="js/directives/resultsets.js"></script>
         <script src="js/directives/top_nav_bar.js"></script>
         <script src="js/directives/bottom_nav_panel.js"></script>
+        <script src="js/directives/line_chart.js"></script>
         <!-- Main services -->
         <script src="js/services/main.js"></script>
         <script src="js/services/buildapi.js"></script>
@@ -71,6 +77,7 @@
         <script src="js/services/pinboard.js"></script>
         <script src="js/services/resultsets.js"></script>
         <script src="js/services/treestatus.js"></script>
+        <script src="js/services/charts.js"></script>
         <!-- Model services -->
         <script src="js/models/resultsets.js"></script>
         <script src="js/models/job_artifact.js"></script>
@@ -84,6 +91,7 @@
         <script src="js/models/job_type.js"></script>
         <script src="js/models/option.js"></script>
         <script src="js/models/user.js"></script>
+        <script src="js/models/performance_data.js"></script>
         <!-- Controllers -->
         <script src="js/controllers/main.js"></script>
         <script src="js/controllers/sheriff.js"></script>
@@ -146,12 +154,20 @@
 <script type="'text/ng-template'" id="resultsetClone.html">
     <div class="clearfix"></div>
     <div class="row result-set">
-        <span style="display:block;" class="revision-list col-xs-4">
+        <span style="display:block;" class="revision-list col-xs-4" ng-show="revisionsVisible">
             <ul class="list-unstyled"></ul>
         </span>
-        <span class="job-list col-xs-8 job-list-pad-left">
+        <span class="job-list job-list-pad-left"
+              ng-show="jobsVisible"
+              ng-class="{ 'col-xs-8': revisionsVisible && !performanceViewVisible,
+                          'col-xs-6': !revisionsVisible && performanceViewVisible,
+                          'col-xs-12': !revisionsVisible && !performanceViewVisible }">
+
             <table id="{{ aggregateId }}" class="table-hover"></table>
         </span>
+        <div ng-include src="'partials/thCharts.html'"
+              ng-show="performanceViewVisible"
+              class="col-xs-6"></div>
     </div>
 </script>
 <!-- Clone target for each platform -->
