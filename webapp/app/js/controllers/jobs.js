@@ -132,39 +132,41 @@ treeherder.controller('ResultSetCtrl', [
         $scope.togglePerformanceView = function() {
             $scope.toggleRevisions();
 
+            function getShownJobs () {
+                var shownJobs = [];
+                var jobs = ThResultSetModel.getJobMap($rootScope.repoName);
+
+                _.forEach(jobs, function (jMap) {
+                    if ($scope.resultset.id !== jMap.job_obj.result_set_id) return;
+
+                    if (thJobFilters.showJob(jMap.job_obj, $scope.resultStatusFilters)) {
+                        shownJobs.push(jMap.job_obj);
+                    }
+                });
+
+                return shownJobs;
+            }
 
             if (!$scope.performanceViewVisible) {
                 thJobFilters.addFilter('job_group_symbol', 'T');
 
-                PerformanceData.get_signatures_from_property_list({
-                    job_group_symbol: 'T',
-                    job_type_symbol: 'cm'
-                }).then(function (signatureData) {
-                    signatureData = signatureData.data;
-                    var signatures = [];
+                $scope.performanceViewVisible = true;
 
-                    for (var i in signatureData) {
-                        if (!signatureData.hasOwnProperty(i)) continue;
-                        signatures.push(i);
-                    }
+                var shownJobs = getShownJobs();
 
-                    PerformanceData.get_from_signatures(signatures).then(
-                            function (performanceData) {
-                        $scope.data = [];
+                if (shownJobs.length === 0) {
+                    $scope.chartSettings = {
+                        error: 'No performance jobs yet for this repository.'
+                    };
 
-                        performanceData.data.forEach(function (datum) {
-                            var chartData = signatureData[datum.series_signature];
+                    return;
+                }
 
-                            $scope.data.push({
-                                data: datum.blob,
-                                suite: chartData.suite,
-                                test: chartData.test
-                            });
-                        });
+                $rootScope.selectedJob = shownJobs[0];
 
-                        $scope.performanceViewVisible = true;
-                    })
-                });
+                $scope.chartSettings = {
+                    selectedJob: shownJobs[0]
+                };
             } else {
                 thJobFilters.removeFilter('job_group_symbol', 'T');
                 $scope.performanceViewVisible = false;

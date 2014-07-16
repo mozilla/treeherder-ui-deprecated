@@ -73,8 +73,8 @@ logViewer.controller('LogviewerCtrl', [
                 $scope.loading = true;
 
                 LogSlice.get_line_range({
-                    job_id: $scope.job_id, 
-                    start_line: range.start, 
+                    job_id: $scope.job_id,
+                    start_line: range.start,
                     end_line: range.end
                 }, {
                     buffer_size: LINE_BUFFER_SIZE
@@ -96,7 +96,7 @@ logViewer.controller('LogviewerCtrl', [
                     } else if (bounds.bottom) {
                         var sh = element.scrollHeight;
                         var lines = $scope.displayedLogLines;
-    
+
                         for (var i = 0; i < data.length; i++) {
                             // make sure we are inserting at the right place
                             if (lines[ lines.length - 1 ].index != data[i].index - 1) continue;
@@ -200,7 +200,7 @@ logViewer.controller('LogviewerCtrl', [
 
         function getChunkContaining (line, request) {
             var index = Math.floor(line/LINE_BUFFER_SIZE);
-            
+
             request.start = index * LINE_BUFFER_SIZE;
             request.end = (index + 1) * LINE_BUFFER_SIZE;
         }

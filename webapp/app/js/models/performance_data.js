@@ -10,16 +10,16 @@ treeherder.factory('ThPerformanceDataModel', [
     ThPerformanceDataModel.get_uri = function(){return thUrl.getProjectUrl('/performance-data/0');};
 
     ThPerformanceDataModel.prototype.get_from_signatures = function (signatures, timeInterval) {
-       return $http.get(ThPerformanceDataModel.get_uri() + '/get_performance_data',{
+       return $http.get(ThPerformanceDataModel.get_uri() + '/get_performance_data/',{
             params: {
-                signatures: JSON.stringify(signatures),
+                signatures: signatures,
                 interval_seconds: timeInterval || 1209600
             }
         });
     };
 
     ThPerformanceDataModel.prototype.get_signatures_from_property_list = function (properties) {
-        return $http.get(ThPerformanceDataModel.get_uri() + '/get_signatures_from_properties',{
+        return $http.get(ThPerformanceDataModel.get_uri() + '/get_signatures_from_properties/',{
             params: {
                 properties: properties
             }

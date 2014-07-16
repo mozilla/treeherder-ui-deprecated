@@ -1,0 +1,51 @@
+<div class="scatter-plot-directive-container">
+    <div class="scatter-plot-header clearfix"
+         ng-if="_chartData.length > 0">
+
+        <div class="dropdown pull-left">
+            <button class="btn sp-header-suite dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                {{_chartData[0].suite}}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu suite-dropdown" role="menu" aria-labelledby="dropdownMenu1">
+                <li role="presentation" ng-repeat="test in getTests()">
+                    <a role="menuitem" tabindex="-1" ng-click="jumpToTest($index)">
+                        {{test}}
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="pull-left">
+            <div class="btn-group">
+                <span type="button" class="btn scatter-plot-header-button"
+                      ng-repeat="timeInterval in timeIntervals"
+                      ng-click="selectInterval(timeInterval.seconds)"
+                      ng-class="{'selected': (timeInterval.seconds === selectedInterval)}">
+                    {{timeInterval.days}}d</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="scatter-plot-error"
+         ng-if="settings.error">
+        {{settings.error}}
+    </div>
+    <div class="scatter-plot-loading"
+         ng-if="_loading">
+        <img src="img/waiter64.png" />
+    </div>
+
+    <div class="th-scatter-plot-chart-list" ng-if="!_loading">
+        <div ng-repeat="data in _chartData" class="th-chart-repeater" index="$index">
+
+            {{data.test}}
+
+            <!--
+              pass in the charting data through scatter-plot attr
+              this div has to have a set height & width
+            -->
+            <div scatter-plot="data" class="th-chart"></div>
+        </div>
+    </div>
+</div>

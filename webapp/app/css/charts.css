@@ -1,28 +1,105 @@
 
 .axis path,
 .axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
 }
 
 .dot {
-  stroke: #000;
+    stroke: #000;
 }
 
 .tick {
-  font-weight: 100;
-  font-size: .8em;
+    font-weight: 100;
+    font-size: .8em;
 }
 
 .tooltip {
-  position: absolute;
-  width: 200px;
-  height: 28px;
-  pointer-events: none;
+    position: absolute;
+    width: 200px;
+    height: 28px;
+    pointer-events: none;
 }
 
-[line-chart], line-chart {
-  max-height: 300px;
-  overflow: auto;
+.th-chart {
+    height: 150px;
+    width: 100%;
+    font-size: .8em;
+}
+
+.th-chart-repeater {
+    color: #585858;
+    font-weight: 300;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+.scatter-plot-error {
+    height: 100%;
+    width: 100%;
+    line-height: 300px;
+    text-align: center;
+    font-size: 1.5em;
+    color: #D58484;
+}
+
+.scatter-plot-header {
+    background-color: #EFEFEF;
+    padding: 6px 15px;
+    padding-top: 5px;
+    width: 100%;
+}
+
+.th-scatter-plot-chart-list {
+    height: 300px;
+    overflow: auto;
+    overflow-x: hidden;
+    padding: 15px;
+    position: relative;
+}
+
+.scatter-plot-header-button {
+    border: 1px solid #e5e5e5;
+    font-size: .8em;
+}
+
+.scatter-plot-header-button.selected {
+    background-color: #058DC7;
+    color: #EFEFEF;
+    font-weight: bold;
+}
+
+.scatter-plot-loading {
+    height: 100%;
+    width: 100%;
+    line-height: 300px;
+    text-align: center;
+}
+
+.scatter-plot-directive-container {
+    border-left: 1px solid #EFEFEF;
+}
+
+.sp-header-left-top {
+    font-size: .9em;
+    color: #585858;
+}
+
+.sp-header-suite {
+    padding: 5px 10px;
+    border: 1px solid #E5E5E5;
+    font-size: .9em;
+    color: #939393;
+    margin-right: 5px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.sp-header-suite .caret {
+    border-top-color: #939393;
+}
+
+.suite-dropdown {
+    z-index: 1001;
 }

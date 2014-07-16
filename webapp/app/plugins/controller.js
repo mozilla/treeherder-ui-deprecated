@@ -239,6 +239,10 @@ treeherder.controller('PluginCtrl', [
             "similar_jobs": {
                 title: "Similar jobs",
                 content: "plugins/similar_jobs/main.html"
+            },
+            "performance_replicates": {
+                title: "Performance Replicates",
+                content: "plugins/performance_replicates/main.html"
             }
         };
 
