@@ -1,13 +1,8 @@
 "use strict";
 
 treeherder.controller('PerformanceReplicatesPluginCtrl',
-    ['$rootScope', '$scope', 'ThPerformanceArtifactModel', function ($rootScope, $scope, ThPerformanceArtifactModel) {
+        ['$rootScope', '$scope', 'PerformanceReplicates',
+        function ($rootScope, $scope, PerformanceReplicates) {
 
-    ThPerformanceArtifactModel.get_list({
-        job_id: $rootScope.selectedJob.job_id,
-    }).then(function (data) {
-        console.log(data);
-    });
-
-    $scope.test = 'bing';
+    $scope.replicates = PerformanceReplicates;
 }]);

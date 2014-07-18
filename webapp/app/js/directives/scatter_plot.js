@@ -87,7 +87,8 @@ treeherder.directive('scatterPlotContainer', ['ThPerformanceDataModel', '$rootSc
                             scope._chartData.push({
                                 data: datum.blob,
                                 suite: chartData.suite,
-                                test: chartData.test
+                                test: chartData.test,
+                                series_signature: datum.series_signature
                             });
 
                             scope._loading = false;
@@ -105,8 +106,9 @@ treeherder.directive('scatterPlotContainer', ['ThPerformanceDataModel', '$rootSc
     };
 }]);
 
-treeherder.directive('scatterPlot', ['$window', '$timeout',
-        function ($window, $timeout) {
+treeherder.directive('scatterPlot',
+    ['$rootScope', '$window', '$timeout', 'PerformanceReplicates',
+        function ($rootScope, $window, $timeout, PerformanceReplicates) {
     return {
         restrict: 'EA',
         scope: {
@@ -185,6 +187,16 @@ treeherder.directive('scatterPlot', ['$window', '$timeout',
 
             $timeout(function () {
                 $.plot(element, [data], this.performanceChartOptions);
+
+                $(element).bind('plotclick', function (e, pos, item) {
+                    var index = item.dataIndex;
+                    var job_id = scope.obj.data[index].job_id;
+
+                    PerformanceReplicates.load_replicates(
+                        scope.obj.series_signature,
+                        job_id
+                    );
+                });
             });
         }
     };

@@ -18,11 +18,9 @@ treeherder.factory('ThPerformanceDataModel', [
         });
     };
 
-    ThPerformanceDataModel.prototype.get_signatures_from_property_list = function (properties) {
+    ThPerformanceDataModel.prototype.get_signatures_from_property_list = function (params) {
         return $http.get(ThPerformanceDataModel.get_uri() + '/get_signatures_from_properties/',{
-            params: {
-                properties: properties
-            }
+            params: params
         });
     };
 
