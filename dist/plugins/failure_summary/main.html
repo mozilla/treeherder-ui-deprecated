@@ -1,7 +1,8 @@
 <div class="full-height" ng-controller="BugsPluginCtrl">
     <ul class="list-unstyled failure-summary-list">
+
         <li ng-repeat="failure in bugs">
-            <div class="failure-summary-line"><strong>{{failure.search}}</strong></div>
+            <div class="failure-summary-line"><strong ng-bind="failure.search"></strong></div>
             <span ng-repeat="visible in ['open','closed']">
                 <ul class="list-unstyled">
                     <li ng-repeat="bug in failure[visible] | orderBy:bug.relevance:reverse"
@@ -13,7 +14,7 @@
                         </button>
                         <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{bug.id}}"
                            ng-class="{'deleted': bug.resolution != ''}">{{bug.id}}</a>
-                        <span ng-bind-html="bug.summary | highlightCommonTerms:failure.search"
+                        <span ng-bind-html="bug.summary | escapeHTML | highlightCommonTerms:failure.search"
                               title="{{bug.summary}}"
                               ng-class="{'deleted': bug.resolution != ''}">
                         </span>
