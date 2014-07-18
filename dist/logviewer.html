@@ -9,7 +9,14 @@
             <div class="col-md-6">
                 <table class="table table-condensed">
                     <tr ng-repeat="(label, value) in artifact.header">
-                        <th>{{label}}</th><td>{{value}}</td>
+                        <th>{{label}}</th>
+                        <td ng-if="label == 'revision'">
+                            <a href="{{logRevisionFilterUrl}}"
+                               title="open resultset in new tab"
+                               target="_blank"
+                               class="repo-link">{{value}}</a>
+                        </td>
+                        <td ng-if="label != 'revision'">{{value}}</td>
                     </tr>
                 </table>
             </div>
@@ -25,5 +32,6 @@
 
 
     <script src="js/logviewer.min.js"></script>
+
     </body>
 </html>
