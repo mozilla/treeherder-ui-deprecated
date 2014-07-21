@@ -61,38 +61,31 @@ treeherder.directive('scatterPlotContainer', ['ThPerformanceDataModel', '$rootSc
                 };
             };
 
-            var loadData = function () {
+            function loadData () {
                 var params = getParamsForWebService();
                 if (!params) return;
 
                 scope._loading = true;
 
-                PerformanceData.get_signatures_from_property_list(params)
-                .then(function (signatureData) {
-                    signatureData = signatureData.data;
-                    var signatures = [];
+                PerformanceData.get_from_property_list(
+                    params, scope.selectedInterval)
+                .then(function (ret) {
+                    var performanceData = ret.performanceData;
+                    var signatureData = ret.signatureData;
 
-                    for (var i in signatureData) {
-                        if (!signatureData.hasOwnProperty(i)) continue;
-                        signatures.push(i);
-                    }
+                    scope._chartData = [];
 
-                    PerformanceData.get_from_signatures(signatures, scope.selectedInterval).then(
-                            function (performanceData) {
-                        scope._chartData = [];
+                    performanceData.data.forEach(function (datum) {
+                        var chartData = signatureData[datum.series_signature];
 
-                        performanceData.data.forEach(function (datum) {
-                            var chartData = signatureData[datum.series_signature];
-
-                            scope._chartData.push({
-                                data: datum.blob,
-                                suite: chartData.suite,
-                                test: chartData.test,
-                                series_signature: datum.series_signature
-                            });
-
-                            scope._loading = false;
+                        scope._chartData.push({
+                            data: datum.blob,
+                            suite: chartData.suite,
+                            test: chartData.test,
+                            series_signature: datum.series_signature
                         });
+
+                        scope._loading = false;
                     });
                 });
             };
@@ -189,6 +182,8 @@ treeherder.directive('scatterPlot',
                 $.plot(element, [data], this.performanceChartOptions);
 
                 $(element).bind('plotclick', function (e, pos, item) {
+                    if (!item) return;
+
                     var index = item.dataIndex;
                     var job_id = scope.obj.data[index].job_id;
 

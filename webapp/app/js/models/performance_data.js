@@ -24,5 +24,31 @@ treeherder.factory('ThPerformanceDataModel', [
         });
     };
 
+    ThPerformanceDataModel.prototype.get_from_property_list = function (params, timeInterval) {
+        var deferred = $q.defer();
+        var _this = this;
+
+        this.get_signatures_from_property_list(params)
+                .then(function (signatureData) {
+            signatureData = signatureData.data;
+            var signatures = [];
+
+            for (var i in signatureData) {
+                if (!signatureData.hasOwnProperty(i)) continue;
+                signatures.push(i);
+            }
+
+            _this.get_from_signatures(signatures, timeInterval)
+                    .then(function (performanceData) {
+                deferred.resolve({
+                    performanceData: performanceData,
+                    signatureData: signatureData
+                });
+            });
+        });
+
+        return deferred.promise;
+    };
+
     return ThPerformanceDataModel;
 }]);
