@@ -2,7 +2,7 @@
     <div ng-repeat="step in artifact.step_data.steps"
          ng-click="displayLog(step)"
          ng-class="{'selected': (displayedStep.order === step.order),
-                    'btn-success': (step.error_count === 0), 
+                    'btn-success': (step.error_count === 0),
                     'btn-warning': (step.error_count > 0)}"
          ng-if="showSuccessful === true || step.error_count !== 0"
          class="btn btn-block logviewer-step clearfix"
@@ -30,19 +30,22 @@
                 </span>
 
                 <span title="{{error.line}}">
-                    {{error.line | limitTo: 67}}
-                </span>
-
-                <span ng-if="error.line.length > 70">
-                    ...
+                    {{error.line}}
                 </span>
             </div>
         </div>
     </div>
 </div>
 
-<div ng-if="artifact && totalErrors() !== 0">
-    <input type="checkbox"  
+<div class="logviewer-stepbar">
+    <a title="Open the raw log in a new window" target="_blank" href="{{artifact.logurl}}">
+        <span class="glyphicon glyphicon-align-left"></span>
+    </a>
+</div>
+
+<div ng-if="artifact && totalErrors() !== 0"
+     class="logviewer-stepbar">
+    <input type="checkbox"
            ng-model="showSuccessful"
            ng-change="toggleSuccessfulSteps()" />
 

@@ -14,7 +14,6 @@ treeherder.controller('MainCtrl', [
         var $log = new ThLog("MainCtrl");
 
         thClassificationTypes.load();
-        ThRepositoryModel.load();
 
         $rootScope.getWindowTitle = function() {
             var ufc = $scope.getUnclassifiedFailureCount($rootScope.repoName);
@@ -38,29 +37,37 @@ treeherder.controller('MainCtrl', [
                 return;
             }
 
-            if( (ev.keyCode === 73) ){
-                // toggle display in-progress jobs(pending/running), key:i
-                $scope.toggleInProgress();
+            if (!ev.metaKey) {
+                if ((ev.keyCode === 73)) {
+                    // toggle display in-progress jobs(pending/running), key:i
+                    $scope.toggleInProgress();
 
-            }else if( (ev.keyCode === 74) || (ev.keyCode === 78) ){
-                //Highlight next unclassified failure keys:j/n
-                $rootScope.$broadcast(
-                    thEvents.selectNextUnclassifiedFailure
+                } else if ((ev.keyCode === 74) || (ev.keyCode === 78)) {
+                    //Highlight next unclassified failure keys:j/n
+                    $rootScope.$broadcast(
+                        thEvents.selectNextUnclassifiedFailure
                     );
 
-            }else if( (ev.keyCode === 75) || (ev.keyCode === 80) ){
-                //Highlight previous unclassified failure keys:k/p
-                $rootScope.$broadcast(
-                    thEvents.selectPreviousUnclassifiedFailure
+                } else if ((ev.keyCode === 75) || (ev.keyCode === 80)) {
+                    //Highlight previous unclassified failure keys:k/p
+                    $rootScope.$broadcast(
+                        thEvents.selectPreviousUnclassifiedFailure
                     );
 
-            }else if(ev.keyCode === 83){
-                //Select/deselect active build or changeset, keys:s
-                $rootScope.$broadcast(thEvents.jobPin, $rootScope.selectedJob);
+                } else if (ev.keyCode === 32) {
+                    // If a job is selected add it otherwise
+                    // let the browser handle the spacebar
+                    if ($scope.selectedJob) {
+                        // Pin selected job to pinboard, key:[spacebar]
+                        // and prevent page down propagating to the jobs panel
+                        ev.preventDefault();
+                        $rootScope.$broadcast(thEvents.jobPin, $rootScope.selectedJob);
+                    }
 
-            }else if(ev.keyCode === 85){
-                //display only unclassified failures, keys:u
-                $scope.toggleUnclassifiedFailures();
+                } else if (ev.keyCode === 85) {
+                    //display only unclassified failures, keys:u
+                    $scope.toggleUnclassifiedFailures();
+                }
             }
         };
 
@@ -79,11 +86,7 @@ treeherder.controller('MainCtrl', [
         };
 
         // the repos the user has chosen to watch
-        $scope.watchedRepos = ThRepositoryModel.watchedRepos;
-
-        $scope.unwatchRepo = function(name) {
-            ThRepositoryModel.unwatch(name);
-        };
+        $scope.repoModel = ThRepositoryModel;
 
         // update the repo status (treestatus) in an interval of every 2 minutes
         $interval(ThRepositoryModel.updateAllWatchedRepoTreeStatus, 2 * 60 * 1000);
@@ -198,8 +201,8 @@ treeherder.controller('MainCtrl', [
 
         $scope.isRepoPanelShowing = false;
 
-        $scope.toggleRepoPanel = function() {
-            $scope.isRepoPanelShowing=!$scope.isRepoPanelShowing;
+        $scope.setRepoPanelShowing = function(tf) {
+            $scope.isRepoPanelShowing = tf;
         };
 
         $scope.changeRepo = function(repo_name) {
@@ -208,7 +211,7 @@ treeherder.controller('MainCtrl', [
             $rootScope.selectedJob = null;
             thPinboard.unPinAll();
 
-            ThRepositoryModel.setCurrent(repo_name);
+            $scope.repoModel.setCurrent(repo_name);
             $location.search({repo: repo_name});
 
         };

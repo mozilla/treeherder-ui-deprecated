@@ -5,13 +5,13 @@ treeherder.controller('PluginCtrl', [
     'thClassificationTypes', 'ThJobModel', 'thEvents', 'dateFilter',
     'numberFilter', 'ThBugJobMapModel', 'thResultStatus', 'thSocket',
     'ThResultSetModel', 'ThLog', '$q', 'thPinboard', 'ThJobArtifactModel',
-    'thBuildApi', 'thNotify',
+    'thBuildApi', 'thNotify', 'ThJobLogUrlModel',
     function PluginCtrl(
         $scope, $rootScope, thUrl, ThJobClassificationModel,
         thClassificationTypes, ThJobModel, thEvents, dateFilter,
         numberFilter, ThBugJobMapModel, thResultStatus, thSocket,
         ThResultSetModel, ThLog, $q, thPinboard, ThJobArtifactModel,
-        thBuildApi, thNotify) {
+        thBuildApi, thNotify, ThJobLogUrlModel) {
 
         var $log = new ThLog("PluginCtrl");
 
@@ -26,6 +26,14 @@ treeherder.controller('PluginCtrl', [
             if (newValue) {
                 $scope.job_detail_loading = true;
                 $scope.job = newValue;
+
+                $scope.visibleFields = {
+                    "Job Name": $scope.job.job_type_name,
+                    "Start time": "",
+                    "Duration":  "",
+                    "Machine ": "",
+                    "Build": ""
+                };
 
                 if(timeout_promise !== null){
                     $log.debug("timing out previous job request");
@@ -54,17 +62,16 @@ treeherder.controller('PluginCtrl', [
                         _.forEach(data, function(item) {
                             $scope.artifacts[item.name] = item;
                         });
+                        $scope.visibleFields["Buildbot Job Name"] = $scope.artifacts.buildapi.blob.buildername;
                         $log.debug("buildapi artifacts", $scope.artifacts);
                     }
                 });
 
-                $scope.visibleFields = {
-                    "Job Name": $scope.job.job_type_name,
-                    "Start time": "",
-                    "Duration":  "",
-                    "Machine ": "",
-                    "Build": ""
-                };
+                ThJobLogUrlModel.get_list($scope.job.id)
+                .then(function(data){
+                    $scope.job_log_urls = data;
+                });
+
                 $scope.lvUrl = thUrl.getLogViewerUrl($scope.job.id);
                 $scope.resultStatusShading = "result-status-shading-" + thResultStatus($scope.job);
 
@@ -91,6 +98,9 @@ treeherder.controller('PluginCtrl', [
                              $scope.job.build_platform  + " " +
                              $scope.job.build_os || undef
                 };
+                if (_.has($scope.artifacts, "buildapi")) {
+                    $scope.visibleFields["Buildbot Job Name"] = $scope.artifacts.buildapi.blob.buildername;
+                }
         };
 
         $scope.getCountPinnedJobs = function() {
