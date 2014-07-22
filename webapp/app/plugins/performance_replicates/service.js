@@ -5,6 +5,7 @@ treeherder.service('PerformanceReplicates',
         function (ThPerformanceArtifactModel) {
 
     this.data = [];
+    this.performanceSeries = {};
 
     this.load_replicates = function (series_signature, job_id) {
         var _this = this;
@@ -17,6 +18,7 @@ treeherder.service('PerformanceReplicates',
             var blob = JSON.parse(ret[0].blob);
 
             _this.data = blob.blob.replicates;
+            _this.performanceSeries = blob.blob.performance_series;
         });
     };
 }]);

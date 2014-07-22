@@ -1,3 +1,15 @@
-<div ng-controller="PerformanceReplicatesPluginCtrl">
-    <div class="th-chart" bar-chart="replicates.data"></div>
+<div ng-controller="PerformanceReplicatesPluginCtrl" class="container">
+    <div class="row">
+        <div class="summary-bar col-md-3">
+            <table class="table table-condensed">
+                <tr ng-repeat="(label, value) in replicates.performanceSeries">
+                    <th>{{label}}</th>
+                    <td>{{value}}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-9">
+            <div class="th-chart" bar-chart="replicates.data"></div>
+        </div>
+    </div>
 </div>

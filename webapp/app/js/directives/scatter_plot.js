@@ -108,20 +108,33 @@ treeherder.directive('scatterPlot',
             obj: '=scatterPlot'
         },
         link: function (scope, element, attrs) {
-            var data = [], prepareData;
+            var points=[], data=[], plot, prepareData, performanceChartOptions;
+
+            scope.showDeviation = true;
 
             (prepareData = function () {
+                points = [];
+                data = [];
+
                 scope.obj.data.forEach(function (datum, index) {
-                    data.push([
+                    points.push([
                         index,
-                        datum.median
+                        datum.median,
+                        datum.std,
+                        datum.std
                     ]);
+
+                    points[points.length - 1];
                 });
             })();
 
+            function draw () {
+                plot = $.plot(element, [points], performanceChartOptions);
+            }
+
             var timeoutHandle = null;
             function timeoutResize () {
-                $.plot(element, [data], this.performanceChartOptions);
+                draw();
             }
 
             angular.element($window).bind('resize', function () {
@@ -129,8 +142,7 @@ treeherder.directive('scatterPlot',
                 timeoutHandle = $timeout(timeoutResize, 200);
             });
 
-
-            this.performanceChartOptions = {
+            performanceChartOptions = {
                 grid: {
                     clickable: true,
                     hoverable: true,
@@ -164,11 +176,11 @@ treeherder.directive('scatterPlot',
                         fillColor: '#058DC7',
                         errorbars: 'y',
                         yerr: {
-                             show: true,
-                             upperCap:'-',
-                             lowerCap:'-',
-                             color: '#CCCCCC'
-                            }
+                            show: true,
+                            upperCap:'-',
+                            lowerCap:'-',
+                            color: '#CCCCCC'
+                        }
                     },
                     color: '#058DC7'
                 },
@@ -178,19 +190,42 @@ treeherder.directive('scatterPlot',
                 }
             };
 
+            $rootScope.$on('replicates.highlight', function (e, result_set_id) {
+                plot.unhighlight();
+
+                var index = 0;
+                console.log(result_set_id);
+                for (var i = 0, l = scope.obj.data.length; i < l; i++) {
+                    if (scope.obj.data[i].result_set_id === result_set_id) {
+                        plot.highlight(0, i);
+                    }
+                }
+            });
+
             $timeout(function () {
-                $.plot(element, [data], this.performanceChartOptions);
+                draw();
+
+                $(element).bind('plothover', function (e, pos, item) {
+                    if (!item) return;
+
+                    var index = item.dataIndex;
+                    var obj = scope.obj.data[index];
+
+                    PerformanceReplicates.load_replicates(
+                        scope.obj.series_signature,
+                        obj.job_id
+                    );
+                });
 
                 $(element).bind('plotclick', function (e, pos, item) {
                     if (!item) return;
 
-                    var index = item.dataIndex;
-                    var job_id = scope.obj.data[index].job_id;
+                    console.log($rootScope.selectedJob);
 
-                    PerformanceReplicates.load_replicates(
-                        scope.obj.series_signature,
-                        job_id
-                    );
+                    var index = item.dataIndex;
+                    var obj = scope.obj.data[index];
+
+                    $rootScope.$emit('replicates.highlight', obj.result_set_id);
                 });
             });
         }

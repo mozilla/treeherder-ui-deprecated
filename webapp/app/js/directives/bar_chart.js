@@ -5,11 +5,22 @@ treeherder.directive('barChart', function () {
             data: '=barChart'
         },
         link: function (scope, element, attrs) {
-            var prepareData, data = [], plot;
+            var prepareData, points = [], data = [], plot;
 
-            this.chartOptions = {
+            var chartOptions = {
                 bars: {
                     show: true
+                },
+
+                xaxis: {
+                },
+
+                yaxis: {
+                    autoscaleMargin:0.3
+                },
+
+                series: {
+                    color: '#058DC7'
                 }
             };
 
