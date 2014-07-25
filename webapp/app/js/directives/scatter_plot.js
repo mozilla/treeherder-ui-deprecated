@@ -1,5 +1,6 @@
-treeherder.directive('scatterPlotContainer', ['ThPerformanceDataModel', '$rootScope',
-        function (ThPerformanceDataModel, $rootScope) {
+treeherder.directive('scatterPlotContainer',
+    ['ThPerformanceDataModel', '$rootScope', 'PerformanceReplicates',
+        function (ThPerformanceDataModel, $rootScope, PerformanceReplicates) {
 
     var PerformanceData = new ThPerformanceDataModel();
 
@@ -11,7 +12,6 @@ treeherder.directive('scatterPlotContainer', ['ThPerformanceDataModel', '$rootSc
         },
         link: function (scope, element, attrs) {
             scope.timeIntervals = [
-                { seconds:86400, days:1},
                 { seconds:604800, days:7},
                 { seconds:1209600, days:14},
                 { seconds:2592000, days:30},
@@ -19,8 +19,14 @@ treeherder.directive('scatterPlotContainer', ['ThPerformanceDataModel', '$rootSc
                 { seconds:7776000, days:90},
             ];
 
-            scope.selectedInterval = 86400;
             scope._chartData = [];
+            scope.selectedDatum = {};
+
+            scope.options = {
+                selectedInterval: 604800,
+                errorBars: true,
+                plot: 'mean'
+            };
 
             $rootScope.$watch('selectedJob', function () {
                 scope.settings.selectedJob = $rootScope.selectedJob;
@@ -28,7 +34,7 @@ treeherder.directive('scatterPlotContainer', ['ThPerformanceDataModel', '$rootSc
             });
 
             scope.selectInterval = function (seconds) {
-                scope.selectedInterval = seconds;
+                scope.options.selectedInterval = seconds;
                 loadData();
             };
 
@@ -68,7 +74,7 @@ treeherder.directive('scatterPlotContainer', ['ThPerformanceDataModel', '$rootSc
                 scope._loading = true;
 
                 PerformanceData.get_from_property_list(
-                    params, scope.selectedInterval)
+                    params, scope.options.selectedInterval)
                 .then(function (ret) {
                     var performanceData = ret.performanceData;
                     var signatureData = ret.signatureData;
@@ -87,6 +93,10 @@ treeherder.directive('scatterPlotContainer', ['ThPerformanceDataModel', '$rootSc
 
                         scope._loading = false;
                     });
+
+                    PerformanceReplicates.load_replicates(
+                        scope._chartData[0].series_signature,
+                        scope._chartData[0].job_id);
                 });
             };
 
@@ -104,43 +114,16 @@ treeherder.directive('scatterPlot',
         function ($rootScope, $window, $timeout, PerformanceReplicates) {
     return {
         restrict: 'EA',
+        template: '<div>{{showDeviation}}<div class="th-chart"></div></div>',
+        replace: true,
         scope: {
-            obj: '=scatterPlot'
+            obj: '=scatterPlot',
+            options: '='
         },
         link: function (scope, element, attrs) {
             var points=[], data=[], plot, prepareData, performanceChartOptions;
 
-            scope.showDeviation = true;
-
-            (prepareData = function () {
-                points = [];
-                data = [];
-
-                scope.obj.data.forEach(function (datum, index) {
-                    points.push([
-                        index,
-                        datum.median,
-                        datum.std,
-                        datum.std
-                    ]);
-
-                    points[points.length - 1];
-                });
-            })();
-
-            function draw () {
-                plot = $.plot(element, [points], performanceChartOptions);
-            }
-
-            var timeoutHandle = null;
-            function timeoutResize () {
-                draw();
-            }
-
-            angular.element($window).bind('resize', function () {
-                $timeout.cancel(timeoutHandle);
-                timeoutHandle = $timeout(timeoutResize, 200);
-            });
+            var $chart = element.find('.th-chart');
 
             performanceChartOptions = {
                 grid: {
@@ -173,8 +156,7 @@ treeherder.directive('scatterPlot',
                         radius: 2.5,
                         show: true,
                         fill: true,
-                        fillColor: '#058DC7',
-                        errorbars: 'y',
+                        fillColor: '#68D48C',
                         yerr: {
                             show: true,
                             upperCap:'-',
@@ -182,13 +164,64 @@ treeherder.directive('scatterPlot',
                             color: '#CCCCCC'
                         }
                     },
-                    color: '#058DC7'
+                    color: '#68D48C'
                 },
                 selection:{
                     mode:'x',
-                    color:'#BDBDBD'
+                    color:'#96E1AF'
                 }
             };
+
+            scope.$watch('options.errorBars', function () {
+                prepareData();draw();
+            });
+            scope.$watch('options.plot', function () {
+                prepareData();draw();
+            });
+
+            (prepareData = function () {
+                points = [];
+                data = [];
+
+                if (scope.options.errorBars) {
+                    performanceChartOptions.series.points.errorbars = 'y';
+                } else {
+                    performanceChartOptions.series.points.errorbars = '';
+                }
+
+                scope.obj.data.forEach(function (datum, index) {
+                    var dataPoint;
+
+                    if (scope.options.plot === 'mean') {
+                        dataPoint = datum.mean;
+                    } else if (scope.options.plot === 'median') {
+                        dataPoint = datum.median;
+                    }
+
+                    points.push([
+                        index,
+                        dataPoint,
+                        datum.std,
+                        datum.std
+                    ]);
+
+                    points[points.length - 1];
+                });
+            })();
+
+            function draw () {
+                plot = $.plot($chart, [points], performanceChartOptions);
+            }
+
+            var timeoutHandle = null;
+            function timeoutResize () {
+                draw();
+            }
+
+            angular.element($window).bind('resize', function () {
+                $timeout.cancel(timeoutHandle);
+                timeoutHandle = $timeout(timeoutResize, 200);
+            });
 
             $rootScope.$on('replicates.highlight', function (e, result_set_id) {
                 plot.unhighlight();
@@ -205,11 +238,13 @@ treeherder.directive('scatterPlot',
             $timeout(function () {
                 draw();
 
-                $(element).bind('plothover', function (e, pos, item) {
+                $chart.bind('plothover', function (e, pos, item) {
                     if (!item) return;
 
                     var index = item.dataIndex;
                     var obj = scope.obj.data[index];
+
+                    scope.selectedDatum = obj;
 
                     PerformanceReplicates.load_replicates(
                         scope.obj.series_signature,
@@ -217,10 +252,8 @@ treeherder.directive('scatterPlot',
                     );
                 });
 
-                $(element).bind('plotclick', function (e, pos, item) {
+                $chart.bind('plotclick', function (e, pos, item) {
                     if (!item) return;
-
-                    console.log($rootScope.selectedJob);
 
                     var index = item.dataIndex;
                     var obj = scope.obj.data[index];

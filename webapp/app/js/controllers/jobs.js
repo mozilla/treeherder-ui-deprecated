@@ -133,19 +133,17 @@ treeherder.controller('ResultSetCtrl', [
         $scope.togglePerformanceView = function() {
             $scope.toggleRevisions();
 
-            function getShownJobs () {
-                var shownJobs = [];
+            function getFirstShownJob () {
                 var jobs = ThResultSetModel.getJobMap($rootScope.repoName);
 
-                _.forEach(jobs, function (jMap) {
-                    if ($scope.resultset.id !== jMap.job_obj.result_set_id) return;
+                for (var i in jobs) {
+                    if (!jobs.hasOwnProperty(i)) continue;
+                    if ($scope.resultset.id !== jobs[i].job_obj.result_set_id) continue;
 
-                    if (thJobFilters.showJob(jMap.job_obj, $scope.resultStatusFilters)) {
-                        shownJobs.push(jMap.job_obj);
+                    if (thJobFilters.showJob(jobs[i].job_obj, $scope.resultStatusFilters)) {
+                        return jobs[i].job_obj;
                     }
-                });
-
-                return shownJobs;
+                }
             }
 
             if (!$scope.performanceViewVisible) {
@@ -153,9 +151,9 @@ treeherder.controller('ResultSetCtrl', [
 
                 $scope.performanceViewVisible = true;
 
-                var shownJobs = getShownJobs();
+                var firstShown = getFirstShownJob();
 
-                if (shownJobs.length === 0) {
+                if (!firstShown) {
                     $scope.chartSettings = {
                         error: 'No performance jobs yet for this repository.'
                     };
@@ -163,10 +161,11 @@ treeherder.controller('ResultSetCtrl', [
                     return;
                 }
 
-                $rootScope.selectedJob = shownJobs[0];
+                $rootScope.$emit(thEvents.selectJob, firstShown);
+                $rootScope.$emit(thEvents.showPluginTab, 'performance_replicates');
 
                 $scope.chartSettings = {
-                    selectedJob: shownJobs[0]
+                    selectedJob: firstShown
                 };
             } else {
                 thJobFilters.removeFilter('job_group_symbol', 'T');

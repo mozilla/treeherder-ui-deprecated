@@ -229,7 +229,9 @@ treeherder.provider('thEvents', function() {
             // that have no classification.
             showUnclassifiedFailures: "show-unclassified-failures-EVT",
 
-            selectJob: "select-job-EVT"
+            selectJob: "select-job-EVT",
+
+            showPluginTab: 'show-tab-EVT',
         };
     };
 });

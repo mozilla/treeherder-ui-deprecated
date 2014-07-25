@@ -170,6 +170,10 @@ treeherder.controller('PluginCtrl', [
             $rootScope.selectedJob = job;
         });
 
+        $rootScope.$on(thEvents.showPluginTab, function(event, tabName) {
+            $scope.show_tab(tabName);
+        });
+
         $rootScope.$on(thEvents.jobsClassified, function(event, job) {
             $scope.updateClassifications();
         });
@@ -257,6 +261,8 @@ treeherder.controller('PluginCtrl', [
         };
 
         $scope.show_tab = function(tab){
+            if (angular.isString(tab)) tab = $scope.tabs[tab];
+
             if(tab.active !== true){
                 angular.forEach($scope.tabs, function(v,k){
                     v.active=false;

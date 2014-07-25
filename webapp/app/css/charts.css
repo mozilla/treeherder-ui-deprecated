@@ -65,7 +65,7 @@
 }
 
 .scatter-plot-header-button.selected {
-    background-color: #058DC7;
+    background-color: #878787;
     color: #EFEFEF;
     font-weight: bold;
 }
@@ -103,3 +103,12 @@
 .suite-dropdown {
     z-index: 1001;
 }
+
+.no-padding {
+    padding: 0px;
+}
+
+.no-border {
+    border: none;
+}
+

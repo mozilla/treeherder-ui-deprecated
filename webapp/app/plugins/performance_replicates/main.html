@@ -9,6 +9,11 @@
             </table>
         </div>
         <div class="col-md-9">
+            <div class="scatter-plot-loading"
+                 ng-if="replicates.loading">
+                <img src="img/waiter64.png" />
+            </div>
+
             <div class="th-chart" bar-chart="replicates.data"></div>
         </div>
     </div>
