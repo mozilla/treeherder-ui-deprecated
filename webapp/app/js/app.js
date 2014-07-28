@@ -4,10 +4,6 @@ var treeherder = angular.module('treeherder',
     ['ngResource','ui.bootstrap', 'ngSanitize', 'ngCookies', 'ngRoute',
      'LocalStorageModule']);
 
-// dummy values required to use the library at: https://tbpl.mozilla.org/js/Config.js
-// for the platform name conversion
-window.BuildbotDBUser = "Treeherder";
-window.PushlogJSONParser = "None";
 
 treeherder.config(function($routeProvider, $httpProvider, $logProvider) {
 
@@ -25,11 +21,15 @@ treeherder.config(function($routeProvider, $httpProvider, $logProvider) {
     $routeProvider.
         when('/jobs', {
             controller: 'JobsCtrl',
-            templateUrl: 'partials/jobs.html'
+            templateUrl: 'partials/jobs.html',
+            // see controllers/filters.js ``skipNextSearchChangeReload`` for
+            // why we set this to false.
+            reloadOnSearch: false
         }).
         when('/jobs/:tree', {
             controller: 'JobsCtrl',
-            templateUrl: 'partials/jobs.html'
+            templateUrl: 'partials/jobs.html',
+            reloadOnSearch: false
         }).
         when('/timeline', {
             controller: 'TimelineCtrl',

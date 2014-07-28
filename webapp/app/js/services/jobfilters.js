@@ -24,11 +24,11 @@
 treeherder.factory('thJobFilters', [
     'thResultStatusList', 'ThLog', '$rootScope',
     'ThResultSetModel', 'thPinboard', 'thNotify', 'thEvents',
-    'thResultStatus', 'ThRepositoryModel',
+    'thResultStatus', 'ThRepositoryModel', 'thPlatformNameMap',
     function(
         thResultStatusList, ThLog, $rootScope,
         ThResultSetModel, thPinboard, thNotify, thEvents,
-        thResultStatus, ThRepositoryModel) {
+        thResultStatus, ThRepositoryModel, thPlatformNameMap) {
 
     var $log = new ThLog("thJobFilters");
 
@@ -40,7 +40,17 @@ treeherder.factory('thJobFilters', [
         choice: 'choice'
     };
 
-    // default filters
+    // default filter values
+    var defaults = {
+        resultStatus: {
+            values: thResultStatusList.defaultFilters()
+        },
+        isClassified: {
+            values: [true, false]
+        }
+    };
+
+    // filters
     var filters = {
         resultStatus: {
             matchType: matchType.exactstr,
@@ -49,7 +59,7 @@ treeherder.factory('thJobFilters', [
         },
         isClassified: {
             matchType: matchType.bool,
-            values: [true, false],
+            values: defaults.isClassified.values.slice(),
             removeWhenEmpty: false
         }
     };
@@ -147,9 +157,9 @@ treeherder.factory('thJobFilters', [
     var getJobFieldValue = function(job, field) {
         var result = job[field];
         if (field === 'platform') {
-            var platform = Config.OSNames[result];
+            var platform = thPlatformNameMap[result];
             if (!platform) {
-                // if it's not actually found in Config.OSNames, then return
+                // if it's not found, then return
                 // the original string
                 platform = result;
             }
@@ -181,7 +191,7 @@ treeherder.factory('thJobFilters', [
      *                    If the filter field already exists, update the
      *                    ``matchType`` to this value.
      */
-    var addFilter = function(field, value, matchType) {
+    var addFilter = function(field, value, matchType, quiet) {
         if (_.isUndefined(matchType)) {
             matchType = api.matchType.exactstr;
         }
@@ -208,7 +218,9 @@ treeherder.factory('thJobFilters', [
 
         $log.debug("added ", field, ": ", value);
         $log.debug("filters", filters, "filterkeys", filterKeys);
-        $rootScope.$broadcast(thEvents.globalFilterChanged);
+        if (!quiet) {
+            $rootScope.$broadcast(thEvents.globalFilterChanged);
+        }
     };
 
     var removeFilter = function(field, value) {
@@ -490,6 +502,20 @@ treeherder.factory('thJobFilters', [
     };
 
     /**
+     * Set the list of resultStatus and classified filters.
+     *
+     * This can be done when loading the page, due to a query string from the
+     * URL
+     */
+    var setCheckFilterValues = function(field, values, quiet) {
+        filters[field].values = values;
+        $log.debug("setCheckFilterValues", field, values);
+        if (!quiet) {
+            $rootScope.$broadcast(thEvents.globalFilterChanged);
+        }
+    };
+
+    /**
      * reset the non-field (checkbox in the ui) filters to the default state
      * so the user sees everything.  Doesn't affect the field filters.  This
      * is used to undo the call to ``showUnclassifiedFailures``.
@@ -520,26 +546,35 @@ treeherder.factory('thJobFilters', [
         return skipExclusionProfiles;
     };
 
+    var matchesDefaults = function(field, values) {
+        $log.debug("matchesDefaults", field, values);
+        return _.intersection(defaults[field].values, values).length === defaults[field].values.length;
+    };
+
     var api = {
         addFilter: addFilter,
-        removeFilter: removeFilter,
-        removeAllFilters: removeAllFilters,
-        toggleFilters: toggleFilters,
         copyResultStatusFilters: copyResultStatusFilters,
-        showJob: showJob,
-        filters: filters,
-        pinAllShownJobs: pinAllShownJobs,
-        showUnclassifiedFailures: showUnclassifiedFailures,
-        showCoalesced: showCoalesced,
-        toggleInProgress: toggleInProgress,
-        isUnclassifiedFailures: isUnclassifiedFailures,
-        resetNonFieldFilters: resetNonFieldFilters,
-        revertNonFieldFilters: revertNonFieldFilters,
-        toggleSkipExclusionProfiles: toggleSkipExclusionProfiles,
-        isSkippingExclusionProfiles: isSkippingExclusionProfiles,
         excludedJobs: excludedJobs,
+        filters: filters,
         getCountExcluded: getCountExcluded,
         getCountExcludedForRepo: getCountExcludedForRepo,
+        isSkippingExclusionProfiles: isSkippingExclusionProfiles,
+        isUnclassifiedFailures: isUnclassifiedFailures,
+        matchesDefaults: matchesDefaults,
+        pinAllShownJobs: pinAllShownJobs,
+        removeAllFilters: removeAllFilters,
+        removeFilter: removeFilter,
+        resetNonFieldFilters: resetNonFieldFilters,
+        revertNonFieldFilters: revertNonFieldFilters,
+
+        setCheckFilterValues: setCheckFilterValues,
+        showCoalesced: showCoalesced,
+        showJob: showJob,
+        showUnclassifiedFailures: showUnclassifiedFailures,
+
+        toggleFilters: toggleFilters,
+        toggleInProgress: toggleInProgress,
+        toggleSkipExclusionProfiles: toggleSkipExclusionProfiles,
 
         // CONSTANTS
         isClassified: "isClassified",
