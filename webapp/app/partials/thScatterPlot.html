@@ -3,21 +3,21 @@
          ng-if="_chartData.length > 0">
 
         <div class="dropdown pull-left">
-            <button class="btn sp-header-suite dropdown-toggle" 
-                    type="button" 
-                    id="dropdownSuite" 
+            <button class="btn sp-header-suite dropdown-toggle"
+                    type="button"
+                    id="dropdownSuite"
                     data-toggle="dropdown">
                 {{_chartData[0].suite}}
                 <span class="caret"></span>
             </button>
 
-            <ul class="dropdown-menu suite-dropdown" 
-                role="menu" 
+            <ul class="dropdown-menu suite-dropdown"
+                role="menu"
                 aria-labelledby="dropdownSuite">
-                <li role="presentation" 
-                    ng-repeat="test in getTests()">
-                    <a role="menuitem" 
-                       tabindex="-1" 
+                <li role="presentation"
+                    ng-repeat="test in getTests() track by $index">
+                    <a role="menuitem"
+                       tabindex="-1"
                        ng-click="jumpToTest($index)">
                         {{test}}
                     </a>
@@ -26,21 +26,21 @@
         </div>
 
         <div class="dropdown pull-left">
-            <button class="btn sp-header-suite dropdown-toggle" 
-                    type="button" 
-                    id="dropdownTimeInterval" 
+            <button class="btn sp-header-suite dropdown-toggle"
+                    type="button"
+                    id="dropdownTimeInterval"
                     data-toggle="dropdown">
                 {{(options.selectedInterval / 60 / 60 / 24)}} days
                 <span class="caret"></span>
             </button>
 
-            <ul class="dropdown-menu suite-dropdown" 
-                role="menu" 
+            <ul class="dropdown-menu suite-dropdown"
+                role="menu"
                 aria-labelledby="dropdownTimeInterval">
-                <li role="presentation" 
+                <li role="presentation"
                     ng-repeat="timeInterval in timeIntervals">
-                    <a role="menuitem" 
-                       tabindex="-1" 
+                    <a role="menuitem"
+                       tabindex="-1"
                        ng-click="selectInterval(timeInterval.seconds)">
                         {{timeInterval.days}} days
                     </a>
@@ -55,13 +55,13 @@
         </div>
 
         <div class="btn-group pull-left">
-            <span type="button" 
+            <span type="button"
                   class="btn scatter-plot-header-button"
                   ng-click="options.plot = 'mean';"
                   ng-class="{'selected': options.plot === 'mean'}">
                 mean
             </span>
-            <span type="button" 
+            <span type="button"
                   class="btn scatter-plot-header-button"
                   ng-click="options.plot = 'median';"
                   ng-class="{'selected': options.plot === 'median'}">
@@ -80,29 +80,42 @@
         <img src="img/waiter64.png" />
     </div>
 
-    <div class="th-scatter-plot-chart-list" 
+    <div class="th-scatter-plot-chart-list"
          ng-if="!_loading">
-        <div ng-repeat="obj in _chartData" 
-             class="th-chart-repeater" 
+        <div ng-repeat="obj in _chartData"
+             class="th-chart-repeater"
              index="$index">
-            
-            <div class="th-chart-info">
-                {{obj.test}} 
-                <div class="info-point">
-                    min {{selectedDatum.min}}
-                </div>
-                <div class="info-point">
-                    max {{selectedDatum.max}}
-                </div>
-            </div>
 
             <!--
               pass in the charting data through scatter-plot attr
               this div has to have a set height & width
             -->
-            <div scatter-plot="obj" 
-                 options="options" 
-                 class="th-chart"></div>
+            <div scatter-plot="obj"
+                 options="options">
+                 <div class="th-chart-info">
+                    {{obj.test}} |
+                    <span class="info-point">
+                        median: {{selectedDatum.median}} |
+                    </span>
+                    <span class="info-point">
+                        mean: {{selectedDatum.mean}} |
+                    </span>
+                    <span class="info-point">
+                        min: {{selectedDatum.min}} |
+                    </span>
+                    <span class="info-point">
+                        max: {{selectedDatum.max}} |
+                    </span>
+                    <span class="info-point">
+                        std: {{selectedDatum.std}} |
+                    </span>
+                    <span class="info-point">
+                        n: {{selectedDatum.total_replicates}}
+                    </span>
+                </div>
+
+                <div class="th-chart"></div>
+            </div>
         </div>
     </div>
 </div>

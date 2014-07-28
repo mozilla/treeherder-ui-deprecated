@@ -20,18 +20,12 @@ treeherder.directive('scatterPlotContainer',
             ];
 
             scope._chartData = [];
-            scope.selectedDatum = {};
 
             scope.options = {
                 selectedInterval: 604800,
                 errorBars: true,
                 plot: 'mean'
             };
-
-            $rootScope.$watch('selectedJob', function () {
-                scope.settings.selectedJob = $rootScope.selectedJob;
-                loadData();
-            });
 
             scope.selectInterval = function (seconds) {
                 scope.options.selectedInterval = seconds;
@@ -100,8 +94,25 @@ treeherder.directive('scatterPlotContainer',
                 });
             };
 
+            function jobAlreadyLoaded () {
+                return ($rootScope.selectedJob && $rootScope.selectedJob.job_id) &&
+                       (scope.settings && scope.settings.selectedJob) &&
+                       ($rootScope.selectedJob.job_id ===
+                        scope.settings.selectedJob.job_id);
+            }
+
+            $rootScope.$watch('selectedJob', function () {
+                if (jobAlreadyLoaded()) return;
+
+                scope.settings.selectedJob = $rootScope.selectedJob;
+                console.log(1);
+                loadData();
+            });
+
             scope.$watch('settings', function (oldData, newData) {
                 if (!scope.settings.error) {
+                    if (jobAlreadyLoaded()) return;
+
                     loadData();
                 }
             });
@@ -114,16 +125,13 @@ treeherder.directive('scatterPlot',
         function ($rootScope, $window, $timeout, PerformanceReplicates) {
     return {
         restrict: 'EA',
-        template: '<div>{{showDeviation}}<div class="th-chart"></div></div>',
-        replace: true,
-        scope: {
-            obj: '=scatterPlot',
-            options: '='
-        },
         link: function (scope, element, attrs) {
-            var points=[], data=[], plot, prepareData, performanceChartOptions;
+            var points=[], data=[], plot, prepareData, performanceChartOptions,
+                lockedOnPoint;
 
             var $chart = element.find('.th-chart');
+
+            scope.selectedDatum = {};
 
             performanceChartOptions = {
                 grid: {
@@ -223,11 +231,14 @@ treeherder.directive('scatterPlot',
                 timeoutHandle = $timeout(timeoutResize, 200);
             });
 
-            $rootScope.$on('replicates.highlight', function (e, result_set_id) {
+            $rootScope.$on('replicates.highlight', function (e, obj) {
                 plot.unhighlight();
 
-                var index = 0;
-                console.log(result_set_id);
+                scope.lockedOnPoint = obj;
+                scope.selectedDatum = obj;
+
+                var index = 0, result_set_id = obj.result_set_id;
+
                 for (var i = 0, l = scope.obj.data.length; i < l; i++) {
                     if (scope.obj.data[i].result_set_id === result_set_id) {
                         plot.highlight(0, i);
@@ -235,31 +246,60 @@ treeherder.directive('scatterPlot',
                 }
             });
 
+            $chart.bind('plothover', function (e, pos, item) {
+                if (!item) return;
+                if (scope.lockedOnPoint) return;
+
+                var index = item.dataIndex;
+                var obj = scope.obj.data[index];
+
+                if (scope.selectedDatum &&
+                   (scope.selectedDatum.job_id === obj.job_id)) return;
+
+                scope.selectedDatum = obj;
+
+                PerformanceReplicates.load_replicates(
+                    scope.obj.series_signature,
+                    obj.job_id
+                );
+            });
+
+            $chart.bind('plotclick', function (e, pos, item) {
+                var clearData = function () {
+                    scope.lockedOnPoint = undefined;
+
+                    // clear locked points
+                    $rootScope.$emit('replicates.highlight', {});
+                };
+
+                if (!item) {
+                    clearData();
+                    return;
+                }
+
+                var index = item.dataIndex;
+                var obj = scope.obj.data[index];
+
+                if (scope.lockedOnPoint &&
+                   (scope.lockedOnPoint.job_id === obj.job_id)) {
+
+                    clearData();
+                    return;
+                }
+
+                scope.selectedDatum = obj;
+                scope.lockedOnPoint = obj;
+
+                PerformanceReplicates.load_replicates(
+                    scope.obj.series_signature,
+                    obj.job_id
+                );
+
+                $rootScope.$emit('replicates.highlight', obj);
+            });
+
             $timeout(function () {
                 draw();
-
-                $chart.bind('plothover', function (e, pos, item) {
-                    if (!item) return;
-
-                    var index = item.dataIndex;
-                    var obj = scope.obj.data[index];
-
-                    scope.selectedDatum = obj;
-
-                    PerformanceReplicates.load_replicates(
-                        scope.obj.series_signature,
-                        obj.job_id
-                    );
-                });
-
-                $chart.bind('plotclick', function (e, pos, item) {
-                    if (!item) return;
-
-                    var index = item.dataIndex;
-                    var obj = scope.obj.data[index];
-
-                    $rootScope.$emit('replicates.highlight', obj.result_set_id);
-                });
             });
         }
     };
