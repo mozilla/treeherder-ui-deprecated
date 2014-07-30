@@ -310,12 +310,22 @@ treeherder.factory('thJobFilters', [
      * @param resultStatusList - optional.  custom list of resultstatuses
      *        that can be used for individual resultsets
      */
-    var showJob = function(job, resultStatusList) {
+    var showJob = function(job, resultStatusList, resultFieldList) {
         for(var i = 0; i < filterKeys.length; i++) {
             if (!checkFilter(filterKeys[i], job, resultStatusList)) {
                 return false;
             }
         }
+
+        if (resultFieldList) {
+            for (var i in resultFieldList) {
+                if (!resultFieldList.hasOwnProperty(i)) return;
+                var value = resultFieldList[i];
+
+                if (job[i] !== value) return false;
+            }
+        }
+
         if(typeof $rootScope.searchQuery === 'string'){
             //Confirm job matches search query
             if(job.searchableStr.toLowerCase().indexOf(

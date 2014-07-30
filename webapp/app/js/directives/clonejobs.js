@@ -196,7 +196,8 @@ treeherder.directive('thCloneJobs', [
     };
 
     var addJobBtnEls = function(
-        jgObj, jobBtnInterpolator, jobTdEl, resultStatusFilters, jobCounts){
+        jgObj, jobBtnInterpolator, jobTdEl, resultStatusFilters, jobCounts,
+        resultFieldFilters){
 
         var showJob = false;
         var jobsShown = 0;
@@ -225,7 +226,8 @@ treeherder.directive('thCloneJobs', [
 
             //Make sure that filtering doesn't effect the resultset counts
             //displayed
-            if(thJobFilters.showJob(job, resultStatusFilters) === false){
+            if(thJobFilters.showJob(
+                job, resultStatusFilters, resultFieldFilters) === false){
                 //Keep track of visibility with this property. This
                 //way down stream job consumers don't need to repeatedly
                 //call showJob
@@ -499,7 +501,7 @@ treeherder.directive('thCloneJobs', [
 
     var renderJobTableRow = function(
         row, jobTdEl, jobGroups, resultStatusFilters, resultsetId,
-        platformKey){
+        platformKey, resultFieldFilters){
 
         //Empty the job column before populating it
         jobTdEl.empty();
@@ -531,7 +533,7 @@ treeherder.directive('thCloneJobs', [
                 // Add the job btn spans
                 jobsShown = addJobBtnEls(
                     jgObj, jobBtnInterpolator, jobTdEl, resultStatusFilters,
-                    jobCounts
+                    jobCounts, resultFieldFilters
                     );
 
                 if(jobsShown > 0){
@@ -551,7 +553,7 @@ treeherder.directive('thCloneJobs', [
                 // Add the job btn spans
                 jobsShown = addJobBtnEls(
                     jgObj, jobBtnInterpolator, jobTdEl, resultStatusFilters,
-                    jobCounts
+                    jobCounts, resultFieldFilters
                     );
 
             }
@@ -575,7 +577,7 @@ treeherder.directive('thCloneJobs', [
         resetCounts(resultSetMap);
     };
 
-    var filterJobs = function(element, resultStatusFilters){
+    var filterJobs = function(element, resultStatusFilters, resultFieldFilters){
 
         var platformId, platformKey, rowEl, tdEls, i;
 
@@ -600,7 +602,8 @@ treeherder.directive('thCloneJobs', [
 
             renderJobTableRow(
                 rowEl, $(tdEls[1]), this.resultset.platforms[i].groups,
-                resultStatusFilters, this.resultset.id, platformKey
+                resultStatusFilters, this.resultset.id, platformKey,
+                resultFieldFilters
                 );
         }
 
@@ -744,7 +747,7 @@ treeherder.directive('thCloneJobs', [
 
                 renderJobTableRow(
                     rowEl, jobTdEl, value.jobGroups, this.resultStatusFilters,
-                    value.resultsetId, platformKey, true
+                    value.resultsetId, platformKey
                     );
 
                 //Determine appropriate place to append row for this
@@ -758,7 +761,7 @@ treeherder.directive('thCloneJobs', [
 
                 renderJobTableRow(
                     $(rowEl), jobTdEl, value.jobGroups, this.resultStatusFilters,
-                    value.resultsetId, platformKey, true
+                    value.resultsetId, platformKey
                     );
             }
         }, this);
@@ -923,7 +926,8 @@ treeherder.directive('thCloneJobs', [
             thEvents.resultSetFilterChanged, function(ev, rs){
                 if(rs.id === scope.resultset.id){
                     _.bind(
-                        filterJobs, scope, element, scope.resultStatusFilters
+                        filterJobs, scope, element, scope.resultStatusFilters,
+                        scope.resultFieldFilters
                         )();
                 }
             });
@@ -1023,7 +1027,7 @@ treeherder.directive('thCloneJobs', [
             renderJobTableRow(
                 row, jobTdEl, scope.resultset.platforms[j].groups,
                 scope.resultStatusFilters, scope.resultset.id,
-                platformKey, true
+                platformKey
                 );
 
             tableEl.append(row);

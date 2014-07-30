@@ -20,6 +20,7 @@ treeherder.service('PerformanceReplicates',
             if (!angular.isArray(ret) || !ret[0].blob) return [];
             var blob = JSON.parse(ret[0].blob);
 
+
             _this.data = blob.blob.replicates;
             _this.performanceSeries = blob.blob.performance_series;
 

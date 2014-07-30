@@ -81,7 +81,7 @@
     </div>
 
     <div class="th-scatter-plot-chart-list"
-         ng-if="!_loading">
+         ng-if="!_loading && !settings.error">
         <div ng-repeat="obj in _chartData"
              class="th-chart-repeater"
              index="$index">
@@ -93,24 +93,13 @@
             <div scatter-plot="obj"
                  options="options">
                  <div class="th-chart-info">
-                    {{obj.test}} |
-                    <span class="info-point">
-                        median: {{selectedDatum.median}} |
-                    </span>
-                    <span class="info-point">
-                        mean: {{selectedDatum.mean}} |
-                    </span>
-                    <span class="info-point">
-                        min: {{selectedDatum.min}} |
-                    </span>
-                    <span class="info-point">
-                        max: {{selectedDatum.max}} |
-                    </span>
-                    <span class="info-point">
-                        std: {{selectedDatum.std}} |
-                    </span>
-                    <span class="info-point">
-                        n: {{selectedDatum.total_replicates}}
+                    {{obj.test}}
+                    <span class="info-point"
+                          ng-if="selectedDatum"
+                          ng-repeat="item in ['median', 'mean', 'min', 'max',
+                                              'total_replicates']">
+                        {{(item === 'total_replicates') ? 'n' : item}}: {{selectedDatum[item]}}
+                        <span ng-if="!$last">|</span>
                     </span>
                 </div>
 

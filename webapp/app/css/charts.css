@@ -38,7 +38,7 @@
 .scatter-plot-error {
     height: 100%;
     width: 100%;
-    line-height: 300px;
+    line-height: 30px;
     text-align: center;
     font-size: 1.5em;
     color: #D58484;
@@ -90,10 +90,11 @@
     padding: 5px 10px;
     border: 1px solid #E5E5E5;
     font-size: .9em;
-    color: #939393;
+    color: #585858;
     margin-right: 5px;
     border-radius: 3px;
-    font-weight: bold;
+    font-weight: 500;
+    background: none;
 }
 
 .sp-header-suite .caret {
@@ -112,3 +113,11 @@
     border: none;
 }
 
+.th-chart-info {
+    font-weight: bold;
+}
+
+.th-chart-info .info-point {
+    font-weight: 300;
+    font-size: .9em;
+}

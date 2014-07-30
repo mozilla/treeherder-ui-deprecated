@@ -140,18 +140,25 @@ treeherder.controller('ResultSetCtrl', [
                     if (!jobs.hasOwnProperty(i)) continue;
                     if ($scope.resultset.id !== jobs[i].job_obj.result_set_id) continue;
 
-                    if (thJobFilters.showJob(jobs[i].job_obj, $scope.resultStatusFilters)) {
+                    if (thJobFilters.showJob(
+                        jobs[i].job_obj, $scope.resultStatusFilters, $scope.resultFieldFilters)) {
                         return jobs[i].job_obj;
                     }
                 }
             }
 
             if (!$scope.performanceViewVisible) {
-                thJobFilters.addFilter('job_group_symbol', 'T');
+                // thJobFilters.addFilter('job_group_symbol', 'T');
+                $scope.resultFieldFilters.job_group_symbol = 'T';
+
+                $rootScope.$emit(
+                    thEvents.resultSetFilterChanged, $scope.resultset);
 
                 $scope.performanceViewVisible = true;
 
                 var firstShown = getFirstShownJob();
+
+                console.log('first', firstShown);
 
                 if (!firstShown) {
                     $scope.chartSettings = {
@@ -168,7 +175,11 @@ treeherder.controller('ResultSetCtrl', [
                     selectedJob: firstShown
                 };
             } else {
-                thJobFilters.removeFilter('job_group_symbol', 'T');
+                // thJobFilters.removeFilter('job_group_symbol', 'T');
+                delete $scope.resultFieldFilters.job_group_symbol;
+                $rootScope.$emit(
+                    thEvents.resultSetFilterChanged, $scope.resultset);
+
                 $scope.performanceViewVisible = false;
             }
         };
@@ -229,6 +240,7 @@ treeherder.controller('ResultSetCtrl', [
         $scope.authorResultsetFilterUrl = $scope.urlBasePath + "?repo=" + $scope.repoName + "&author=" + encodeURIComponent($scope.resultset.author);
 
         $scope.resultStatusFilters = thJobFilters.copyResultStatusFilters();
+        $scope.resultFieldFilters = {};
 
         $rootScope.$on(thEvents.jobContextMenu, function(event, job){
             $log.debug("caught", thEvents.jobContextMenu);

@@ -23,6 +23,7 @@
             <span class="revision-text">{{resultset.revision}}</span>
             <span class="btn btn-default btn-sm"
                   title="show performance data"
+                  ng-class="{'selected': performanceViewVisible}"
                   ng-click="togglePerformanceView()">
                 <i class="glyphicon glyphicon-stats"></i></span>
             <span class="btn btn-default btn-sm"

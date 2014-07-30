@@ -51,6 +51,7 @@ treeherder.directive('scatterPlotContainer',
 
             function getParamsForWebService () {
                 var job = scope.settings.selectedJob;
+                console.log(scope.settings.selectedJob);
 
                 if (!job) return null;
 
@@ -102,7 +103,10 @@ treeherder.directive('scatterPlotContainer',
             }
 
             $rootScope.$watch('selectedJob', function () {
-                if (jobAlreadyLoaded()) return;
+                if (jobAlreadyLoaded() ||
+                    (scope.settings.selectedJob &&
+                        ($rootScope.selectedJob.result_set_id !==
+                         scope.settings.selectedJob.result_set_id))) return;
 
                 scope.settings.selectedJob = $rootScope.selectedJob;
                 console.log(1);
@@ -131,7 +135,29 @@ treeherder.directive('scatterPlot',
 
             var $chart = element.find('.th-chart');
 
-            scope.selectedDatum = {};
+            function formatLabel (index) {
+                var datum = scope.obj.data[index];
+
+                if (!datum) {
+                    if (index % 1 === 0.5) {
+                        var datum = {
+                            push_timestamp:
+                                (scope.obj.data[index - 0.5].push_timestamp +
+                                 scope.obj.data[index + 0.5].push_timestamp) / 2
+                        }
+                    } else {
+                        return;
+                    }
+                }
+
+                var date = new Date(datum.push_timestamp * 1000);
+
+                var day = date.getDate();
+                var month = date.getMonth();
+                var year = date.getFullYear();
+
+                return month + '/' + day + '/' + year;
+            }
 
             performanceChartOptions = {
                 grid: {
@@ -142,9 +168,9 @@ treeherder.directive('scatterPlot',
                     borderWidth: 0.5
                 },
 
-                // 'xaxis': {
-                //     'tickFormatter': _.bind(this.formatLabel, this)
-                // },
+                xaxis: {
+                    tickFormatter: formatLabel
+                },
 
                 yaxis: {
                     min:0,
@@ -231,17 +257,17 @@ treeherder.directive('scatterPlot',
                 timeoutHandle = $timeout(timeoutResize, 200);
             });
 
-            $rootScope.$on('replicates.highlight', function (e, obj) {
+            $rootScope.$on('replicates.highlight', function (e, result_set_id) {
                 plot.unhighlight();
 
-                scope.lockedOnPoint = obj;
-                scope.selectedDatum = obj;
-
-                var index = 0, result_set_id = obj.result_set_id;
-
                 for (var i = 0, l = scope.obj.data.length; i < l; i++) {
-                    if (scope.obj.data[i].result_set_id === result_set_id) {
+                    var obj = scope.obj.data[i];
+
+                    if (obj.result_set_id === result_set_id) {
                         plot.highlight(0, i);
+
+                        scope.lockedOnPoint = obj;
+                        scope.selectedDatum = obj;
                     }
                 }
             });
@@ -269,7 +295,7 @@ treeherder.directive('scatterPlot',
                     scope.lockedOnPoint = undefined;
 
                     // clear locked points
-                    $rootScope.$emit('replicates.highlight', {});
+                    $rootScope.$emit('replicates.highlight', null);
                 };
 
                 if (!item) {
@@ -295,7 +321,7 @@ treeherder.directive('scatterPlot',
                     obj.job_id
                 );
 
-                $rootScope.$emit('replicates.highlight', obj);
+                $rootScope.$emit('replicates.highlight', obj.result_set_id);
             });
 
             $timeout(function () {

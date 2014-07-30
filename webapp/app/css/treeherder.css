@@ -314,6 +314,12 @@ body {
     width: 276px;
     display: block;
 }
+
+.result-set-buttons .selected {
+    background-color: #89B1F7;
+    color: #FFF;
+}
+
 .revision-text {
     overflow: hidden;
     text-overflow: ellipsis;
