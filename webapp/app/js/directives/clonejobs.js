@@ -170,11 +170,11 @@ treeherder.directive('thCloneJobs', [
 
     var clickJobCb = function(ev, el, job){
         setSelectJobStyles(el);
-        $rootScope.$broadcast(thEvents.jobClick, job);
+        $rootScope.$emit(thEvents.jobClick, job);
     };
 
     var togglePinJobCb = function(ev, el, job){
-        $rootScope.$broadcast(thEvents.jobPin, job);
+        $rootScope.$emit(thEvents.jobPin, job);
     };
 
     var jobContextmenuCb = function(ev, el, job){
@@ -429,7 +429,7 @@ treeherder.directive('thCloneJobs', [
      *                 an expand/collapse all button.
      */
     var toggleJobs = function(element, expand){
-
+        this.jobsVisible = !this.jobsVisible;
 
         var revisionsEl = element.find('ul').parent();
         var jobsEl = element.find('table').parent();

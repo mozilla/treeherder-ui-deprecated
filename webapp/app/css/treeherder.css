@@ -316,7 +316,7 @@ body {
 }
 
 .result-set-buttons .selected {
-    background-color: #89B1F7;
+    background-color: #9B9B9B;
     color: #FFF;
 }
 
@@ -330,6 +330,11 @@ body {
 
 .revision-button {
     width: 60px;
+}
+
+.revision-button.selected {
+    background-color: #9B9B9B;
+    color: #FFF;
 }
 
 .revision-list {
@@ -748,6 +753,11 @@ ul.failure-summary-list li .btn-xs{
 .result-status-total-count {
     width: 60px;
 }
+.result-status-total-count.selected {
+    background-color: #9B9B9B;
+    color: #FFF;
+}
+
 .result-status-count-min-width {
     width: 28px;
 }

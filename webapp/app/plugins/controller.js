@@ -46,7 +46,7 @@ treeherder.controller('PluginCtrl', [
                     timeout: timeout_promise
                 }).then(function(data){
                     $scope.job = data;
-                    $rootScope.$broadcast(thEvents.jobDetailLoaded);
+                    $rootScope.$emit(thEvents.jobDetailLoaded);
                     updateVisibleFields();
                     $scope.job_detail_loading = false;
                     $scope.logs = data.logs;
@@ -228,7 +228,7 @@ treeherder.controller('PluginCtrl', [
                             var params = { jobs: {}};
                             params.jobs[job.id] = jobMap[map_key].job_obj;
                             // broadcast the job classification event
-                            $rootScope.$broadcast(thEvents.jobsClassified, params);
+                            $rootScope.$emit(thEvents.jobsClassified, params);
                         }
                     }
 

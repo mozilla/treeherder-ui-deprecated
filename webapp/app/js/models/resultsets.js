@@ -476,7 +476,7 @@ treeherder.factory('ThResultSetModel', [
         }
 
         if(!_.isEmpty(platformData) && repoName === $rootScope.repoName){
-            $rootScope.$broadcast(thEvents.jobsLoaded, platformData);
+            $rootScope.$emit(thEvents.jobsLoaded, platformData);
         }
     };
 
@@ -612,7 +612,7 @@ treeherder.factory('ThResultSetModel', [
 
                     if (rs.revisions.length === 0) {
                         Array.prototype.push.apply(rs.revisions, data);
-                        $rootScope.$broadcast(thEvents.revisionsLoaded, rs);
+                        $rootScope.$emit(thEvents.revisionsLoaded, rs);
                     }
 
                 });

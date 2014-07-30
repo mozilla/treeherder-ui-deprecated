@@ -124,6 +124,8 @@ treeherder.controller('ResultSetCtrl', [
 
             $scope.revisionsVisible = !$scope.revisionsVisible;
 
+            $scope.hidePerformanceView();
+
             // $rootScope.$emit(
             //     thEvents.toggleRevisions, $scope.resultset
             //     );
@@ -131,7 +133,7 @@ treeherder.controller('ResultSetCtrl', [
         };
 
         $scope.togglePerformanceView = function() {
-            $scope.toggleRevisions();
+            $scope.revisionsVisible = false;
 
             function getFirstShownJob () {
                 var jobs = ThResultSetModel.getJobMap($rootScope.repoName);
@@ -148,6 +150,8 @@ treeherder.controller('ResultSetCtrl', [
             }
 
             if (!$scope.performanceViewVisible) {
+                if (!$scope.jobsVisible) {$scope.toggleJobs();}
+
                 // thJobFilters.addFilter('job_group_symbol', 'T');
                 $scope.resultFieldFilters.job_group_symbol = 'T';
 
@@ -175,21 +179,29 @@ treeherder.controller('ResultSetCtrl', [
                     selectedJob: firstShown
                 };
             } else {
-                // thJobFilters.removeFilter('job_group_symbol', 'T');
+                $scope.hidePerformanceView();
+            }
+        };
+
+        $scope.hidePerformanceView = function () {
+            if ($scope.performanceViewVisible) {
+                $scope.performanceViewVisible = false;
+                $scope.revisionsVisible = true;
+
                 delete $scope.resultFieldFilters.job_group_symbol;
                 $rootScope.$emit(
                     thEvents.resultSetFilterChanged, $scope.resultset);
-
-                $scope.performanceViewVisible = false;
             }
         };
 
         $scope.toggleJobs = function() {
+            if ($scope.performanceViewVisible) {
+                $scope.hidePerformanceView();
+            }
 
             $rootScope.$broadcast(
                 thEvents.toggleJobs, $scope.resultset
                 );
-
         };
 
         $scope.pinAllShownJobs = function() {

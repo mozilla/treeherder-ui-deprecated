@@ -41,6 +41,7 @@
 
         <span class="col-xs-1 btn btn-default btn-sm revision-button"
               ng-click="toggleRevisions()"
+              ng-class="{'selected': revisionsVisible}"
               title="show revisions"><i class="fa fa-code-fork fa-lg"></i> {{resultset.revision_count}}</span>
         <th-result-counts class="col-xs-4 result-counts"/>
     </div>
