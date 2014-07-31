@@ -101,6 +101,21 @@
     border-top-color: #939393;
 }
 
+.sp-navigation {
+    font-size: .9em;
+    margin-right: 26px;
+}
+
+.sp-nav-item {
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 .suite-dropdown {
     z-index: 1001;
 }
@@ -120,4 +135,22 @@
 .th-chart-info .info-point {
     font-weight: 300;
     font-size: .9em;
+}
+
+.rep-meta-data {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.rep-meta-data-item .item-label,
+.rep-meta-data-item .item-value  {
+    font-size: .9em;
+}
+
+.rep-meta-data-item .item-value {
+    font-weight: 200;
+}
+
+.rep-info-point {
+    padding: 5px;
 }

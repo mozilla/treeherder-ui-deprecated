@@ -655,7 +655,11 @@ treeherder.factory('ThResultSetModel', [
     };
 
     var getResultSet = function(repoName, resultsetId){
-        return repositories[repoName].rsMap[resultsetId].rs_obj;
+        if (repositories[repoName] &&
+            repositories[repoName].rsMap[resultsetId])
+            return repositories[repoName].rsMap[resultsetId].rs_obj;
+
+        return null;
     };
 
     var getJobMap = function(repoName){

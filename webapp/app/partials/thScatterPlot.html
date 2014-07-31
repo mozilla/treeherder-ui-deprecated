@@ -17,9 +17,9 @@
                 <li role="presentation"
                     ng-repeat="test in getTests() track by $index">
                     <a role="menuitem"
-                       tabindex="-1"
-                       ng-click="jumpToTest($index)">
-                        {{test}}
+                         tabindex="-1"
+                         ng-click="jumpToTest($index)">
+                            {{test}}
                     </a>
                 </li>
             </ul>
@@ -40,16 +40,16 @@
                 <li role="presentation"
                     ng-repeat="timeInterval in timeIntervals">
                     <a role="menuitem"
-                       tabindex="-1"
-                       ng-click="selectInterval(timeInterval.seconds)">
-                        {{timeInterval.days}} days
+                         tabindex="-1"
+                         ng-click="selectInterval(timeInterval.seconds)">
+                            {{timeInterval.days}} days
                     </a>
                 </li>
             </ul>
         </div>
 
         <div class="pull-left sp-header-suite">
-            error bars
+                error bars
             <input type="checkbox"
                    ng-model="options.errorBars"/>
         </div>
@@ -87,20 +87,31 @@
              index="$index">
 
             <!--
-              pass in the charting data through scatter-plot attr
-              this div has to have a set height & width
+                pass in the charting data through scatter-plot attr
+                this div has to have a set height & width
             -->
             <div scatter-plot="obj"
                  options="options">
-                 <div class="th-chart-info">
+                <div class="th-chart-info">
                     {{obj.test}}
                     <span class="info-point"
                           ng-if="selectedDatum"
                           ng-repeat="item in ['median', 'mean', 'min', 'max',
-                                              'total_replicates']">
+                                                                        'total_replicates']">
                         {{(item === 'total_replicates') ? 'n' : item}}: {{selectedDatum[item]}}
                         <span ng-if="!$last">|</span>
                     </span>
+
+                    <div class="pull-right sp-navigation">
+                        <span class="fa fa-arrow-left sp-nav-item"
+                              ng-click="pan({ left: -100 })"></span>
+                        <span class="fa fa-arrow-right sp-nav-item"
+                              ng-click="pan({ left: 100 })"></span>
+                        <span class="fa fa-plus sp-nav-item"
+                              ng-click="zoom()"></span>
+                        <span class="fa fa-minus sp-nav-item"
+                              ng-click="zoomOut()"></span>
+                    </div>
                 </div>
 
                 <div class="th-chart"></div>

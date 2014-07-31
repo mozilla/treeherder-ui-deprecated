@@ -320,7 +320,7 @@ treeherder.controller('FilterPanelCtrl', [
                 }
             });
             $log.debug("done with loadFiltersFromQueryString", thJobFilters.filters);
-            $rootScope.$broadcast(thEvents.globalFilterChanged);
+            $rootScope.$emit(thEvents.globalFilterChanged);
 
         };
 
@@ -347,7 +347,7 @@ treeherder.controller('SearchCtrl', [
                 $rootScope.skipNextSearchChangeReload = true;
                 $location.search("searchQuery", queryString);
 
-                $rootScope.$broadcast(
+                $rootScope.$emit(
                     thEvents.searchPage,
                     {searchQuery: $scope.searchQuery}
                     );

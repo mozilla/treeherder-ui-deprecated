@@ -135,6 +135,18 @@ treeherder.directive('scatterPlot',
 
             var $chart = element.find('.th-chart');
 
+            scope.zoom = function () {
+                plot.zoom();
+            };
+
+            scope.zoomOut = function () {
+                plot.zoomOut();
+            };
+
+            scope.pan = function (offset) {
+                plot.pan(offset);
+            };
+
             function formatLabel (index) {
                 var datum = scope.obj.data[index];
 
@@ -146,7 +158,7 @@ treeherder.directive('scatterPlot',
                                  scope.obj.data[index + 0.5].push_timestamp) / 2
                         }
                     } else {
-                        return;
+                        return '';
                     }
                 }
 
@@ -178,7 +190,8 @@ treeherder.directive('scatterPlot',
                 },
 
                 zoom: {
-                    interactive: true,
+                    interactive: false,
+                    trigger: 'dblclick'
                 },
                 pan: {
                     interactive: true,
@@ -274,7 +287,6 @@ treeherder.directive('scatterPlot',
 
             $chart.bind('plothover', function (e, pos, item) {
                 if (!item) return;
-                if (scope.lockedOnPoint) return;
 
                 var index = item.dataIndex;
                 var obj = scope.obj.data[index];
@@ -284,10 +296,7 @@ treeherder.directive('scatterPlot',
 
                 scope.selectedDatum = obj;
 
-                PerformanceReplicates.load_replicates(
-                    scope.obj.series_signature,
-                    obj.job_id
-                );
+                if (!scope.$$phase) scope.$apply();
             });
 
             $chart.bind('plotclick', function (e, pos, item) {

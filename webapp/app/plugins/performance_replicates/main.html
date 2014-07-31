@@ -1,17 +1,25 @@
 <div ng-controller="PerformanceReplicatesPluginCtrl" class="container">
     <div class="row">
-        <div class="summary-bar col-md-3">
-            <table class="table table-condensed">
-                <tr ng-repeat="(label, value) in replicates.performanceSeries">
-                    <th>{{label}}</th>
-                    <td>{{value}}</td>
-                </tr>
-            </table>
+        <div class="rep-meta-data col-md-3">
+            Meta Data
+            <div class="rep-meta-data-item"
+                 ng-repeat="(label, value) in getMetaData()">
+                <span class="item-label">{{label}}:</span>
+                <span class="item-value">{{value}}</span>
+            </div>
         </div>
         <div class="col-md-9">
             <div class="scatter-plot-loading"
                  ng-if="replicates.loading">
                 <img src="img/waiter64.png" />
+            </div>
+
+            <div class="rep-info">
+                <span class="rep-info-point"
+                      ng-repeat="item in ['median', 'mean', 'min', 'max']">
+                    {{(item === 'total_replicates') ? 'n' : item}}:
+                    {{replicates.performance_series[item]}}
+                </span>
             </div>
 
             <div class="th-chart" bar-chart="replicates.data"></div>

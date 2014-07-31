@@ -53,14 +53,14 @@ treeherder.controller('JobsCtrl', [
         $rootScope.$on(
             thEvents.toggleAllJobs, function(ev, expand){
                 _.forEach($scope.result_sets, function(rs) {
-                    $rootScope.$broadcast(thEvents.toggleJobs, rs, expand);
+                    $rootScope.$emit(thEvents.toggleJobs, rs, expand);
                 });
             });
 
         $rootScope.$on(
             thEvents.toggleAllRevisions, function(ev, expand){
                 _.forEach($scope.result_sets, function(rs) {
-                    $rootScope.$broadcast(thEvents.toggleRevisions, rs, expand);
+                    $rootScope.$emit(thEvents.toggleRevisions, rs, expand);
                 });
             });
 
@@ -124,11 +124,9 @@ treeherder.controller('ResultSetCtrl', [
 
             $scope.revisionsVisible = !$scope.revisionsVisible;
 
-            $scope.hidePerformanceView();
-
-            // $rootScope.$emit(
-            //     thEvents.toggleRevisions, $scope.resultset
-            //     );
+            if ($scope.performanceViewVisible) {
+                $scope.hidePerformanceView();
+            }
 
         };
 
@@ -152,7 +150,6 @@ treeherder.controller('ResultSetCtrl', [
             if (!$scope.performanceViewVisible) {
                 if (!$scope.jobsVisible) {$scope.toggleJobs();}
 
-                // thJobFilters.addFilter('job_group_symbol', 'T');
                 $scope.resultFieldFilters.job_group_symbol = 'T';
 
                 $rootScope.$emit(
@@ -161,8 +158,6 @@ treeherder.controller('ResultSetCtrl', [
                 $scope.performanceViewVisible = true;
 
                 var firstShown = getFirstShownJob();
-
-                console.log('first', firstShown);
 
                 if (!firstShown) {
                     $scope.chartSettings = {
@@ -199,7 +194,7 @@ treeherder.controller('ResultSetCtrl', [
                 $scope.hidePerformanceView();
             }
 
-            $rootScope.$broadcast(
+            $rootScope.$emit(
                 thEvents.toggleJobs, $scope.resultset
                 );
         };
@@ -222,7 +217,7 @@ treeherder.controller('ResultSetCtrl', [
                 $scope.resultStatusFilters.splice(idx, 1);
             }
 
-            $rootScope.$broadcast(
+            $rootScope.$emit(
                 thEvents.resultSetFilterChanged, $scope.resultset
                 );
 
