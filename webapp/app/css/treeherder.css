@@ -285,6 +285,7 @@ body {
     font-size: 12px;
     padding-left: 0;
     padding-right: 5px;
+    min-width: 110px;
 }
 
 .result-set {
@@ -668,6 +669,16 @@ ul.failure-summary-list li .btn-xs{
     width: 177px;
     margin-top: 5px;
     height: 40px;
+}
+
+#pinboard-controls-header {
+    position: absolute;
+    top: 2px;
+    right: 10px;
+}
+
+#pinboard-controls-header a {
+    color: #9fa3a5;
 }
 
 #pinboard-controls{
