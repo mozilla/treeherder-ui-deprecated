@@ -20,7 +20,7 @@ treeherder.directive('barChart', function () {
                 },
 
                 series: {
-                    color: '#058DC7'
+                    color: '#68D48C'
                 }
             };
 

@@ -35,8 +35,12 @@ treeherder.controller('PerformanceReplicatesPluginCtrl',
       //   console.log(data);
       // });
 
-      return {
-        date: getDateString(performance_series.push_timestamp),
+      var ret = {
+        date: getDateString(performance_series.push_timestamp)
       };
+
+      _.extend(ret, $scope.replicates.metadata);
+
+      return ret;
     };
 }]);

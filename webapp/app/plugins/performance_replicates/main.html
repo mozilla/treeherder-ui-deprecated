@@ -1,14 +1,11 @@
 <div ng-controller="PerformanceReplicatesPluginCtrl" class="container">
-    <div class="row">
-        <div class="rep-meta-data col-md-3">
+    <div class="row" style="display: flex;">
+        <div class="rep-meta-data" style="flex: .6;">
             Meta Data
-            <div class="rep-meta-data-item"
-                 ng-repeat="(label, value) in getMetaData()">
-                <span class="item-label">{{label}}:</span>
-                <span class="item-value">{{value}}</span>
-            </div>
+
+            <div json-human="getMetaData()"></div>
         </div>
-        <div class="col-md-9">
+        <div style="flex: .4; padding: 10px;">
             <div class="scatter-plot-loading"
                  ng-if="replicates.loading">
                 <img src="img/waiter64.png" />

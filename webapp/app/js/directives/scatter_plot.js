@@ -58,7 +58,8 @@ treeherder.directive('scatterPlotContainer',
                 return {
                     job_group_symbol: job.job_group_symbol,
                     job_type_symbol: job.job_type_symbol,
-                    build_platform: job.build_platform
+                    build_platform: job.build_platform,
+                    option_collection_hash: job.option_collection_hash
                 };
             };
 
@@ -257,7 +258,8 @@ treeherder.directive('scatterPlot',
             })();
 
             function draw () {
-                plot = $.plot($chart, [points], performanceChartOptions);
+                if ($chart.width() !== 0 && $chart.height() !== 0)
+                    plot = $.plot($chart, [points], performanceChartOptions);
             }
 
             var timeoutHandle = null;
