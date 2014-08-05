@@ -364,7 +364,7 @@ treeherder.directive('thCloneJobs', [
                 ulEl.append(revisionHtml);
             }
             if (resultset.revision_count > resultset.revisions.length) {
-
+                console.log("currentRepo", $rootScope.currentRepo);
                 var pushlogInterpolator = thCloneHtml.get('pushlogRevisionsClone').interpolator;
                 ulEl.append(pushlogInterpolator({
                     currentRepo: $rootScope.currentRepo,
