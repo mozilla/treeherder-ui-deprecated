@@ -647,6 +647,10 @@ treeherder.factory('ThResultSetModel', [
             // because this will establish ranges from then-on for auto-updates.
             if (_.isUndefined(repositories[repoName].meta)) {
                 repositories[repoName].meta = data.meta;
+
+                if (repoName === $rootScope.repoName) {
+                    $rootScope.currentRepo = data.meta.repository;
+                }
             }
         }
 
