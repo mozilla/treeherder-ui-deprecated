@@ -231,7 +231,11 @@ treeherder.provider('thEvents', function() {
 
             selectJob: "select-job-EVT",
 
-            showPluginTab: 'show-tab-EVT',
+            showPluginTab: "show-tab-EVT",
+
+            mapResultSetJobs: "map-result-set-jobs-EVT",
+
+            applyNewJobs: "apply-new-jobs-EVT"
         };
     };
 });

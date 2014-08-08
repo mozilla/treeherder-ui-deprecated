@@ -51,7 +51,6 @@ treeherder.directive('scatterPlotContainer',
 
             function getParamsForWebService () {
                 var job = scope.settings.selectedJob;
-                console.log(scope.settings.selectedJob);
 
                 if (!job) return null;
 
@@ -110,7 +109,6 @@ treeherder.directive('scatterPlotContainer',
                          scope.settings.selectedJob.result_set_id))) return;
 
                 scope.settings.selectedJob = $rootScope.selectedJob;
-                console.log(1);
                 loadData();
             });
 

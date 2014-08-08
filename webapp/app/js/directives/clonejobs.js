@@ -254,6 +254,8 @@ treeherder.directive('thCloneJobs', [
 
             jobBtn = $( jobBtnInterpolator(jobStatus));
             jobBtnArray.push(jobBtn);
+            // add a zero-width space between spans so they can wrap
+            jobBtnArray.push(' ');
 
             showHideJob(jobBtn, job.visible);
 
@@ -346,6 +348,7 @@ treeherder.directive('thCloneJobs', [
             $(ulEl).empty();
 
             var revision, revisionHtml, userTokens, i;
+
             for(i=0; i<resultset.revisions.length; i++){
 
                 revision = resultset.revisions[i];
@@ -554,6 +557,10 @@ treeherder.directive('thCloneJobs', [
     var filterJobs = function(element, resultStatusFilters, resultFieldFilters){
         $log.debug("filterJobs", element, resultStatusFilters);
 
+        if(this.resultset.platforms === undefined){
+            return;
+        }
+
         var job, jmKey, show;
         var jobMap = ThResultSetModel.getJobMap($rootScope.repoName);
 
@@ -670,6 +677,10 @@ treeherder.directive('thCloneJobs', [
             jobCounts.total = 0;
 
             resultsetId = resultSets[i].id;
+
+            if(resultSets[i].platforms === undefined){
+                continue;
+            }
 
             var j;
             for(j=0; j<resultSets[i].platforms.length; j++){
@@ -956,6 +967,76 @@ treeherder.directive('thCloneJobs', [
                     _.bind(updateJobs, scope, platformData)();
                 }
             });
+
+        $rootScope.$on(
+            thEvents.applyNewJobs, function(ev, resultSetId){
+                if(scope.resultset.id === resultSetId){
+
+                    var rsMap = ThResultSetModel.getResultSetsMap($rootScope.repoName);
+                    var resultsetAggregateId = thAggregateIds.getResultsetTableId(
+                        $rootScope.repoName, scope.resultset.id, scope.resultset.revision
+                        );
+
+                    generateJobElements(resultsetAggregateId, rsMap[resultSetId].rs_obj, scope.resultStatusFilters);
+
+                }
+            });
+    };
+
+    var generateJobElements = function(
+        resultsetAggregateId, resultset, resultStatusFilters){
+
+        var tableEl = $('#' + resultsetAggregateId);
+
+        var waitSpanEl = $(tableEl).prev();
+        $(waitSpanEl).css('display', 'none');
+
+        var name, option, platformId, platformKey, row, platformTd, jobTdEl,
+            statusList, j;
+        for(j=0; j<resultset.platforms.length; j++){
+
+            row = $('<tr></tr>');
+            platformId = thAggregateIds.getPlatformRowId(
+                $rootScope.repoName,
+                resultset.id,
+                resultset.platforms[j].name,
+                resultset.platforms[j].option
+                );
+
+            row.prop('id', platformId);
+
+            name = getPlatformName(resultset.platforms[j].name);
+            option = resultset.platforms[j].option;
+
+            //Add platforms
+            platformTd = platformInterpolator(
+                {
+                    'name':name, 'option':option,
+                    'id':thAggregateIds.getPlatformRowId(
+                        resultset.id,
+                        resultset.platforms[j].name,
+                        resultset.platforms[j].option
+                        )
+                    }
+                );
+
+            row.append(platformTd);
+
+            // Render the row of job data
+            jobTdEl = $( thCloneHtml.get('jobTdClone').text );
+
+            platformKey = ThResultSetModel.getPlatformKey(
+                resultset.platforms[j].name, resultset.platforms[j].option
+                );
+
+            renderJobTableRow(
+                row, jobTdEl, resultset.platforms[j].groups,
+                resultStatusFilters, resultset.id,
+                platformKey
+                );
+
+            tableEl.append(row);
+        }
     };
 
     var linker = function(scope, element, attrs){
@@ -967,7 +1048,7 @@ treeherder.directive('thCloneJobs', [
         element.on('mousedown', _.bind(jobMouseDown, scope));
         element.on('mouseover', _.bind(updateJobTitle, scope));
 
-        registerCustomEventCallbacks(scope, element, attrs);
+        registerCustomEventCallbacks(scope, element);
 
         //Clone the target html
         var resultsetAggregateId = thAggregateIds.getResultsetTableId(
@@ -981,60 +1062,21 @@ treeherder.directive('thCloneJobs', [
         // allow angularness inside template
         $compile(targetEl)(scope);
 
-        //Retrieve table el for appending
-        var tableEl = targetEl.find('table');
-
-        var name, option, platformId, platformKey, row, platformTd, jobTdEl,
-            statusList, j;
-
-        for(j=0; j<scope.resultset.platforms.length; j++){
-
-            row = $('<tr></tr>');
-            platformId = thAggregateIds.getPlatformRowId(
-                $rootScope.repoName,
-                scope.resultset.id,
-                scope.resultset.platforms[j].name,
-                scope.resultset.platforms[j].option
-                );
-
-            row.prop('id', platformId);
-
-            name = getPlatformName(scope.resultset.platforms[j].name);
-            option = scope.resultset.platforms[j].option;
-
-            //Add platforms
-            platformTd = platformInterpolator(
-                {
-                    'name':name, 'option':option,
-                    'id':thAggregateIds.getPlatformRowId(
-                        scope.resultset.id,
-                        scope.resultset.platforms[j].name,
-                        scope.resultset.platforms[j].option
-                        )
-                    }
-                );
-
-            row.append(platformTd);
-
-            // Render the row of job data
-            jobTdEl = $( thCloneHtml.get('jobTdClone').text );
-
-            platformKey = ThResultSetModel.getPlatformKey(
-                scope.resultset.platforms[j].name, scope.resultset.platforms[j].option
-                );
-
-            renderJobTableRow(
-                row, jobTdEl, scope.resultset.platforms[j].groups,
-                scope.resultStatusFilters, scope.resultset.id,
-                platformKey
-                );
-
-            tableEl.append(row);
-        }
+        addRevisions(scope.resultset, targetEl);
 
         element.append(targetEl);
 
-        addRevisions(scope.resultset, element);
+        if(scope.resultset.platforms != undefined){
+            generateJobElements(
+                resultsetAggregateId, scope.resultset, scope.resultStatusFilters
+                );
+        }
+
+        return {
+            link:linker,
+            replace:true
+        };
+
     };
 
     return {

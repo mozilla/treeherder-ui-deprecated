@@ -27,20 +27,10 @@ treeherder.controller('PerformanceReplicatesPluginCtrl',
       var performance_series = $scope.replicates.performance_series;
       var signature_properties = $scope.replicates.signature_properties;
 
-      // var resultSetData = thResultSets.getResultSets(
-      //   $scope.replicates.signature_properties.repository,
-      //   0, 1,
-      //   [$scope.replicates.performance_series.result_set_id])
-      // .then(function(data) {
-      //   console.log(data);
-      // });
-
       var ret = {
         date: getDateString(performance_series.push_timestamp)
       };
 
-      _.extend(ret, $scope.replicates.metadata);
-
-      return ret;
+      return angular.extend($scope.replicates.metadata, ret);
     };
 }]);
