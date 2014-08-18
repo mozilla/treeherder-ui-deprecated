@@ -90,8 +90,8 @@ treeherder.controller('PinboardCtrl', [
 
         $scope.viewJob = function(job) {
             $rootScope.selectedJob = job;
-            $rootScope.$broadcast(thEvents.jobClick, job);
-            $rootScope.$broadcast(thEvents.selectJob, job);
+            $rootScope.$emit(thEvents.jobClick, job);
+            $rootScope.$emit(thEvents.selectJob, job);
         };
 
         $scope.classification = thPinboard.createNewClassification();

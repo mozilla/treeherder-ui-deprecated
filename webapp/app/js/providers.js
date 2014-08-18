@@ -169,7 +169,7 @@ treeherder.provider('thResultStatusInfo', function() {
 /**
  * The set of custom Treeherder events.
  *
- * These are/can be used via $rootScope.$broadcast.
+ * These are/can be used via $rootScope.$emit.
  */
 treeherder.provider('thEvents', function() {
     this.$get = function() {
@@ -230,6 +230,8 @@ treeherder.provider('thEvents', function() {
             showUnclassifiedFailures: "show-unclassified-failures-EVT",
 
             selectJob: "select-job-EVT",
+
+            showPluginTab: "show-tab-EVT",
 
             mapResultSetJobs: "map-result-set-jobs-EVT",
 

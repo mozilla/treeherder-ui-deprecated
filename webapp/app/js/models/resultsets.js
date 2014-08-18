@@ -546,7 +546,7 @@ treeherder.factory('ThResultSetModel', [
         }
 
         if(!_.isEmpty(platformData) && repoName === $rootScope.repoName){
-            $rootScope.$broadcast(thEvents.jobsLoaded, platformData);
+            $rootScope.$emit(thEvents.jobsLoaded, platformData);
         }
     };
 
@@ -682,7 +682,7 @@ treeherder.factory('ThResultSetModel', [
 
                     if (rs.revisions.length === 0) {
                         Array.prototype.push.apply(rs.revisions, data);
-                        $rootScope.$broadcast(thEvents.revisionsLoaded, rs);
+                        $rootScope.$emit(thEvents.revisionsLoaded, rs);
                     }
 
                 });
@@ -725,7 +725,11 @@ treeherder.factory('ThResultSetModel', [
     };
 
     var getResultSet = function(repoName, resultsetId){
-        return repositories[repoName].rsMap[resultsetId].rs_obj;
+        if (repositories[repoName] &&
+            repositories[repoName].rsMap[resultsetId])
+            return repositories[repoName].rsMap[resultsetId].rs_obj;
+
+        return null;
     };
 
     var getJobMap = function(repoName){

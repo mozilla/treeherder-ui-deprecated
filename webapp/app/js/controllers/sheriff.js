@@ -194,7 +194,7 @@ treeherder.controller('SheriffCtrl', [
                     }
                 });
                 $rootScope.active_exclusion_profile = profile;
-                $rootScope.$broadcast(thEvents.globalFilterChanged, null);
+                $rootScope.$emit(thEvents.globalFilterChanged, null);
             }, null);
         };
 

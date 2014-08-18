@@ -50,14 +50,14 @@ treeherder.controller('JobsCtrl', [
         $rootScope.$on(
             thEvents.toggleAllJobs, function(ev, expand){
                 _.forEach($scope.result_sets, function(rs) {
-                    $rootScope.$broadcast(thEvents.toggleJobs, rs, expand);
+                    $rootScope.$emit(thEvents.toggleJobs, rs, expand);
                 });
             });
 
         $rootScope.$on(
             thEvents.toggleAllRevisions, function(ev, expand){
                 _.forEach($scope.result_sets, function(rs) {
-                    $rootScope.$broadcast(thEvents.toggleRevisions, rs, expand);
+                    $rootScope.$emit(thEvents.toggleRevisions, rs, expand);
                 });
             });
 
@@ -70,14 +70,19 @@ treeherder.controller('ResultSetCtrl', [
     '$scope', '$rootScope', '$http', 'ThLog', '$location',
     'thUrl', 'thServiceDomain', 'thResultStatusInfo',
     'ThResultSetModel', 'thEvents', 'thJobFilters', 'thNotify',
-    'thBuildApi', 'thPinboard',
+    'thBuildApi', 'ThPerformanceDataModel', 'thPinboard',
     function ResultSetCtrl(
         $scope, $rootScope, $http, ThLog, $location,
         thUrl, thServiceDomain, thResultStatusInfo,
         ThResultSetModel, thEvents, thJobFilters, thNotify,
-        thBuildApi, thPinboard) {
+        thBuildApi, ThPerformanceDataModel, thPinboard) {
 
         var $log = new ThLog(this.constructor.name);
+        $scope.revisionsVisible = true;
+        $scope.jobsVisible = true;
+        $scope.performanceViewVisible = false;
+
+        var PerformanceData = new ThPerformanceDataModel();
 
         $scope.getCountClass = function(resultStatus) {
             return thResultStatusInfo(resultStatus).btnClass;
@@ -114,17 +119,81 @@ treeherder.controller('ResultSetCtrl', [
                 $rootScope.repoName, $scope.resultset.id
                 );
 
-            $rootScope.$broadcast(
-                thEvents.toggleRevisions, $scope.resultset
-                );
+            $scope.revisionsVisible = !$scope.revisionsVisible;
+
+            if ($scope.performanceViewVisible) {
+                $scope.hidePerformanceView();
+            }
 
         };
-        $scope.toggleJobs = function() {
 
-            $rootScope.$broadcast(
+        $scope.togglePerformanceView = function() {
+            $scope.revisionsVisible = false;
+
+            function getFirstShownJob () {
+                var jobs = ThResultSetModel.getJobMap($rootScope.repoName);
+
+                for (var i in jobs) {
+                    if (!jobs.hasOwnProperty(i)) continue;
+                    if ($scope.resultset.id !== jobs[i].job_obj.result_set_id) continue;
+
+                    if (thJobFilters.showJob(
+                        jobs[i].job_obj, $scope.resultStatusFilters, $scope.resultFieldFilters)) {
+                        return jobs[i].job_obj;
+                    }
+                }
+            }
+
+            if (!$scope.performanceViewVisible) {
+                if (!$scope.jobsVisible) {$scope.toggleJobs();}
+
+                $scope.resultFieldFilters.job_group_symbol = 'T';
+
+                $rootScope.$emit(
+                    thEvents.resultSetFilterChanged, $scope.resultset);
+
+                $scope.performanceViewVisible = true;
+
+                var firstShown = getFirstShownJob();
+
+                if (!firstShown) {
+                    $scope.chartSettings = {
+                        error: 'No performance jobs yet for this repository.'
+                    };
+
+                    return;
+                }
+
+                $rootScope.$emit(thEvents.selectJob, firstShown);
+                $rootScope.$emit(thEvents.showPluginTab, 'performance_replicates');
+
+                $scope.chartSettings = {
+                    selectedJob: firstShown
+                };
+            } else {
+                $scope.hidePerformanceView();
+            }
+        };
+
+        $scope.hidePerformanceView = function () {
+            if ($scope.performanceViewVisible) {
+                $scope.performanceViewVisible = false;
+                $scope.revisionsVisible = true;
+
+                delete $scope.resultFieldFilters.job_group_symbol;
+                $rootScope.$emit(
+                    thEvents.resultSetFilterChanged, $scope.resultset);
+            }
+        };
+
+        $scope.toggleJobs = function() {
+            if ($scope.performanceViewVisible) {
+                $scope.hidePerformanceView();
+            }
+
+            $rootScope.$emit(
                 thEvents.toggleJobs, $scope.resultset
                 );
-
         };
 
         /**
@@ -169,7 +238,7 @@ treeherder.controller('ResultSetCtrl', [
                 $scope.resultStatusFilters.splice(idx, 1);
             }
 
-            $rootScope.$broadcast(
+            $rootScope.$emit(
                 thEvents.resultSetFilterChanged, $scope.resultset
                 );
 
@@ -199,6 +268,7 @@ treeherder.controller('ResultSetCtrl', [
         $scope.authorResultsetFilterUrl = $scope.urlBasePath + "?repo=" + $scope.repoName + "&author=" + encodeURIComponent($scope.resultset.author);
 
         $scope.resultStatusFilters = thJobFilters.copyResultStatusFilters();
+        $scope.resultFieldFilters = {};
 
         $rootScope.$on(thEvents.jobContextMenu, function(event, job){
             $log.debug("caught", thEvents.jobContextMenu);

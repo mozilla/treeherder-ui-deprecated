@@ -321,9 +321,15 @@ body {
 }
 
 .result-set-buttons {
-    width: 205px;
+    width: 276px;
     display: block;
 }
+
+.result-set-buttons .selected {
+    background-color: #9B9B9B;
+    color: #FFF;
+}
+
 .revision-text {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -334,6 +340,11 @@ body {
 
 .revision-button {
     width: 60px;
+}
+
+.revision-button.selected {
+    background-color: #9B9B9B;
+    color: #FFF;
 }
 
 .revision-list {
@@ -767,6 +778,11 @@ ul.failure-summary-list li .btn-xs{
 .result-status-total-count {
     width: 60px;
 }
+.result-status-total-count.selected {
+    background-color: #9B9B9B;
+    color: #FFF;
+}
+
 .result-status-count-min-width {
     width: 28px;
 }
@@ -1341,6 +1357,38 @@ fieldset[disabled] .btn-repo.active {
   background-color: #7c7a7d;
   border-color: #7c7a7d;
   color: white;
+}
+
+.btn-dark-border {
+    border: 1px solid #747474;
+}
+
+/*Log Viewer*/
+
+.lv-line-no {
+    width: 3em;
+}
+
+.lv-error-line {
+    background-color: white;
+    color: #333333;
+    width: 100%;
+}
+
+.lv-log-container {
+    overflow-y: scroll;
+    overflow-x: auto;
+    height: 1000px;
+}
+
+.lv-log-line {
+    width: 100%;
+    float: left;
+    white-space: pre-line;
+}
+
+.lv-line-highlight {
+    background-color: LightGrey;
 }
 
 .white, .white a {

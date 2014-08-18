@@ -203,6 +203,7 @@ treeherder.factory('thJobFilters', [
             // the string types are case insensitive
             value = value.toLowerCase();
         }
+
         if (filters.hasOwnProperty(field)) {
             if (!_.contains(filters[field].values, value)) {
                 filters[field].values.push(value);
@@ -221,11 +222,13 @@ treeherder.factory('thJobFilters', [
         $log.debug("added ", field, ": ", value);
         $log.debug("filters", filters, "filterkeys", filterKeys);
         if (!quiet) {
-            $rootScope.$broadcast(thEvents.globalFilterChanged);
+            $rootScope.$emit(thEvents.globalFilterChanged);
         }
     };
 
     var removeFilter = function(field, value) {
+        var removed = false;
+
         if (filters.hasOwnProperty(field)) {
             if (_.isString(value)) {
                 // the string types are case insensitive
@@ -273,7 +276,7 @@ treeherder.factory('thJobFilters', [
         $log.debug("filters", filters);
 
         if (someRemoved) {
-            $rootScope.$broadcast(thEvents.globalFilterChanged);
+            $rootScope.$emit(thEvents.globalFilterChanged);
         }
     };
 
@@ -290,7 +293,7 @@ treeherder.factory('thJobFilters', [
         for (var i = 0; i < values.length; i++) {
             action(field, values[i]);
         }
-        $rootScope.$broadcast(thEvents.globalFilterChanged);
+        $rootScope.$emit(thEvents.globalFilterChanged);
     };
 
     var copyResultStatusFilters = function() {
@@ -305,12 +308,22 @@ treeherder.factory('thJobFilters', [
      * @param resultStatusList - optional.  custom list of resultstatuses
      *        that can be used for individual resultsets
      */
-    var showJob = function(job, resultStatusList) {
+    var showJob = function(job, resultStatusList, resultFieldList) {
         for(var i = 0; i < filterKeys.length; i++) {
             if (!checkFilter(filterKeys[i], job, resultStatusList)) {
                 return false;
             }
         }
+
+        if (resultFieldList) {
+            for (var i in resultFieldList) {
+                if (!resultFieldList.hasOwnProperty(i)) return;
+                var value = resultFieldList[i];
+
+                if (job[i] !== value) return false;
+            }
+        }
+
         if(typeof $rootScope.searchQuery === 'string'){
             //Confirm job matches search query
             if(job.searchableStr.toLowerCase().indexOf(
@@ -428,7 +441,7 @@ treeherder.factory('thJobFilters', [
         };
         filters.resultStatus.values = ["busted", "testfailed", "exception"];
         filters.isClassified.values = [false];
-        $rootScope.$broadcast(thEvents.globalFilterChanged);
+        $rootScope.$emit(thEvents.globalFilterChanged);
     };
 
     /**
@@ -441,7 +454,7 @@ treeherder.factory('thJobFilters', [
         };
         filters.resultStatus.values = ["coalesced"];
         filters.isClassified.values = [false, true];
-        $rootScope.$broadcast(thEvents.globalFilterChanged);
+        $rootScope.$emit(thEvents.globalFilterChanged);
     };
 
     var toggleInProgress = function() {
@@ -451,7 +464,7 @@ treeherder.factory('thJobFilters', [
         }
         func(api.resultStatus, 'pending');
         func(api.resultStatus, 'running');
-        $rootScope.$broadcast(thEvents.globalFilterChanged);
+        $rootScope.$emit(thEvents.globalFilterChanged);
     };
 
     /**
@@ -472,7 +485,7 @@ treeherder.factory('thJobFilters', [
         filters[field].values = values;
         $log.debug("setCheckFilterValues", field, values);
         if (!quiet) {
-            $rootScope.$broadcast(thEvents.globalFilterChanged);
+            $rootScope.$emit(thEvents.globalFilterChanged);
         }
     };
 
@@ -484,8 +497,9 @@ treeherder.factory('thJobFilters', [
     var resetNonFieldFilters = function(quiet) {
         filters.resultStatus.values = thResultStatusList.defaultFilters();
         filters.isClassified.values = [true, false];
+
         if (!quiet) {
-            $rootScope.$broadcast(thEvents.globalFilterChanged);
+            $rootScope.$emit(thEvents.globalFilterChanged);
         }
     };
 
@@ -515,7 +529,7 @@ treeherder.factory('thJobFilters', [
     var revertNonFieldFilters = function() {
         filters.resultStatus.values = stashedStatusFilterValues.resultStatus;
         filters.isClassified.values = stashedStatusFilterValues.isClassified;
-        $rootScope.$broadcast(thEvents.globalFilterChanged);
+        $rootScope.$emit(thEvents.globalFilterChanged);
 
     };
 

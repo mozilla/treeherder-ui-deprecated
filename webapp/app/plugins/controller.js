@@ -46,7 +46,7 @@ treeherder.controller('PluginCtrl', [
                     timeout: timeout_promise
                 }).then(function(data){
                     $scope.job = data;
-                    $rootScope.$broadcast(thEvents.jobDetailLoaded);
+                    $rootScope.$emit(thEvents.jobDetailLoaded);
                     updateVisibleFields();
                     $scope.job_detail_loading = false;
                     $scope.logs = data.logs;
@@ -170,6 +170,10 @@ treeherder.controller('PluginCtrl', [
             $rootScope.selectedJob = job;
         });
 
+        $rootScope.$on(thEvents.showPluginTab, function(event, tabName) {
+            $scope.show_tab(tabName);
+        });
+
         $rootScope.$on(thEvents.jobsClassified, function(event, job) {
             $scope.updateClassifications();
         });
@@ -224,7 +228,7 @@ treeherder.controller('PluginCtrl', [
                             var params = { jobs: {}};
                             params.jobs[job.id] = jobMap[map_key].job_obj;
                             // broadcast the job classification event
-                            $rootScope.$broadcast(thEvents.jobsClassified, params);
+                            $rootScope.$emit(thEvents.jobsClassified, params);
                         }
                     }
 
@@ -249,10 +253,16 @@ treeherder.controller('PluginCtrl', [
             "similar_jobs": {
                 title: "Similar jobs",
                 content: "plugins/similar_jobs/main.html"
+            },
+            "performance_replicates": {
+                title: "Performance Replicates",
+                content: "plugins/performance_replicates/main.html"
             }
         };
 
         $scope.show_tab = function(tab){
+            if (angular.isString(tab)) tab = $scope.tabs[tab];
+
             if(tab.active !== true){
                 angular.forEach($scope.tabs, function(v,k){
                     v.active=false;

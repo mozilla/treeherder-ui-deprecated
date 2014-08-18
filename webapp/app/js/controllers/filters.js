@@ -292,7 +292,7 @@ treeherder.controller('SearchCtrl', [
                 $rootScope.skipNextSearchChangeReload = true;
                 $location.search("searchQuery", queryString);
 
-                $rootScope.$broadcast(
+                $rootScope.$emit(
                     thEvents.searchPage,
                     {searchQuery: $scope.searchQuery}
                     );

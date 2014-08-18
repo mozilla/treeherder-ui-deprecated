@@ -2,12 +2,12 @@
 
 /* Directives */
 treeherder.directive('thCloneJobs', [
-    '$rootScope', '$http', 'ThLog', 'thUrl', 'thCloneHtml',
+    '$rootScope', '$http', '$compile', 'ThLog', 'thUrl', 'thCloneHtml',
     'thServiceDomain', 'thResultStatusInfo', 'thEvents', 'thAggregateIds',
     'thJobFilters', 'thResultStatusObject', 'ThResultSetModel',
     'ThJobModel', 'linkifyBugsFilter', 'thResultStatus', 'thPlatformNameMap',
     function(
-        $rootScope, $http, ThLog, thUrl, thCloneHtml,
+        $rootScope, $http, $compile, ThLog, thUrl, thCloneHtml,
         thServiceDomain, thResultStatusInfo, thEvents, thAggregateIds,
         thJobFilters, thResultStatusObject, ThResultSetModel,
         ThJobModel, linkifyBugsFilter, thResultStatus, thPlatformNameMap){
@@ -170,11 +170,11 @@ treeherder.directive('thCloneJobs', [
 
     var clickJobCb = function(ev, el, job){
         setSelectJobStyles(el);
-        $rootScope.$broadcast(thEvents.jobClick, job);
+        $rootScope.$emit(thEvents.jobClick, job);
     };
 
     var togglePinJobCb = function(ev, el, job){
-        $rootScope.$broadcast(thEvents.jobPin, job);
+        $rootScope.$emit(thEvents.jobPin, job);
     };
 
     var jobContextmenuCb = function(ev, el, job){
@@ -196,7 +196,8 @@ treeherder.directive('thCloneJobs', [
     };
 
     var addJobBtnEls = function(
-        jgObj, jobBtnInterpolator, jobTdEl, resultStatusFilters, jobCounts){
+        jgObj, jobBtnInterpolator, jobTdEl, resultStatusFilters, jobCounts,
+        resultFieldFilters){
 
         var jobsShown = 0;
 
@@ -225,7 +226,8 @@ treeherder.directive('thCloneJobs', [
 
             //Make sure that filtering doesn't effect the resultset counts
             //displayed
-            if(thJobFilters.showJob(job, resultStatusFilters) === false){
+            if(thJobFilters.showJob(
+                job, resultStatusFilters, resultFieldFilters) === false){
                 //Keep track of visibility with this property. This
                 //way down stream job consumers don't need to repeatedly
                 //call showJob
@@ -427,7 +429,7 @@ treeherder.directive('thCloneJobs', [
      *                 an expand/collapse all button.
      */
     var toggleJobs = function(element, expand){
-
+        this.jobsVisible = !this.jobsVisible;
 
         var revisionsEl = element.find('ul').parent();
         var jobsEl = element.find('table').parent();
@@ -499,7 +501,7 @@ treeherder.directive('thCloneJobs', [
 
     var renderJobTableRow = function(
         row, jobTdEl, jobGroups, resultStatusFilters, resultsetId,
-        platformKey){
+        platformKey, resultFieldFilters){
 
         //Empty the job column before populating it
         jobTdEl.empty();
@@ -528,7 +530,7 @@ treeherder.directive('thCloneJobs', [
                 jobsShown = addJobBtnEls(
                     jgObj, jobBtnInterpolator, jobGroup.find(".job-group-list"),
                     resultStatusFilters,
-                    jobCounts
+                    jobCounts, resultFieldFilters
                     );
                 jobGroup.css("display", jobsShown? "inline": "none");
 
@@ -537,7 +539,7 @@ treeherder.directive('thCloneJobs', [
                 // Add the job btn spans
                 jobsShown = addJobBtnEls(
                     jgObj, jobBtnInterpolator, jobTdEl, resultStatusFilters,
-                    jobCounts
+                    jobCounts, resultFieldFilters
                     );
 
             }
@@ -552,7 +554,7 @@ treeherder.directive('thCloneJobs', [
         resetCounts(resultSetMap);
     };
 
-    var filterJobs = function(element, resultStatusFilters){
+    var filterJobs = function(element, resultStatusFilters, resultFieldFilters){
         $log.debug("filterJobs", element, resultStatusFilters);
 
         if(this.resultset.platforms === undefined){
@@ -567,7 +569,7 @@ treeherder.directive('thCloneJobs', [
             // so just using raw JS for speed.
             jmKey = this.dataset.jmkey;
             job = jobMap[jmKey].job_obj;
-            show = thJobFilters.showJob(job, resultStatusFilters);
+            show = thJobFilters.showJob(job, resultStatusFilters, resultFieldFilters);
             job.visible = show;
 
             showHideJob($(this), show);
@@ -608,7 +610,6 @@ treeherder.directive('thCloneJobs', [
                 showGrp = grp.find('.filter-shown').length !== 0;
                 grp.css("display", showGrp? "inline": "none");
             });
-
         } else {
             platform.css("display", "none");
         }
@@ -756,7 +757,7 @@ treeherder.directive('thCloneJobs', [
 
                 renderJobTableRow(
                     rowEl, jobTdEl, value.jobGroups, this.resultStatusFilters,
-                    value.resultsetId, platformKey, true
+                    value.resultsetId, platformKey
                     );
 
                 //Determine appropriate place to append row for this
@@ -770,7 +771,7 @@ treeherder.directive('thCloneJobs', [
 
                 renderJobTableRow(
                     $(rowEl), jobTdEl, value.jobGroups, this.resultStatusFilters,
-                    value.resultsetId, platformKey, true
+                    value.resultsetId, platformKey
                     );
             }
         }, this);
@@ -935,7 +936,8 @@ treeherder.directive('thCloneJobs', [
             thEvents.resultSetFilterChanged, function(ev, rs){
                 if(rs.id === scope.resultset.id){
                     _.bind(
-                        filterJobs, scope, element, scope.resultStatusFilters
+                        filterJobs, scope, element, scope.resultStatusFilters,
+                        scope.resultFieldFilters
                         )();
                 }
             });
@@ -1030,7 +1032,7 @@ treeherder.directive('thCloneJobs', [
             renderJobTableRow(
                 row, jobTdEl, resultset.platforms[j].groups,
                 resultStatusFilters, resultset.id,
-                platformKey, true
+                platformKey
                 );
 
             tableEl.append(row);
@@ -1056,6 +1058,9 @@ treeherder.directive('thCloneJobs', [
         var targetEl = $(
             tableInterpolator({ aggregateId:resultsetAggregateId })
             );
+
+        // allow angularness inside template
+        $compile(targetEl)(scope);
 
         addRevisions(scope.resultset, targetEl);
 
