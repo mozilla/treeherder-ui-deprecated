@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="helpviewer">
 <head>
     <title>Treeherder Help</title>
     <!-- build:css css/help.min.css -->
@@ -7,11 +7,105 @@
     <link href="css/treeherder.css" rel="stylesheet" media="screen">
     <!-- endbuild -->
 </head>
-<body class="container" id="help">
+<body ng-controller="HelpviewerCtrl" class="container" id="help">
+
+        <script src="vendor/jquery-2.0.3.js"></script>
+        <script src="vendor/angular/angular.js"></script>
+        <script src="vendor/angular/angular-route.js"></script>
+        <script src="vendor/angular/angular-resource.js"></script>
+        <script src="vendor/angular/angular-cookies.js"></script>
+        <script src="vendor/ui-bootstrap-tpls-0.10.0.min.js"></script>
+        <script src="vendor/bootstrap.js"></script>
+        <script src="vendor/angular/angular-sanitize.min.js"></script>
+        <script src="vendor/socket.io.js"></script>
+        <script src="vendor/angular-local-storage.min.js"></script>
+        <script src="vendor/underscore-min.js"></script>
+        <script src="js/app.js"></script>
+        <script src="js/controllers/helpviewer.js"></script>
+        <script src="js/models/job_type.js"></script>
+        <script src="js/models/job_group.js"></script>
+        <!-- build:js js/index.min.js -->
+        <script src="vendor/jquery-2.0.3.js"></script>
+
+        <script src="vendor/ui-bootstrap-tpls-0.10.0.min.js"></script>
+        <script src="vendor/bootstrap.js"></script>
+        <script src="vendor/angular/angular-sanitize.min.js"></script>
+        <script src="vendor/socket.io.js"></script>
+        <script src="vendor/angular-local-storage.min.js"></script>
+        <script src="vendor/underscore-min.js"></script>
+
+        <script src="js/app.js"></script>
+        <script src="js/services/log.js"></script>
+        <script src="js/config/local.conf.js"></script>
+        <script src="js/providers.js"></script>
+        <script src="js/values.js"></script>
+        <!-- Directives -->
+        <script src="js/directives/main.js"></script>
+        <script src="js/directives/clonejobs.js"></script>
+        <script src="js/directives/persona.js"></script>
+        <script src="js/directives/resultsets.js"></script>
+        <script src="js/directives/top_nav_bar.js"></script>
+        <script src="js/directives/bottom_nav_panel.js"></script>
+        <!-- Main services -->
+        <script src="js/services/main.js"></script>
+        <script src="js/services/buildapi.js"></script>
+        <script src="js/services/classifications.js"></script>
+        <script src="js/services/jobfilters.js"></script>
+        <script src="js/services/pinboard.js"></script>
+        <script src="js/services/resultsets.js"></script>
+        <script src="js/services/treestatus.js"></script>
+        <!-- Model services -->
+        <script src="js/models/resultsets.js"></script>
+        <script src="js/models/job_artifact.js"></script>
+        <script src="js/models/repository.js"></script>
+        <script src="js/models/bug_job_map.js"></script>
+        <script src="js/models/classification.js"></script>
+        <script src="js/models/job.js"></script>
+        <script src="js/models/job_exclusion.js"></script>
+        <script src="js/models/exclusion_profile.js"></script>
+        <script src="js/models/build_platform.js"></script>
+        <script src="js/models/job_type.js"></script>
+        <script src="js/models/job_log_url.js"></script>
+        <script src="js/models/option.js"></script>
+        <script src="js/models/user.js"></script>
+        <!-- Controllers -->
+        <script src="js/controllers/main.js"></script>
+        <script src="js/controllers/sheriff.js"></script>
+        <script src="js/controllers/settings.js"></script>
+        <script src="js/controllers/repository.js"></script>
+        <script src="js/controllers/filters.js"></script>
+        <script src="js/controllers/jobs.js"></script>
+        <script src="js/controllers/machines.js"></script>
+        <script src="js/controllers/timeline.js"></script>
+        <!-- Plugins -->
+        <script src="plugins/controller.js"></script>
+        <script src="plugins/pinboard.js"></script>
+        <script src="plugins/annotations/controller.js"></script>
+        <script src="plugins/failure_summary/controller.js"></script>
+        <script src="plugins/similar_jobs/controller.js"></script>
+
+        <script src="js/filters.js"></script>
+        <!-- endbuild -->
+
+        <script src="https://login.persona.org/include.js"></script>
+
+  <!-- <ul> -->
+  <!--   <li ng-repeat="job in master_job_types">---- -->
+  <!--     {{job.name}}<br />{{job}}<br /> -->
+  <!--     <p>{{job.symbol}}</p> -->
+  <!--   </li> -->
+  <!-- </ul> -->
+
+  <!-- <ul> -->
+  <!--   <li ng-repeat="phone in phones"> -->
+  <!--     {{phone}} -->
+  <!--     <p>{{phone.snippet}}</p> -->
+  <!--   </li> -->
+  <!-- </ul> -->
 <div class="panel panel-default">
 <div class="panel-heading">
     <h1>Treeherder Help</h1>
-
+{{ foo }}
     <h5>More documentation available at <a href="https://wiki.mozilla.org/Auto-tools/Projects/Treeherder">
         https://wiki.mozilla.org/Auto-tools/Projects/Treeherder
     </a></h5>
@@ -48,9 +142,8 @@
                 </table>
             </div>
         </div>
-
-
     </div>
+
     <div class="col-xs-6">
         <div class="panel panel-default">
             <div class="panel-heading"><h3>Keyboard shortcuts</h3></div>
@@ -209,6 +302,22 @@
 
 
 </div>
+
+<div class="col-xs-6">
+    <div class="panel panel-default">
+        <div class="panel-heading"><h3>Tests</h3></div>
+        <div class="panel-body">
+            <table id="legend-tests">
+              <tr ng-repeat="job in master_job_types | orderBy:'job_group'">
+                <th>{{job.symbol}}</th>
+                <td>{{job.name}}</td>
+                <td>{{job.description}} {{job}}</td>
+              </tr>
+            </table>
+        </div>
+    </div>
+</div>
+a remplacer:
 <div class="col-xs-6">
     <div class="panel panel-default">
         <div class="panel-heading"><h3>Tests</h3></div>
