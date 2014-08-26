@@ -43,3 +43,42 @@ treeherder.config(function($routeProvider, $httpProvider, $logProvider) {
 });
 
 var logViewer = angular.module('logViewer',['treeherder']);
+
+//var helpViewer = angular.module('helpViewer', []);//, ['HelpviewerController']);
+
+
+var helpviewer = angular.module('helpviewer', ['treeherder']);
+
+// helpviewer.controller('HelpviewerCtrl', [
+//     '$scope', '$rootScope', 'ThBuildPlatformModel', 'ThJobTypeModel',
+//     'thEvents', 'ThRepositoryModel', 'ThOptionModel', 'ThJobExclusionModel',
+//     'ThExclusionProfileModel',
+//     function HelpviewerController(
+//         $scope, $rootScope, ThBuildPlatformModel, ThJobTypeModel, thEvents,
+//         ThRepositoryModel, ThOptionModel, ThJobExclusionModel,
+//         ThExclusionProfileModel) {
+
+helpviewer.controller('HelpviewerCtrl', [
+    '$scope', 'ThJobTypeModel', 'ThBuildPlatformModel', 'ThJobGroupModel',
+    function HelpviewerController(
+        $scope, ThJobTypeModel, ThBuildPlatformModel, ThJobGroupModel) {
+
+        // initialize the list of job_types
+        $scope.master_job_types = [];
+        ThJobTypeModel.get_list()
+        .then(function(data) {
+            for (var i = 0; i < data.length; i++) {
+                $scope.master_job_types.push(data[i]);
+            }
+        });
+
+        // initialize the list of job_groups
+        $scope.master_job_groups = [];
+        ThJobGroupModel.get_list()
+        .then(function(data) {
+            for (var i = 0; i < data.length; i++) {
+                $scope.master_job_groups.push(data[i]);
+            }
+        });
+
+}]);
