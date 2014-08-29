@@ -20,15 +20,15 @@
         </div>
 
         <!-- Footer -->
+        <div class="text-center">
+          <a href="https://github.com/mozilla/treeherder-ui" target="_blank">Source code</a> / <a href="https://wiki.mozilla.org/Auto-tools/Projects/Treeherder#Hacking" target="_blank">Hacking</a> / <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Tree+Management&component=Treeherder" target="_blank">Bug report</a>
+        </div>
         <div ng-controller="PluginCtrl"
              id="bottom-panel"
              ng-show="selectedJob"
-             ng-class="{'with-pinboard':isPinboardVisible}">
+             ng-class="{'with-pinboard':isPinboardVisible}"
+             ng-include src="'plugins/pluginpanel.html'">
             <resizable-panel position="top"></resizable-panel>
-
-            <div class="full-height"
-                 ng-include src="'plugins/pluginpanel.html'">
-            </div>
         </div>
 
         <th-notification-box></th-notification-box>
@@ -44,19 +44,12 @@
 
     <li>
         <span class="revision">
-            <a href="{{urlBasePath}}?repo={{currentRepo.name}}&revision={{revision}}"
-               target="_blank"
-               title="open resultsets that contain revision {{revision}}"
-               >{{revision}}</a>
             <a href="{{currentRepo.url}}/rev/{{revision}}"
                target="_blank"
-               class="btn btn-default btn-xs"
                title="open revision {{revision}} on {{currentRepo.url}}"
-               >
-                <i class="fa fa-external-link-square"></i>
-            </a>
-            <span title="{{name}}: {{email}}">{{name}}</span>
-            <span title="{{comments}}"><em>"{{comments_bug_link}}"</em></span>
+               >{{revision}}</a>
+            <span title="{{name}}: {{email}}">{{name|initials}}</span>
+            <span title="{{comments}}"><em>{{comments_bug_link}}</em></span>
         </span>
     </li>
 
@@ -77,10 +70,10 @@
 <script type="'text/ng-template'" id="resultsetClone.html">
     <div class="clearfix"></div>
     <div class="row result-set">
-        <span style="display:block;" class="revision-list col-xs-4">
+        <span style="display:block;" class="revision-list col-xs-5">
             <ul class="list-unstyled"></ul>
         </span>
-        <span class="job-list col-xs-8 job-list-pad-left">
+        <span class="job-list col-xs-7 job-list-pad-left">
             <span class="fa fa-refresh fa-spin"></span>
             <table id="{{ aggregateId }}" class="table-hover"></table>
         </span>
