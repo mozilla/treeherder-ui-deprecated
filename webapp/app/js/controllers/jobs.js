@@ -20,7 +20,7 @@ treeherder.controller('JobsCtrl', [
         // set the default repo to mozilla-inbound if not specified
         if ($routeParams.hasOwnProperty("repo") &&
             $routeParams.repo !== "") {
-            $rootScope.repoName = $routeParams.repo;
+            $rootScope.repoName = $routeParams.repo.toLowerCase();
         } else {
             $rootScope.repoName = "mozilla-central";
         }
