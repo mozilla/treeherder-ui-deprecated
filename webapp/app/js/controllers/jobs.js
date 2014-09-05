@@ -17,10 +17,20 @@ treeherder.controller('JobsCtrl', [
             ThResultSetModel.fetchResultSets($scope.repoName, count);
         };
 
+	function toTitleCase(str){
+	    return str.replace(/\w*/g, function(txt) {
+		    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+	    });
+	}
+
         // set the default repo to mozilla-inbound if not specified
         if ($routeParams.hasOwnProperty("repo") &&
             $routeParams.repo !== "") {
-            $rootScope.repoName = $routeParams.repo.toLowerCase();
+	    if ($routeParams.repo === toTitleCase($routeParams.repo)){ 
+	        $rootScope.repoName = $routeParams.repo.toLowerCase();
+	    } else{
+	        $rootScope.repoName = $routeParams.repo;
+	    }
         } else {
             $rootScope.repoName = "mozilla-central";
         }
