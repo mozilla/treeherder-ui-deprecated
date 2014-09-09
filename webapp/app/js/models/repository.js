@@ -52,7 +52,8 @@ treeherder.factory('ThRepositoryModel', [
             isWatched: false,
             treeStatus: null,
             unclassifiedFailureCount: 0,
-            unclassifiedFailureCountExcluded: 0
+            unclassifiedFailureCountExcluded: 0,
+            groupName: repo.repository_group.name
         };
     };
 
@@ -65,7 +66,8 @@ treeherder.factory('ThRepositoryModel', [
             isWatched: true,
             treeStatus: null,
             unclassifiedFailureCount: 0,
-            unclassifiedFailureCountExcluded: 0
+            unclassifiedFailureCountExcluded: 0,
+            groupName: repos[repoName].groupName
         };
         watchedRepos[repoName] = repos[repoName];
         updateTreeStatus(repoName);
