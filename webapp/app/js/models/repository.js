@@ -34,7 +34,14 @@ treeherder.factory('ThRepositoryModel', [
 
     var getOrderedRepoGroups = function() {
         if (!_.size(orderedRepoGroups)) {
-            var groups = _.groupBy($rootScope.repos, function(r) {return r.repository_group.name;});
+            var groups = _.groupBy($rootScope.repos, function(r) {
+                if (r.name === 'unknown') {
+                    return "deleteme";
+                }
+                return r.repository_group.name;
+            });
+            delete groups.deleteme;
+
             _.each(groups, function(reposAr, gName) {
                 orderedRepoGroups[thRepoGroupOrder[gName] || gName] = {name: gName, repos: reposAr};
             });
