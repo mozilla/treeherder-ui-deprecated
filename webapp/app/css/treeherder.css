@@ -42,6 +42,7 @@ body {
 .navbar .dropdown-menu {
     max-height: 600px;
     overflow: auto;
+    margin-top: 10px;
 }
 
 .th-global-navbar {
