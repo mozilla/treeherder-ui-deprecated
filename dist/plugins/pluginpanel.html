@@ -1,4 +1,8 @@
-<ng-include src="'partials/thPinboardPanel.html'"></ng-include>
+<div ng-controller="PinboardCtrl"
+     id="pinboard-panel"
+     ng-show="isPinboardVisible"
+     ng-include src="'partials/thPinboardPanel.html'">
+</div>
 <div id="bottom-panel-content">
   <div id="bottom-left-panel">
     <div id="bottom-left-top">
@@ -34,7 +38,7 @@
             <!--the first 3 items are in the same box-->
             <ul class="nav navbar-nav">
               <li>
-                <a href="" title="Add the selected job to the pinboard via ctrl/cmd+click or spacebar"
+                <a href="" prevent-default-on-left-click  title="Add the selected job to the pinboard via ctrl/cmd+click or spacebar"
                    ng-click="pinboard_service.pinJob(selectedJob)">
                   <span class="glyphicon glyphicon-pushpin"></span>
                   <span class="pinned-job-count"><strong>{{ getCountPinnedJobs() }}</strong></span>
@@ -45,7 +49,7 @@
           </li>
           <li ng-show="canCancel()">
             <a title="Cancel job"
-               href=""
+               href="" prevent-default-on-left-click
                target="_blank"
                ng-click="cancelJob()">
               <span class="fa fa-stop"></span>
@@ -53,16 +57,16 @@
           </li>
           <li ng-show="canRetrigger()">
             <a title="Retrigger job"
-               href=""
+               href="" prevent-default-on-left-click
                target="_blank"
                ng-click="retriggerJob()">
               <span class="fa fa-play"></span>
             </a>
           </li>
-          <li ng-show="isReftest()">
+          <li ng-show="isReftest()" ng-repeat="job_log_url in job_log_urls">
             <a title="Launch the Reftest Analyser in a new page"
                target="_blank"
-               href="https://hg.mozilla.org/mozilla-central/raw-file/tip/layout/tools/reftest/reftest-analyzer.xhtml">
+               href="http://hg.mozilla.org/mozilla-central/raw-file/tip/layout/tools/reftest/reftest-analyzer.xhtml#logurl={{ job_log_url.url }}&only_show_unexpected=1">
               <span class="fa fa-bar-chart-o"></span>
             </a>
           </li>
@@ -96,13 +100,16 @@
         </li>
       </ul>
       <ul>
-        <li><h6><a href="{{ buildbotJobnameHref }}" target="_blank" prevent-default-on-left-click th-filter-by-buildername>{{ buildbotJobname }}</a></h6></li>
+        <li><a href="{{ buildbotJobnameHref }}" target="_blank" prevent-default-on-left-click th-filter-by-buildername>{{ buildbotJobname }}</a></li>
         <li class="small">
           <label>Machine name:</label>
           <a title="Open Buildbot Slave Health Report" target="_blank"
              href="https://secure.pub.build.mozilla.org/builddata/reports/slave_health/slave.html?name={{ job.machine_name }}">
             {{job.machine_name }}
           </a>
+        </li>
+        <li class="small" ng-repeat="job_log_url in job_log_urls">
+          <a href="{{job_log_url.buildUrl}}" target="_blank">Go To Build Directory</a>
         </li>
         <li class="small" ng-repeat="(label, value) in visibleFields">
           <label>{{label}}:</label>
@@ -165,24 +172,24 @@
     <div id="bottom-center-top">
       <nav class="navbar navbar-dark">
         <ul class="nav navbar-nav tab-headers">
-          <li ng-class="{'active': tabs.failure_summary.active}">
+          <li ng-class="{'active': tabService.selectedTab == 'failureSummary'}">
             <a title="show Failure summary"
-               href=""
-               ng-click="show_tab(tabs.failure_summary)">
+               href="" prevent-default-on-left-click
+               ng-click="tabService.showTab('failureSummary', job.id)">
               Failure summary
             </a>
           </li>
-          <li ng-class="{'active': tabs.annotations.active}">
+          <li ng-class="{'active': tabService.selectedTab == 'annotations'}">
             <a title="show Annotations"
-               href=""
-               ng-click="show_tab(tabs.annotations)">
+               href="" prevent-default-on-left-click
+               ng-click="tabService.showTab('annotations', job.id)">
               Annotations
             </a>
           </li>
-          <li ng-class="{'active': tabs.similar_jobs.active}">
+          <li ng-class="{'active': tabService.selectedTab == 'similarJobs'}">
             <a title="show Similar jobs"
-               href=""
-               ng-click="show_tab(tabs.similar_jobs)">
+               href="" prevent-default-on-left-click
+               ng-click="tabService.showTab('similarJobs', job.id)">
               Similar jobs
             </a>
           </li>
@@ -190,7 +197,7 @@
 
         <ul class="nav navbar-nav pull-right">
           <li>
-            <a href="" ng-click="togglePinboardVisibility()">
+            <a href="#" prevent-default-on-left-click ng-click="togglePinboardVisibility()">
               <span ng-hide="isPinboardVisible"
                     title="Show the pinboard"
                     class="glyphicon glyphicon-chevron-down"></span>
@@ -200,7 +207,7 @@
             </a>
           </li>
           <li>
-            <a title="close panel" href="" ng-click="clearJob()">
+            <a prevent-default-on-left-click title="close panel" href="#" ng-click="clearJob()">
               <span class="glyphicon glyphicon-remove"></span>
             </a>
           </li>
@@ -208,8 +215,9 @@
       </nav>
     </div>
     <div id="bottom-center-bottom">
-      <div ng-repeat="(tab_id, tab) in tabs">
-        <div ng-show="tab.active">
+      <div ng-repeat="(tabId, tab) in tabService.tabs">
+
+          <div ng-show="tabId == tabService.selectedTab">
           <ng-include src="tab.content"></ng-include>
         </div>
       </div>

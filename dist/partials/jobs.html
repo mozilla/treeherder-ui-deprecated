@@ -5,37 +5,67 @@
 
 <div ng-repeat="resultset in result_sets track by resultset.id | orderBy:'-push_timestamp'"
      ng-controller="ResultSetCtrl"
-     class="result-set col col-xs-12"
+     class="result-set"
      data-id="{{resultset.id}}">
 
-    <div class="result-set-title row">
-        <span class="col-xs-4 result-set-title-left">
-            <span class="btn btn-default btn-sm glyphicon glyphicon-download" ng-show="isLoadingJobs"></span>
-            <span class="timestamp-name">
-                <span>
-                    <a href="{{revisionResultsetFilterUrl}}"
-                       title="open this resultset in new tab"
-                       target="_blank">{{resultset.push_timestamp*1000|date:'medium'}}</a> - </span>
-                <th-author author="{{resultset.author}}"></th-author>
-            </span>
+    <div class="result-set-title">
+      <span class="result-set-title-left">
+        <span class="btn btn-default btn-sm glyphicon glyphicon-download" ng-show="isLoadingJobs"></span>
+        <span class="timestamp-name">
+          <span>
+            <a href="{{revisionResultsetFilterUrl}}"
+               title="open this resultset in new tab"
+               target="_blank">{{resultset.push_timestamp*1000|date:'medium'}}</a> - </span>
+          <th-author author="{{resultset.author}}"></th-author>
         </span>
-        <span class="col-xs-4 result-set-buttons">
-            <span class="revision-text">{{resultset.revision}}</span>
-            <span class="btn btn-default btn-sm"
-                  title="pin all visible jobs in this resultset"
-                  ng-click="pinAllShownJobs()">
-                <span class="glyphicon glyphicon-pushpin"></span>
-            </span>
-            <th-action-button ng-hide="isLoadingJobs"></th-action-button>
+      </span>
+      <span class="result-set-buttons">
+        <span class="revision-text">{{resultset.revision}}</span>
+        <span class="btn btn-default btn-sm"
+              tabindex="0" role="button"
+              title="pin all visible jobs in this resultset"
+              ng-click="pinAllShownJobs()">
+          <span class="glyphicon glyphicon-pushpin"></span>
         </span>
+        <th-action-button ng-hide="isLoadingJobs"></th-action-button>
+      </span>
 
-        <span class="col-xs-1 btn btn-default btn-sm revision-button"
-              ng-click="toggleRevisions()"
-              title="show revisions"><i class="fa fa-code-fork fa-lg"></i> {{resultset.revision_count}}</span>
-        <th-result-counts class="col-xs-4 result-counts"/>
+      <span class="btn btn-default btn-sm revision-button"
+            tabindex="0" role="button"
+            ng-click="toggleRevisions()"
+            title="show revisions"><i class="fa fa-code-fork fa-lg"></i> {{resultset.revision_count}}</span>
+      <th-result-counts class="result-counts"/>
     </div>
-
     <div th-clone-jobs ></div>
+</div>
+
+<div ng-show="result_sets.length == 0 && !isLoadingRsBatch.appending && !isLoadingJobs && locationHasSearchParam('revision')">
+  <span>
+    <div><b>Unknown revision ID.</b></div>
+    <span>This could be because your push has not been processed yet, or the revision ID could be invalid.
+      This page will refresh occasionally, so your push should show up within a few minutes if it does exist.</span>
+  <span>
+</div>
+
+<div ng-show="result_sets.length == 0 && !isLoadingRsBatch.appending && !isLoadingJobs &&
+     !locationHasSearchParam('revision') && !locationHasSearchParam('repo') && currentRepo.url">
+  <span>
+    <div><b>No resultsets found.</b></div>
+    <span>No commit information could be loaded for this repository. 
+      More information about this repository can be found <a href="{{currentRepo.url}}">here</a>.</span>
+  <span>
+</div>
+
+<div ng-show="result_sets.length == 0 && !isLoadingRsBatch.appending && !isLoadingJobs &&
+     !locationHasSearchParam('revision') && !locationHasSearchParam('repo') && !currentRepo.url">
+  <span>
+    <div><b>Unknown repository.</b></div>
+    <span>This repository is either unknown to Treeherder or it doesn't exist. 
+      If this repository does exist, please 
+      <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Tree%20Management&component=Treeherder">
+      file a bug against the Treeherder product in Bugzilla</a> to get it added to the system.
+    </span>
+  <span>
 </div>
 
 <!-- END Revision clone target -->

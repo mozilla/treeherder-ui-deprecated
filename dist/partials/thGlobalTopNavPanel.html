@@ -1,4 +1,4 @@
-<nav class="navbar navbar-inverse navbar-fixed-top th-navbar">
+<nav class="navbar navbar-inverse">
     <div class="navbar-header">
         <a class="navbar-brand" href="#">Treeherder</a>
     </div>
@@ -17,25 +17,50 @@
             <span ng-show="user.is_staff">
                 <span class="btn btn-view-nav"
                       ng-class="{'active': (isSheriffPanelShowing)}"
-                      ng-click="setSheriffPanelShowing(!isSheriffPanelShowing)"><span>Sheriffing</span>
+                      ng-click="setSheriffPanelShowing(!isSheriffPanelShowing)"
+                      tabindex="0"
+                      role="button"><span>Sheriffing</span>
                     <i class="fa fa-caret-down lightgray"
                        ng-hide="isSheriffPanelShowing"></i>
                     <i class="fa fa-caret-up lightgray"
                        ng-show="isSheriffPanelShowing"></i>
                 </span>
             </span>
-            <span class="">
-                <span class="btn btn-view-nav"
-                      ng-class="{'active': (isRepoPanelShowing)}"
-                      ng-click="setRepoPanelShowing(!isRepoPanelShowing)"><span>Repos</span>
-                    <i class="fa fa-caret-down lightgray"
-                       ng-hide="isRepoPanelShowing"></i>
-                    <i class="fa fa-caret-up lightgray"
-                       ng-show="isRepoPanelShowing"></i>
+
+            <span ng-controller="RepositoryMenuCtrl" >
+                <!--<span class="repo-menu dropdown keep-open">-->
+                <span class="repo-menu dropdown keep-open">
+                    <!-- Repo Button -->
+                    <button id="repoLabel" role="button" href="#" data-toggle="dropdown" data-target="#" class="btn btn-view-nav">
+                        Repos <b class="fa fa-caret-down lightgray"></b>
+                    </button>
+
+                    <!-- Repo Menu -->
+                    <ul class="dropdown-menu repo-dropdown-menu" role="menu" aria-labelledby="repoLabel">
+                        <span ng-repeat="(group_order, group) in groupedRepos()"
+                              ng-click="$event.stopPropagation();">
+                            <li role="presentation" class="divider" ng-hide="$first"></li>
+                            <li role="presentation" class="dropdown-header">{{group.name}}</li>
+                            <li ng-repeat="repo in group.repos | orderBy : 'name'" ng-click="$event.stopPropagation();">
+                                <input type="checkbox"
+                                       ng-checked="repoModel.watchedRepos[repo.name]"
+                                       ng-click="repoModel.toggleWatched(repo.name); $event.stopPropagation()"
+                                       title="toggle watching this repo"
+                                       ng-disabled="repo.name == repoName">
+                                    <a ng-href="./#/jobs?repo={{repo.name}}"
+                                       title="open repo"
+                                       ng-click="$event.stopPropagation()"
+                                       class="repo-link">{{repo.name}}</a>
+                            </li>
+                        </span>
+
+                    </ul>
                 </span>
                 <span class="btn btn-view-nav"
                       ng-class="{'active': (isFilterPanelShowing)}"
-                      ng-click="setFilterPanelShowing(!isFilterPanelShowing)"><span>Filters</span>
+                      ng-click="setFilterPanelShowing(!isFilterPanelShowing)"
+                      tabindex="0"
+                      role="button"><span>Filters</span>
                     <i class="fa fa-caret-down lightgray"
                        ng-hide="isFilterPanelShowing"></i>
                     <i class="fa fa-caret-up lightgray"
@@ -46,7 +71,9 @@
                 <!--TODO: change this condition to enable the settings panel-->
                 <span ng-show="false" class="btn btn-view-nav"
                       ng-class="{'active': (isSettingsPanelShowing)}"
-                      ng-click="setSettingsPanelShowing(!isSettingsPanelShowing)"><span>Settings</span>
+                      ng-click="setSettingsPanelShowing(!isSettingsPanelShowing)"
+                      tabindex="0"
+                      role="button"><span>Settings</span>
                     <i class="fa fa-caret-down lightgray"
                        ng-hide="isSettingsPanelShowing"></i>
                     <i class="fa fa-caret-up lightgray"
@@ -56,11 +83,8 @@
             </span>
         </span>
 
-        </div>
-        <ng-include class="watched-repo-navbar" src="'partials/thWatchedRepoNavPanel.html'" ng-show="locationPath==='jobs'">
-        </ng-include>
     </div>
+    <ng-include class="watched-repo-navbar" src="'partials/thWatchedRepoNavPanel.html'" ng-show="locationPath==='jobs'"></ng-include>
     <ng-include src="'partials/thSheriffPanel.html'" ng-show="isSheriffPanelShowing"></ng-include>
     <ng-include src="'partials/thFilterPanel.html'" ng-show="isFilterPanelShowing"></ng-include>
-    <ng-include src="'partials/thRepoPanel.html'" ng-show="isRepoPanelShowing"></ng-include>
 </nav>
