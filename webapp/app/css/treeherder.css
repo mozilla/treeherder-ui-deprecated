@@ -408,7 +408,7 @@ div#bottom-panel .navbar{
     font-size:12px;
     min-height: 33px;
     min-width: initial;
-
+    z-index: 100;
 }
 
 div#bottom-panel .navbar-nav > ul{
