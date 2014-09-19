@@ -1,3 +1,8 @@
+<div id="bottom-panel-resizer"
+     resizer="horizontal"
+     resizer-height="6"
+     resizer-bottom="#bottom-panel">
+</div>
 <div ng-controller="PinboardCtrl"
      id="pinboard-panel"
      ng-show="isPinboardVisible"
@@ -133,7 +138,7 @@
         </li>
       </ul>
       <div class="printlines">
-        <ul ng-controller="JobDetailsPluginCtrl" class="list-unstyled">
+        <ul class="list-unstyled">
           <li ng-repeat="line in job_details" class="small">
             <label>{{line.title}}</label>
             <span ng-switch on="line.content_type">
