@@ -2,7 +2,7 @@
 <html ng-app="logViewer">
     <head>
         <title>Treeherder Log Viewer </title>
-        <link rel="stylesheet" href="css/logviewer.min-fce663975014f913860acf5748ea7933.css" media="screen"/>
+        <link rel="stylesheet" href="css/logviewer.min-4687d46181241aadc83097970c0074b3.css" media="screen"/>
         <link id="favicon" type="image/png" rel="shortcut icon" href="img/tree_open.png"/>
     </head>
     <body ng-controller="LogviewerCtrl" ng-init="init()" class="body-logviewer">
@@ -17,7 +17,8 @@
                                target="_blank"
                                class="repo-link">{{value}}</a>
                         </td>
-                        <td ng-if="label != 'revision'">{{value}}</td>
+                        <td ng-if="label == 'starttime'">{{logDisplayDate}}</td>
+                        <td ng-if="label != 'revision' && label != 'starttime'">{{value}}</td>
                     </tr>
                 </table>
             </div>
@@ -32,7 +33,7 @@
         </div>
 
 
-    <script src="js/logviewer.min-51e740ecb0661f371c6450fceb9fb1f4.js"></script>
+    <script src="js/logviewer.min-a11b05cf969325b7d442d178b52fff61.js"></script>
 
     </body>
 </html>
