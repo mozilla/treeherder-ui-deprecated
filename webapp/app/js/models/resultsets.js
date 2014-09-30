@@ -795,21 +795,21 @@ treeherder.factory('ThResultSetModel', [
                                        false).
             then(function(data) {
                 resultsets = data.data;
+                $q.all([loadRepositories, loadResultsets]).
+                    then(
+                        function() {
+                            appendResultSets(repoName, resultsets);
+                        },
+                        function(data) {
+                            thNotify.send("Error retrieving job data!", "danger", true);
+                            $log.error(data);
+                            appendResultSets(repoName, {results: []});
+                        }).
+                    then(function(){
+                        thResultSets.getResultSetJobs(resultsets, repoName);
+                    });
             });
 
-        $q.all([loadRepositories, loadResultsets]).
-            then(
-                function() {
-                    appendResultSets(repoName, resultsets);
-                },
-                function(data) {
-                    thNotify.send("Error retrieving job data!", "danger", true);
-                    $log.error(data);
-                    appendResultSets(repoName, {results: []});
-                }).
-            then(function(){
-                thResultSets.getResultSetJobs(resultsets, repoName);
-            });
     };
 
     //Public interface
