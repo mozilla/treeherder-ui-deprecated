@@ -99,14 +99,14 @@ describe('ThResultSetModel', function(){
         var rs =  {
             "repository_id": 4,
             "job_counts": {
-                "exception": 0,
+                "infra-failure": 0,
                 "retry": 0,
                 "success": 2,
                 "unknown": 0,
                 "usercancel": 0,
                 "running": 0,
-                "busted": 0,
-                "testfailed": 0,
+                "failed": 0,
+                "warnings": 0,
                 "total": 4,
                 "pending": 0
             },

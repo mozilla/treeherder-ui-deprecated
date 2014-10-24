@@ -12,15 +12,15 @@ treeherder.provider('thServiceDomain', function() {
 
 treeherder.provider('thResultStatusList', function() {
     var all = function() {
-        return ['success', 'testfailed', 'busted', 'exception', 'retry', 'usercancel', 'running', 'pending', 'coalesced'];
+        return ['success', 'warnings', 'failed', 'infra-failure', 'retry', 'usercancel', 'running', 'pending', 'coalesced'];
     };
 
     var counts = function() {
-        return ['success', 'testfailed', 'busted', 'exception', 'retry', 'running', 'pending', 'coalesced'];
+        return ['success', 'warnings', 'failed', 'infra-failure', 'retry', 'running', 'pending', 'coalesced'];
     };
 
     var defaultFilters = function() {
-        return ['success', 'testfailed', 'busted', 'exception', 'retry', 'usercancel', 'running', 'pending'];
+        return ['success', 'warnings', 'failed', 'infra-failure', 'retry', 'usercancel', 'running', 'pending'];
     };
 
     this.$get = function() {
@@ -50,9 +50,9 @@ treeherder.provider('thResultStatusObject', function() {
     var getResultStatusObject = function(){
         return {
             'success':0,
-            'testfailed':0,
-            'busted':0,
-            'exception':0,
+            'warnings':0,
+            'failed':0,
+            'infra-failure':0,
             'retry':0,
             'running':0,
             'pending':0,
@@ -78,28 +78,28 @@ treeherder.provider('thResultStatusInfo', function() {
             };
 
             switch (resultState) {
-                case "busted":
+                case "failed":
                     resultStatusInfo = {
                         severity: 1,
                         btnClass: "btn-red",
                         jobButtonIcon: "glyphicon glyphicon-fire",
-                        countText: "busted"
+                        countText: "failed"
                     };
                     break;
-                case "exception":
+                case "infra-failure":
                     resultStatusInfo = {
                         severity: 2,
                         btnClass: "btn-purple",
                         jobButtonIcon: "glyphicon glyphicon-fire",
-                        countText: "exception"
+                        countText: "infra-failure"
                     };
                     break;
-                case "testfailed":
+                case "warnings":
                     resultStatusInfo = {
                         severity: 3,
                         btnClass: "btn-orange",
                         jobButtonIcon: "glyphicon glyphicon-warning-sign",
-                        countText: "failed"
+                        countText: "warnings"
                     };
                     break;
                 case "unknown":

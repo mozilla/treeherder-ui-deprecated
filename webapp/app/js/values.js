@@ -34,7 +34,7 @@ treeherder.value("thPlatformNameMap", {
     "other": "Other"
 });
 
-treeherder.value("thFailureResults", ["testfailed", "busted", "exception"]);
+treeherder.value("thFailureResults", ["warnings", "failed", "infra-failure"]);
 
 treeherder.value("thFavicons", {
     "closed": "img/tree_closed.png",
