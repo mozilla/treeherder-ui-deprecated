@@ -1,139 +1,131 @@
-    <!DOCTYPE html>
-    <html ng-app="treeherder">
+<!DOCTYPE html>
+<html ng-app="treeherder">
     <head>
-        <title ng-bind="getWindowTitle()"></title>
+        <meta charset="utf-8">
+        <title ng-bind="getWindowTitle()">Treeherder</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-        <meta http-equiv="cache-control" content="max-age=60" />
-        <link id="favicon" type="image/png" rel="shortcut icon" href="img/tree_open.png"/>
+        <link id="favicon" type="image/png" rel="shortcut icon" href="img/tree_open.png">
         <th-favicon-link></th-favicon-link>
 
-        <link rel="stylesheet" href="css/index.min-80ea2cb28857dc12f01821e3976ac39f.css" media="screen"/>
+        <link rel="stylesheet" href="css/index.min-897f5ae22f94caebfc9acfbad411ad4c.css" media="screen"/>
 
     </head>
     <body ng-controller="MainCtrl" ng-keydown="processKeyboardInput($event)">
-      <div id="global-container">
-        <div class="th-navbar">
-          <ng-include id="th-global-top-nav-panel" src="'partials/main/thGlobalTopNavPanel.html'"></ng-include>
+        <div id="global-container">
+            <div class="th-navbar">
+                <ng-include id="th-global-top-nav-panel" src="'partials/main/thGlobalTopNavPanel.html'"></ng-include>
+            </div>
+            <div class="th-content">
+                <span class="th-view-content" ng-cloak>
+                    <ng-view ></ng-view>
+                </span>
+            </div>
+            <div ng-controller="PluginCtrl"
+                 id="bottom-panel"
+                 ng-show="selectedJob"
+                 ng-class="{'with-pinboard':isPinboardVisible}"
+                 ng-include src="'plugins/pluginpanel.html'">
+            </div>
         </div>
-        <div class="th-content">
-            <span class="th-view-content" ng-cloak>
-                <ng-view ></ng-view>
-            </span>
-        </div>
-        <div ng-controller="PluginCtrl"
-             id="bottom-panel"
-             ng-show="selectedJob"
-             ng-class="{'with-pinboard':isPinboardVisible}"
-             ng-include src="'plugins/pluginpanel.html'">
-        </div>
-      </div>
 
-      <th-notification-box></th-notification-box>
+        <th-notification-box></th-notification-box>
 
-        <script src="js/index.min-599dc30eceb1ec84010748e11377e1a2.js"></script>
+        <script src="js/index.min-83f93b671eb4d7828c78e6ddc6e18f1f.js"></script>
 
         <script src="https://login.persona.org/include.js"></script>
 
-<!-- Clone targets -->
+        <!-- Clone targets -->
 
-<!-- Clone target for each revision -->
-<script type="'text/ng-template'" id="revisionsClone.html">
-
-    <div class="clearfix"></div>
-    <li>
-        <span class="revision">
-            <a href="{{currentRepo.url}}/rev/{{revision}}"
-               target="_blank"
-               title="open revision {{revision}} on {{currentRepo.url}}"
-               >{{revision}}</a>
-            <span title="{{name}}: {{email}}">{{name|initials}}</span>
-            <span title="{{escaped_comment}}">
-                <span class="revision-comment">
-                    <em>{{comments_bug_link}}</em>
+        <!-- Clone target for each revision -->
+        <script type="'text/ng-template'" id="revisionsClone.html">
+            <div class="clearfix"></div>
+            <li>
+                <span class="revision">
+                    <a href="{{currentRepo.url}}/rev/{{revision}}"
+                       target="_blank"
+                       title="open revision {{revision}} on {{currentRepo.url}}"
+                       >{{revision}}</a>
+                    <span title="{{name}}: {{email}}">{{name|initials}}</span>
+                    <span title="{{escaped_comment}}">
+                        <span class="revision-comment">
+                            <em>{{comments_bug_link}}</em>
+                        </span>
+                    </span>
                 </span>
+            </li>
+        </script>
+
+        <!-- Clone target for "more" link for large revision sets -->
+        <script type="'text/ng-template'" id="pushlogRevisionsClone.html">
+            <li>
+                <a href="{{currentRepo.url}}/pushloghtml?changeset={{revision}}" target="_blank"> ...and {{diff}} more
+                    <i class="fa fa-external-link-square"></i>
+                </a>
+            </li>
+        </script>
+
+        <!-- Clone target for each result set -->
+        <script type="'text/ng-template'" id="resultsetClone.html">
+            <div class="clearfix"></div>
+            <div class="row result-set">
+                <span style="display:block;" class="revision-list col-xs-5">
+                    <ul class="list-unstyled"></ul>
+                </span>
+                <span class="job-list col-xs-7 job-list-pad-left">
+                    <span class="fa fa-refresh fa-spin"></span>
+                    <table id="{{ aggregateId }}" class="table-hover"></table>
+                </span>
+            </div>
+        </script>
+        <!-- Clone target for each platform -->
+        <script type="'text/ng-template'" id="platformClone.html">
+            <td class="platform">
+                <span title="{{ name }} {{ option }}">{{ name }} {{ option }}</span>
+            </td>
+        </script>
+
+        <!-- Table column for jobs -->
+        <script type="'text/ng-template'" id="jobTdClone.html">
+            <td class="job-row"></td>
+        </script>
+
+        <!-- Start span for job groups -->
+        <script type="'text/ng-template'" id="jobGroupBeginClone.html">
+            <span class="platform-group">
+                <span class="disabled job-group" title="{{ name }}">{{ symbol }}(</span>
+                <span class="job-group-list"></span>)
             </span>
-        </span>
-    </li>
+        </script>
 
-</script>
+        <!-- Job Btn span -->
+        <script type="'text/ng-template'" id="jobBtnClone.html">
+            <span class="btn job-btn btn-xs {{ btnClass }} {{ key }}"
+                  data-jmkey="{{ key }}"
+                  title="{{ title }}">{{ value }}</span>
+        </script>
 
-<!-- Clone target for "more" link for large revision sets -->
-<script type="'text/ng-template'" id="pushlogRevisionsClone.html">
+        <!-- revision url window -->
+        <script type="'text/ng-template'" id="revisionUrlClone.html">
+            <div>{{repoUrl}}/rev/{{revision.revision}}</div>
+        </script>
 
-    <li>
-        <a href="{{currentRepo.url}}/pushloghtml?changeset={{revision}}" target="_blank"> ...and {{diff}} more
-            <i class="fa fa-external-link-square"></i>
-        </a>
-    </li>
-
-</script>
-
-<!-- Clone target for each result set -->
-<script type="'text/ng-template'" id="resultsetClone.html">
-    <div class="clearfix"></div>
-    <div class="row result-set">
-        <span style="display:block;" class="revision-list col-xs-5">
-            <ul class="list-unstyled"></ul>
-        </span>
-        <span class="job-list col-xs-7 job-list-pad-left">
-            <span class="fa fa-refresh fa-spin"></span>
-            <table id="{{ aggregateId }}" class="table-hover"></table>
-        </span>
-    </div>
-</script>
-<!-- Clone target for each platform -->
-<script type="'text/ng-template'" id="platformClone.html">
-    <td class="platform">
-        <span title="{{ name }} {{ option }}">{{ name }} {{ option }}</span>
-    </td>
-</script>
-
-<!-- Table column for jobs -->
-<script type="'text/ng-template'" id="jobTdClone.html">
-    <td class="job-row"></td>
-</script>
-
-<!-- Start span for job groups -->
-<script type="'text/ng-template'" id="jobGroupBeginClone.html">
-    <span class="platform-group">
-        <span class="disabled job-group" title="{{ name }}">{{ symbol }}(</span>
-        <span class="job-group-list"></span>)
-    </span>
-</script>
-
-<!-- Job Btn span -->
-<script type="'text/ng-template'" id="jobBtnClone.html">
-    <span class="btn job-btn btn-xs {{ btnClass }} {{ key }}"
-          data-jmkey="{{ key }}"
-          title="{{ title }}">{{ value }}</span>
-</script>
-
-<!-- revision url window -->
-<script type="'text/ng-template'" id="revisionUrlClone.html">
-    <div>{{repoUrl}}/rev/{{revision.revision}}</div>
-</script>
-
-
-<!-- Tooltip for job info-->
-<script type="'text/ng-template'" id="jobInfoTooltip.html">
-    <div>
-        <table class="table-super-condensed table-striped">
-            <tr>
-                <th class="small">Result</th>
-                <td class="small {{ resultStatusClass }}">{{ job.result }}</td>
-            </tr>
-            <tr>
-                <th class="small">Machine name</th>
-                <td class="small">
-                    <a target="_blank" href="https://secure.pub.build.mozilla.org/builddata/reports/slave_health/slave.html?name={{ job.machine_name }}">{{ job.machine_name }}</a>
-                </td>
-            </tr>
-            <tr ng-repeat="(label, value) in visibleFields"><th>{{label}}</th><td>{{ value }}</td></tr>
-        </table>
-
-    </div>
-</script>
+        <!-- Tooltip for job info-->
+        <script type="'text/ng-template'" id="jobInfoTooltip.html">
+            <div>
+                <table class="table-super-condensed table-striped">
+                    <tr>
+                        <th class="small">Result</th>
+                        <td class="small {{ resultStatusClass }}">{{ job.result }}</td>
+                    </tr>
+                    <tr>
+                        <th class="small">Machine name</th>
+                        <td class="small">
+                            <a target="_blank" href="https://secure.pub.build.mozilla.org/builddata/reports/slave_health/slave.html?name={{ job.machine_name }}">{{ job.machine_name }}</a>
+                        </td>
+                    </tr>
+                    <tr ng-repeat="(label, value) in visibleFields"><th>{{label}}</th><td>{{ value }}</td></tr>
+                </table>
+            </div>
+        </script>
     </body>
 </html>
