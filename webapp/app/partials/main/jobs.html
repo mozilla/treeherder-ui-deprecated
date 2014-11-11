@@ -50,7 +50,7 @@
 
 <div ng-show="result_sets.length == 0 && !isLoadingRsBatch.appending &&
               !isLoadingJobs && locationHasSearchParam('revision')"
-              class="result-set">
+              class="result-set-body">
   <span ng-init="revision=getSearchParamValue('revision')">
     <div><b>Unknown revision ID.</b></div>
     <span>Waiting for a result set matching revision</span>
@@ -68,7 +68,7 @@
 <div ng-show="result_sets.length == 0 && !isLoadingRsBatch.appending &&
               !isLoadingJobs && !locationHasSearchParam('revision') &&
               !locationHasSearchParam('repo') && currentRepo.url"
-              class="result-set">
+              class="result-set-body">
   <span>
     <div><b>No resultsets found.</b></div>
     <span>No commit information could be loaded for this repository.
@@ -79,7 +79,7 @@
 <div ng-show="result_sets.length == 0 && !isLoadingRsBatch.appending &&
               !isLoadingJobs && !locationHasSearchParam('revision') &&
               locationHasSearchParam('repo') && !currentRepo.url"
-              class="result-set">
+              class="result-set-body">
   <span>
     <div><b>Unknown repository.</b></div>
     <span>This repository is either unknown to Treeherder or it doesn't exist.
