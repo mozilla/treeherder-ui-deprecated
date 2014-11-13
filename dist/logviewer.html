@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <title>Treeherder Log Viewer </title>
-        <link rel="stylesheet" href="css/logviewer.min-f108365e13791c101353b2cc2bc6dc09.css" media="screen"/>
+        <link rel="stylesheet" href="css/logviewer.min-1320d2081e0a9e6c1cdcf1cac03ee935.css" media="screen"/>
         <link id="favicon" type="image/png" rel="shortcut icon" href="img/tree_open.png">
     </head>
     <body ng-controller="LogviewerCtrl" ng-init="init()" class="body-logviewer">
@@ -11,15 +11,18 @@
             <div class="col-md-6">
                 <table class="table table-condensed">
                     <tr ng-repeat="(label, value) in artifact.header">
-                        <th>{{label}}</th>
+                        <th ng-cloak>{{label}}</th>
                         <td ng-if="label == 'revision'">
                             <a href="{{logRevisionFilterUrl}}"
                                title="open resultset in new tab"
                                target="_blank"
-                               class="repo-link">{{value}}</a>
+                               class="repo-link"
+                               ng-cloak>{{value}}</a>
                         </td>
-                        <td ng-if="label == 'starttime'">{{logDisplayDate}}</td>
-                        <td ng-if="label != 'revision' && label != 'starttime'">{{value}}</td>
+                        <td ng-if="label == 'starttime'"
+                            ng-cloak>{{logDisplayDate}}</td>
+                        <td ng-if="label != 'revision' && label != 'starttime'"
+                            ng-cloak>{{value}}</td>
                     </tr>
                 </table>
             </div>
@@ -28,11 +31,10 @@
         </div>
 
         <div class="lv-log-container"
-             on-load-more="loadMore(bounds, element)"
              lv-infinite-scroll
              lv-log-lines="displayedLogLines">
         </div>
 
-        <script src="js/logviewer.min-4624ee46e5345fd6ff9da34a03252571.js"></script>
+        <script src="js/logviewer.min-ac1deda475900e29030d962d22fcd223.js"></script>
     </body>
 </html>
