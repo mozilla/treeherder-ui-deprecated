@@ -131,7 +131,7 @@ return api}]),treeherder.factory("thPinboard",["$http","thUrl","ThJobClassificat
 
 
   $templateCache.put('partials/main/thWatchedRepoInfoDropDown.html',
-    "<ul class=dropdown-menu role=menu> <li ng-show=reason class=watched-repo-dropdown-item> <span ng-bind-html=reason|linkifyBugs></span> </li> <li class=divider ng-show=\"reason && message_of_the_day\"></li> <li ng-show=message_of_the_day class=watched-repo-dropdown-item> <span ng-bind-html=message_of_the_day></span> </li> <li class=divider ng-show=\"reason || message_of_the_day\"></li> <li class=watched-repo-dropdown-item> <a href=https://treestatus.mozilla.org/{{treeStatus}} target=_blank>tree status</a> </li> <li class=watched-repo-dropdown-item> <a href={{::pushlog}} target=_blank>pushlog</a> </li> <li class=watched-repo-dropdown-item> <a href=\"https://secure.pub.build.mozilla.org/clobberer/?branch={{::name}}\" target=_blank>clobberer</a> </li> </ul>"
+    "<ul class=dropdown-menu role=menu> <li ng-show=reason class=watched-repo-dropdown-item> <span ng-bind-html=reason|linkifyBugs></span> </li> <li class=divider ng-show=\"reason && message_of_the_day\"></li> <li ng-show=message_of_the_day class=watched-repo-dropdown-item> <span ng-bind-html=message_of_the_day></span> </li> <li class=divider ng-show=\"reason || message_of_the_day\"></li> <li class=watched-repo-dropdown-item> <a href=https://treestatus.mozilla.org/{{treeStatus}} target=_blank>tree status</a> </li> <li class=watched-repo-dropdown-item> <a href={{::pushlog}} target=_blank>pushlog</a> </li> <li class=watched-repo-dropdown-item> <a href=\"https://api.pub.build.mozilla.org/clobberer/?branch={{::name}}\" target=_blank>clobberer</a> </li> </ul>"
   );
 
 
