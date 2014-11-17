@@ -132,7 +132,7 @@ treeherder.factory('thJobFilters', [
     //            resultset_id1: {
     //                counts: {
     //                    "success": 4,
-    //                    "testfailed": 6,
+    //                    "warnings": 6,
     //                    "total": 10
     //                    ...
     //                },

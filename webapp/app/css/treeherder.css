@@ -903,9 +903,9 @@ ul.failure-summary-list li .btn-xs {
 }
 
 .result-status-shading-success {background-color: rgba(2, 131, 44, 0.24);}
-.result-status-shading-testfailed {background-color: rgba(221, 102, 2, 0.25);}
-.result-status-shading-busted {background-color: rgba(144, 0, 0, 0.25);}
-.result-status-shading-exception {background-color: rgba(61, 2, 85, 0.25);}
+.result-status-shading-warnings {background-color: rgba(221, 102, 2, 0.25);}
+.result-status-shading-failure {background-color: rgba(144, 0, 0, 0.25);}
+.result-status-shading-infra-failure {background-color: rgba(61, 2, 85, 0.25);}
 .result-status-shading-retry {background-color: rgba(38, 63, 195, 0.25);}
 .result-status-shading-usercancel {background-color: rgba(250, 115, 172, 0.25);}
 .result-status-shading-pending {background-color: rgba(160, 160, 160, 0.2);}
@@ -933,10 +933,10 @@ ul.failure-summary-list li .btn-xs {
 .result-status-count-retry {
     width: 52px;
 }
-.result-status-count-busted {
+.result-status-count-failure {
     width: 70px;
 }
-.result-status-count-testfailed {
+.result-status-count-warnings {
     width: 61px;
 }
 .result-status-count-unknown {
@@ -945,7 +945,7 @@ ul.failure-summary-list li .btn-xs {
 .result-status-count-usercancel {
     width: 75px;
 }
-.result-status-count-exception {
+.result-status-count-infra-failure {
     width: 85px;
 }
 .result-status-count-running {

@@ -19,9 +19,9 @@ treeherder.directive('thCloneJobs', [
     var $log = new ThLog("thCloneJobs");
 
     var classificationRequired = {
-        "busted":1,
-        "exception":1,
-        "testfailed":1
+        "failed":1,
+        "infra-failure":1,
+        "warnings":1
         };
 
     // CSS classes
