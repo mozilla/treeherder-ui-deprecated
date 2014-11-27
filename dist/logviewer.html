@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html ng-app="logViewer">
+<html ng-controller="LogviewerCtrl" ng-init="init()" ng-app="logViewer">
     <head>
         <meta charset="utf-8">
-        <title>Treeherder Log Viewer </title>
-        <link rel="stylesheet" href="css/logviewer.min-1320d2081e0a9e6c1cdcf1cac03ee935.css" media="screen"/>
+        <title ng-bind="getLogviewerTitle()">Log viewer</title>
+        <link rel="stylesheet" href="css/logviewer.min-51263fec1aa8973c73b2b987f0d89f24.css" media="screen"/>
         <link id="favicon" type="image/png" rel="shortcut icon" href="img/tree_open.png">
     </head>
-    <body ng-controller="LogviewerCtrl" ng-init="init()" class="body-logviewer">
+    <body class="body-logviewer">
         <div class="run-data">
             <div class="col-md-6">
                 <table class="table table-condensed">
@@ -35,6 +35,6 @@
              lv-log-lines="displayedLogLines">
         </div>
 
-        <script src="js/logviewer.min-ac1deda475900e29030d962d22fcd223.js"></script>
+        <script src="js/logviewer.min-d30aba8768afc1f2a150b70ce6025790.js"></script>
     </body>
 </html>
