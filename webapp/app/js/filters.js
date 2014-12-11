@@ -98,3 +98,18 @@ treeherder.filter('escapeHTML', function() {
         return '';
     };
 });
+treeherder.filter('wordbreak',function(){
+        return function(input){
+            
+        var userAgent,wordBreaker;
+        if((userAgent = navigator.userAgent.match(/Firefox\/([0-9\.]+)/i)) && parseInt(userAgent[1], 10) < 3) { // FF 2 does not have &shy; support, but does support &#8203;
+            wordBreaker = "&#8203;";
+        } else {
+            wordBreaker = "&shy;";
+        }     
+            
+            
+            
+            return input.replace(/(.{4})/g,"$&" + wordBreaker);
+        };
+})
