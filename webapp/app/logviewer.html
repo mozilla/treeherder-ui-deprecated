@@ -13,20 +13,21 @@
     <body class="body-logviewer">
         <div class="run-data">
             <div class="col-md-6">
-                <table class="table table-condensed">
+                <table class="table table-condensed ">
                     <tr ng-repeat="(label, value) in artifact.header">
                         <th ng-cloak>{{label}}</th>
-                        <td ng-if="label == 'revision'">
+                        <td ng-if="label == 'revision'" class="break-word">
+                            {{value}}
                             <a href="{{logRevisionFilterUrl}}"
                                title="open resultset in new tab"
                                target="_blank"
                                class="repo-link"
-                               ng-cloak>{{value}}</a>
+                               ng-cloak>link</a>
                         </td>
                         <td ng-if="label == 'starttime'"
-                            ng-cloak>{{logDisplayDate}}</td>
+                            ng-cloak class="break-word">{{logDisplayDate}}</td>
                         <td ng-if="label != 'revision' && label != 'starttime'"
-                            ng-cloak>{{value}}</td>
+                            ng-cloak class="break-word">{{value}}</td>
                     </tr>
                 </table>
             </div>
