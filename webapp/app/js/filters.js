@@ -98,7 +98,7 @@ treeherder.filter('escapeHTML', function() {
         return '';
     };
 });
-treeherder.filter('wordbreak',function(){
+treeherder.filter('wordBreak',function(){
         return function(input){
             
         var userAgent,wordBreaker;
