@@ -78,6 +78,7 @@ body {
     -ms-user-select: text;
     -o-user-select: text;
     user-select: text;
+    white-space: normal;
 }
 
 .logviewer-step.selected {
