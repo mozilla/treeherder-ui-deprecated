@@ -98,3 +98,4 @@ treeherder.filter('escapeHTML', function() {
         return '';
     };
 });
+
