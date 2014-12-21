@@ -48,10 +48,11 @@ treeherder.controller('MainCtrl', [
                 activeElement.isContentEditable || ev.keyCode === 16) {
                 return;
             }
-
+            
             // test for key modifiers to allow browser shortcuts eg.
             // console, new/private browsing window, history, print
             if (!ev.metaKey && !ev.shiftKey && !ev.ctrlKey) {
+
                 if (ev.keyCode === 73) {
                     // toggle display in-progress jobs(pending/running), key:i
                     $scope.toggleInProgress();
@@ -68,6 +69,16 @@ treeherder.controller('MainCtrl', [
                         thEvents.selectPreviousUnclassifiedFailure
                     );
 
+                }else if(ev.keyCode == 39){
+                    //Highlight next next keys:<right arrow>
+                    $rootScope.$emit(
+                        thEvents.selectNextJob
+                    );                    
+                }else if(ev.keyCode == 37){
+                    //Highlight next next keys:<left arrow>
+                    $rootScope.$emit(
+                        thEvents.selectPreviousJob
+                    );                    
                 } else if (ev.keyCode === 32) {
                     // If a job is selected add it otherwise
                     // let the browser handle the spacebar

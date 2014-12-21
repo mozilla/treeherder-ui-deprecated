@@ -126,9 +126,7 @@ body {
 }
 
 .lv-log-msg {
-    position: fixed;
-    top: 530px;
-    left: 3%;
+    position: relative;
     font-weight: bold;
 }
 
@@ -149,4 +147,9 @@ body {
 
 .lv-log-error {
     border: 2px solid #ff0000;
+}
+.job-header{
+    max-height:270px;
+    overflow-y:auto;
+    margin-bottom:20px;
 }

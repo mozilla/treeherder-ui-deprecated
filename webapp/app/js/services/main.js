@@ -51,12 +51,13 @@ treeherder.factory('thCloneHtml', [
         templateName = templateId.replace('.html', '');
 
         templateTxt = document.getElementById(templateId);
+
         cloneHtmlObjs[templateName] = {
             interpolator:$interpolate(templateTxt.text),
             text:templateTxt.text
             };
     }
-
+    
     var getClone = function(templateName){
         return cloneHtmlObjs[templateName];
     };

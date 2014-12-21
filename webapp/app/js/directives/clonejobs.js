@@ -91,7 +91,113 @@ treeherder.directive('thCloneJobs', [
                 getNextUnclassifiedFailure({});
             }
     });
+    $rootScope.$on(
+        thEvents.selectNextJob, function(ev){
 
+        var jobMap = ThResultSetModel.getJobMap($rootScope.repoName);
+        var lastJobSelected = ThResultSetModel.getSelectedJob($rootScope.repoName);
+        var el, key, job, jobsList,i,refLevel, step
+
+        
+        var currentElement = lastJobSelected.el[0]
+        var step = 'nextElementSibling'
+        
+        while(!currentElement[step]){
+            currentElement = traceParent($(currentElement),1)[0]
+        }       
+        
+        if($(currentElement).hasClass('job-group-list') || $(currentElement).hasClass('platform')){
+            currentElement = traceParent($(currentElement),1)[0]
+        }
+
+        
+        if($(currentElement[step]).hasClass('filter-shown')){
+            var el = $(currentElement[step])
+        }else if($(currentElement[step]).hasClass('platform-group')){
+            
+            var el = getJobFromPlatform($(currentElement[step]),step)
+            
+        }
+        else if($(currentElement[step]).hasClass('result-set')){
+            var j=4;
+            var i;
+            currentElement = currentElement[step]
+            for(i=0;i<j;i++){
+                currentElement = $($(currentElement).children()[1])
+            }
+            if(step='nextElementSibling'){
+                var index = 0
+            }else{
+                var index = $(currentElement.children()[0]).children().length - 1
+            }
+            console.log(index)
+            var el = getJobFromTableRow($(currentElement.children()[0]).children()[index],step)
+        }else{
+            
+            var el = getJobFromTableRow($(currentElement[step]),step)
+        }   
+        
+        key = el.attr(jobKeyAttr);
+        job = jobMap[key].job_obj
+
+        selectJob(job)
+        
+    });
+    $rootScope.$on(
+        thEvents.selectPreviousJob, function(ev){
+        var jobMap = ThResultSetModel.getJobMap($rootScope.repoName);
+        var lastJobSelected = ThResultSetModel.getSelectedJob($rootScope.repoName);
+        var el, key, job, jobsList,i,refLevel, step
+
+        
+        var currentElement = lastJobSelected.el[0]
+        var step = 'previousElementSibling'
+        
+        while(!currentElement[step]){
+            currentElement = traceParent($(currentElement),1)[0]
+        }       
+        
+        if($(currentElement).hasClass('job-group-list') ){
+            currentElement = traceParent($(currentElement),1)[0]
+        }
+        if($(currentElement[step]).hasClass('platform')){
+            currentElement = traceParent($(currentElement),1)[0]   
+            if(currentElement[step]==null){
+                currentElement = traceParent($(currentElement),6)[0]
+            }
+        }
+
+
+        if($(currentElement[step]).hasClass('filter-shown')){
+            var el = $(currentElement[step])
+        }else if($(currentElement[step]).hasClass('platform-group')){
+            
+            var el = getJobFromPlatform($(currentElement[step]),step)
+            
+        }
+        else if($(currentElement[step]).hasClass('result-set')){
+            var j=4;
+            var i;
+            currentElement = currentElement[step]
+            for(i=0;i<j;i++){
+                currentElement = $($(currentElement).children()[1])
+            }
+            if(step=='nextElementSibling'){
+                var index = 0
+            }else{
+                var index = $(currentElement.children()[0]).children().length -1
+            }
+            console.log($(currentElement.children()[0]).children()[index])
+            var el = getJobFromTableRow($(currentElement.children()[0]).children()[index],step)
+        }else{
+            var el = getJobFromTableRow($(currentElement[step]),step)
+        }   
+        
+        key = el.attr(jobKeyAttr);
+        job = jobMap[key].job_obj
+
+        selectJob(job)            
+    });
     $rootScope.$on(
         thEvents.selectPreviousUnclassifiedFailure, function(ev){
 
@@ -120,7 +226,6 @@ treeherder.directive('thCloneJobs', [
     });
 
     var selectJob = function(job){
-
         var jobKey = getJobMapKey(job);
         var jobEl = $('.' + jobKey);
 
@@ -271,8 +376,8 @@ treeherder.directive('thCloneJobs', [
         var el = $(ev.target);
         var key = el.attr(jobKeyAttr);
         //Confirm user selected a job
-        if(key && !_.isEmpty(this.job_map[key])){
 
+        if(key && !_.isEmpty(this.job_map[key])){
             var job = this.job_map[key].job_obj;
 
             //NOTE: scope is set to "this" by _.bind
@@ -319,7 +424,7 @@ treeherder.directive('thCloneJobs', [
 
     var addRevisions = function(resultset, element){
 //        $log.debug("addRevisions", resultset, element);
-
+        
         if(resultset.revisions.length > 0){
 
             var revisionInterpolator = thCloneHtml.get('revisionsClone').interpolator;
@@ -782,7 +887,6 @@ treeherder.directive('thCloneJobs', [
             if(platforms === undefined){
                 continue;
             }
-
             var p;
             for(p = 0; p < platforms.length; p++){
 
@@ -1069,7 +1173,55 @@ treeherder.directive('thCloneJobs', [
             tableEl.append(row);
         }
     };
+    var getJobFromPlatform = function(platform_obj,step){
+        var jobsList, i, el;
+        
+        jobsList = $($(platform_obj).children()[1]).children()
+        
+        if(step == 'nextElementSibling'){
 
+            for(i=0;i<jobsList.length;i++){
+                    if($(jobsList[i]).css("display") != "none"){
+                        el = $(jobsList[i])
+                        break
+                    }
+                }
+        }else{
+            for(i=jobsList.length-1;i>=0;i--){
+                    if($(jobsList[i]).css("display") != "none"){
+                        el = $(jobsList[i])
+                        break
+                    }
+                }
+        }
+        
+        return el        
+    }
+    var traceParent=function(el,level){
+        var i =0;
+        for(i=0;i<level;i++){
+            el = el.parent()
+        }
+        
+        return el
+    }
+    var getJobFromTableRow = function(table_row,step){
+        var index;
+        var jobsList = $($(table_row).children()[1]).children()
+        console.log(jobsList) 
+        if(step == 'nextElementSibling'){
+            index = 0
+        }else{
+            index = jobsList.length -1
+        }
+        var currentElement = $(jobsList[index])
+        console.log(currentElement)
+        if(currentElement.hasClass('platform-group')){
+            currentElement = getJobFromPlatform(jobsList[index],step)
+        }
+
+        return currentElement
+    }
     var linker = function(scope, element, attrs){
 
         //Remove any jquery on() bindings
