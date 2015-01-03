@@ -91,7 +91,122 @@ treeherder.directive('thCloneJobs', [
                 getNextUnclassifiedFailure({});
             }
     });
+    var traceJob = function(elem,step,clss){
+        var elemsList = [elem]
+        var jobFound = false
+        var jobElem = null
+        var reverseList = false
+        while(!jobFound && elemsList.length>0){
+            var tempList = []
 
+            angular.forEach(elemsList,function(tempElem){
+
+                if(!jobFound){
+                    if(tempElem.hasClass(clss)&&tempElem.css('display')!='none'){
+                        jobFound = true
+                        jobElem = $(tempElem)
+                    }else{
+                        if(tempElem.children().length>0){
+                            angular.forEach(tempElem.children(),function(tempChild){
+                                if($(tempChild).hasClass('platform-group')){
+
+                                    var jobsList = $($(tempChild).children()[1]).children()
+
+                                    for(var i=0;i<jobsList.length;i++){
+                                        tempList.push($(jobsList[i]))
+                                    }
+                                    reverseList = true
+                                }else{
+                                    tempList.push($(tempChild))        
+                                }
+                            })
+                            
+                        }
+                    }    
+                }
+            })    
+            
+            
+            
+            elemsList = []
+
+            //reverseList for previous obj
+
+            if(reverseList && step == 'previousElementSibling'){
+                for(var i=tempList.length - 1;i>=0;i--){
+                    elemsList.push(tempList[i])
+                }    
+                reverseList = false
+            }else{
+                elemsList = tempList
+            }
+        }
+        return jobElem
+    }
+
+    $rootScope.$on(
+        thEvents.selectNextJob, function(ev){
+
+        var jobMap = ThResultSetModel.getJobMap($rootScope.repoName);
+        var lastJobSelected = ThResultSetModel.getSelectedJob($rootScope.repoName);
+        var el, key, job,  step
+
+        var currentElement = lastJobSelected.el[0]
+        var step = 'nextElementSibling'
+        
+        //Parsing for parent which satisy parameter mentioned in variable step
+        while(!currentElement[step] || $(currentElement[step]).css('display') == 'none'){
+            if(!currentElement[step]){
+                currentElement = traceParent($(currentElement),1)[0]
+            }else{
+                currentElement = currentElement[step]            
+            }
+        } 
+
+        //look through parent's sibling for element with class job-row
+        el = traceJob($(currentElement[step]),step,'job-btn')
+
+        if(el != null){
+            key = el.attr(jobKeyAttr);
+            job = jobMap[key].job_obj
+            
+            selectJob(job)    
+        }
+        
+        
+    });
+
+    $rootScope.$on(
+        thEvents.selectPreviousJob, function(ev){
+        
+        var jobMap = ThResultSetModel.getJobMap($rootScope.repoName);
+        var lastJobSelected = ThResultSetModel.getSelectedJob($rootScope.repoName);
+        var el, key, job, jobsList,i,refLevel, step
+
+        
+        var currentElement = lastJobSelected.el[0]
+        var step = 'previousElementSibling'
+        el = null
+
+        
+        while(!currentElement[step] ){
+            currentElement = traceParent($(currentElement),1)[0]    
+        }   
+        
+        el = traceJob($(currentElement[step]),step,'job-btn')    
+        while(el == null){
+            currentElement = traceParent($(currentElement),1)[0] 
+            if(currentElement === undefined){
+                break;
+            }
+            el = traceJob($(currentElement[step]),step,'job-btn')    
+        }
+        if(el != null){
+            key = el.attr(jobKeyAttr);
+            job = jobMap[key].job_obj
+            selectJob(job)     
+        }
+    });
     $rootScope.$on(
         thEvents.selectPreviousUnclassifiedFailure, function(ev){
 
@@ -120,7 +235,6 @@ treeherder.directive('thCloneJobs', [
     });
 
     var selectJob = function(job){
-
         var jobKey = getJobMapKey(job);
         var jobEl = $('.' + jobKey);
 
@@ -271,8 +385,8 @@ treeherder.directive('thCloneJobs', [
         var el = $(ev.target);
         var key = el.attr(jobKeyAttr);
         //Confirm user selected a job
-        if(key && !_.isEmpty(this.job_map[key])){
 
+        if(key && !_.isEmpty(this.job_map[key])){
             var job = this.job_map[key].job_obj;
 
             //NOTE: scope is set to "this" by _.bind
@@ -319,7 +433,7 @@ treeherder.directive('thCloneJobs', [
 
     var addRevisions = function(resultset, element){
 //        $log.debug("addRevisions", resultset, element);
-
+        
         if(resultset.revisions.length > 0){
 
             var revisionInterpolator = thCloneHtml.get('revisionsClone').interpolator;
@@ -773,7 +887,6 @@ treeherder.directive('thCloneJobs', [
             if(platforms === undefined){
                 continue;
             }
-
             var p;
             for(p = 0; p < platforms.length; p++){
 
@@ -1061,7 +1174,55 @@ treeherder.directive('thCloneJobs', [
         }
         resetCounts(resultset);
     };
+    var getJobFromPlatform = function(platform_obj,step){
+        var jobsList, i, el;
+        
+        jobsList = $($(platform_obj).children()[1]).children()
+        
+        if(step == 'nextElementSibling'){
 
+            for(i=0;i<jobsList.length;i++){
+                    if($(jobsList[i]).css("display") != "none"){
+                        el = $(jobsList[i])
+                        break
+                    }
+                }
+        }else{
+            for(i=jobsList.length-1;i>=0;i--){
+                    if($(jobsList[i]).css("display") != "none"){
+                        el = $(jobsList[i])
+                        break
+                    }
+                }
+        }
+        
+        return el        
+    }
+    var traceParent=function(el,level){
+        var i =0;
+        for(i=0;i<level;i++){
+            el = el.parent()
+        }
+        
+        return el
+    }
+    var getJobFromTableRow = function(table_row,step){
+        var index;
+        var jobsList = $($(table_row).children()[1]).children()
+        
+        if(step == 'nextElementSibling'){
+            index = 0
+        }else{
+            index = jobsList.length -1
+        }
+        var currentElement = $(jobsList[index])
+        
+        if(currentElement.hasClass('platform-group')){
+            currentElement = getJobFromPlatform(jobsList[index],step)
+        }
+
+        return currentElement
+    }
     var linker = function(scope, element, attrs){
 
         //Remove any jquery on() bindings
