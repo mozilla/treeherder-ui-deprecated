@@ -226,6 +226,10 @@ treeherder.controller('MainCtrl', [
 
         };
 
+        $scope.toggleCompactMode = function() {
+            $rootScope.isCompactMode = !$rootScope.isCompactMode;
+        };
+
         var getNewReloadTriggerParams = function() {
             return _.pick(
                 $location.search(),
@@ -265,6 +269,9 @@ treeherder.controller('MainCtrl', [
             $location.search({"repo": repo_name});
         };
 
+        $scope.isFilterDefaults = function() {
+            thJobFilters.isDefaults();
+        };
 
         $scope.isFilterPanelShowing = false;
         $scope.setFilterPanelShowing = function(tf) {
