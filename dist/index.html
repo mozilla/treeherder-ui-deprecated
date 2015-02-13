@@ -7,7 +7,7 @@
         <link id="favicon" type="image/png" rel="shortcut icon" href="img/tree_open.png">
         <th-favicon-link></th-favicon-link>
 
-        <link rel="stylesheet" href="css/index.min-8cb337d0e39a491c166a0860e654fc4d.css" media="screen"/>
+        <link rel="stylesheet" href="css/index.min-835c727fd7bbd3a1e702219244b6195a.css" media="screen"/>
 
     </head>
     <body ng-controller="MainCtrl" ng-keydown="processKeyboardInput($event)">
@@ -15,7 +15,8 @@
             <div class="th-navbar">
                 <ng-include id="th-global-top-nav-panel" src="'partials/main/thGlobalTopNavPanel.html'"></ng-include>
             </div>
-            <div class="th-content">
+            <div class="th-content"
+                 ng-click="clearJobOnClick($event)">
                 <span class="th-view-content" ng-cloak>
                     <ng-view ></ng-view>
                 </span>
@@ -30,7 +31,7 @@
 
         <th-notification-box></th-notification-box>
 
-        <script src="js/index.min-25d24428a936c32473a1b3efccb72c41.js"></script>
+        <script src="js/index.min-e8d4b6189303e65b3a91206fc0db8a18.js"></script>
 
         <script src="js/config/local.conf.js"></script>
         <script src="https://login.persona.org/include.js"></script>
@@ -44,6 +45,7 @@
                 <span class="revision">
                     <a href="{{currentRepo.url}}/rev/{{revision}}"
                        title="open revision {{revision}} on {{currentRepo.url}}"
+                       ignore-job-clear-on-click
                        >{{revision}}</a>
                     <span title="{{name}}: {{email}}">{{name|initials}}</span>
                     <span title="{{escaped_comment}}">
@@ -58,7 +60,9 @@
         <!-- Clone target for "more" link for large revision sets -->
         <script type="'text/ng-template'" id="pushlogRevisionsClone.html">
             <li>
-                <a href="{{currentRepo.url}}/pushloghtml?changeset={{revision}}" target="_blank"> ...and more
+                <a href="{{currentRepo.url}}/pushloghtml?changeset={{revision}}"
+                   ignore-job-clear-on-click
+                   target="_blank"> ...and more
                     <i class="fa fa-external-link-square"></i>
                 </a>
             </li>
@@ -101,6 +105,7 @@
         <script type="'text/ng-template'" id="jobBtnClone.html">
             <span class="btn job-btn btn-xs {{ btnClass }} {{ key }}"
                   data-jmkey="{{ key }}"
+                  ignore-job-clear-on-click
                   title="{{ title }}">{{ value }}</span>
         </script>
 
