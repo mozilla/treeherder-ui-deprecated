@@ -3,28 +3,30 @@
     <head>
         <meta charset="utf-8">
         <title ng-bind="getLogviewerTitle()">Log viewer</title>
-        <link rel="stylesheet" href="css/logviewer.min-51263fec1aa8973c73b2b987f0d89f24.css" media="screen"/>
+        <link rel="stylesheet" href="css/logviewer.min-5adf1b032900ab5a7fa3a9b2f547bf34.css" media="screen"/>
         <link id="favicon" type="image/png" rel="shortcut icon" href="img/tree_open.png">
     </head>
     <body class="body-logviewer">
         <div class="run-data">
-            <div class="col-md-6">
-                <table class="table table-condensed">
-                    <tr ng-repeat="(label, value) in artifact.header">
-                        <th ng-cloak>{{label}}</th>
-                        <td ng-if="label == 'revision'">
-                            <a href="{{logRevisionFilterUrl}}"
-                               title="open resultset in new tab"
-                               target="_blank"
-                               class="repo-link"
-                               ng-cloak>{{value}}</a>
-                        </td>
-                        <td ng-if="label == 'starttime'"
-                            ng-cloak>{{logDisplayDate}}</td>
-                        <td ng-if="label != 'revision' && label != 'starttime'"
-                            ng-cloak>{{value}}</td>
-                    </tr>
-                </table>
+            <div class="col-md-6" >
+                <div class="job-header">
+                    <table class="table table-condensed" >
+                        <tr ng-repeat="(label, value) in artifact.header">
+                            <th ng-cloak>{{label}}</th>
+                            <td ng-if="label == 'revision'" class="break-word">
+                                {{value}}
+                                <a href="{{logRevisionFilterUrl}}"
+                                   title="open resultset"
+                                   class="repo-link"
+                                   ng-cloak>link</a>
+                            </td>
+                            <td ng-if="label == 'starttime'"
+                                ng-cloak class="break-word">{{logDisplayDate}}</td>
+                            <td ng-if="label != 'revision' && label != 'starttime'"
+                                ng-cloak class="break-word">{{value}}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
 
             <div class="col-md-6" lv-log-steps></div>
@@ -35,6 +37,9 @@
              lv-log-lines="displayedLogLines">
         </div>
 
-        <script src="js/logviewer.min-d30aba8768afc1f2a150b70ce6025790.js"></script>
+        <script src="js/logviewer.min-d499b9d0616583d29dc633b9ad90aaa0.js"></script>
+
+        <script src="js/config/local.conf.js"></script>
+
     </body>
 </html>
