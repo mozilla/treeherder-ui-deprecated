@@ -110,6 +110,13 @@ perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', 
       $scope.$digest();
 
       this.plot.unhighlight();
+
+      //Highlight the points persisted in the url
+      $scope.seriesList.forEach(function(series, i) {
+        if (series.highlighted.length > 0 && series.visibility) {
+            $scope.plot.highlight(i, series.highlighted[0]);   
+        }
+      });
       this.plot.highlight(s, item.datapoint);
     };
 
@@ -147,6 +154,13 @@ perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', 
         $scope.ttHideTimer = setTimeout(function() {
           $scope.ttHideTimer = null;
           $scope.plot.unhighlight();
+
+          //Highlight the points persisted in the url
+          $scope.seriesList.forEach(function(series, i) {
+            if (series.highlighted.length > 0 && series.visibility) {
+                $scope.plot.highlight(i, series.highlighted[0]);   
+            }
+          });
           tip.animate({ opacity: 0, top: '+=10' },
                       250, 'linear', function() {
                         $(this).css({ visibility: 'hidden' });
@@ -163,6 +177,7 @@ perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', 
     Mousetrap.bind('escape', function() {
       $scope.ttLocked = false;
       $scope.hideTooltip();
+      $scope.plot.unhighlight();
     });
 
     function plotGraph() {
@@ -222,6 +237,20 @@ perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', 
         }
         $scope.$digest();
       });
+
+      //Highlight the points persisted in the url
+      var showResetRevButton = false;
+      $scope.seriesList.forEach(function(series, i) {
+        if (series.highlighted.length > 0 && series.visibility) {
+            showResetRevButton = true;
+            $scope.plot.highlight(i, series.highlighted[0]);
+            $('#findRevText').val(series.highlighted[1]);   
+        }
+      });
+
+      if (showResetRevButton) {
+        $(".resetHighlightButton").show();
+      }
     }
 
     if (!$scope.myTimerange) {
@@ -243,7 +272,8 @@ perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', 
                                   JSON.stringify(
                                     { project: series.projectName,
                                       signature: series.signature,
-                                      visibility: series.visibility})); })
+                                      visibility: series.visibility,
+                                      highlighted: series.highlighted})); })
                           });
     };
 
@@ -262,6 +292,38 @@ perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', 
     $scope.showHideSeries = function(signature){
       var seriesToToggle = _.find($scope.seriesList, function(series) { return series.signature == signature });
       seriesToToggle.visibility = !seriesToToggle.visibility;
+      $scope.reload();
+    }
+
+    $scope.findRevision = function(){
+      var rev = $scope.higlightRevision;
+      if (rev.length == 12) {
+        var plotdata = $scope.plot.getData();
+        plotdata.forEach(function(series, i) {
+          if (series.points.show) {
+            var url = thServiceDomain + "/api/project/" + series.thSeries.projectName + "/resultset/?format=json&revision=" + rev + "&with_jobs=false";
+            $http.get(url).then(function(response) {
+              if (response.data.results.length > 0) {
+                var result_set_id = response.data.results[0].id;
+                var j = series.resultSetData.indexOf(result_set_id);
+                $scope.plot.highlight(i, j);
+                var seriesToaddHighlight = _.find($scope.seriesList, function(sr) { return sr.signature == series.thSeries.signature });
+                seriesToaddHighlight.highlighted = [j, rev];
+                $scope.plot.highlight(i, j);
+                $scope.reload();
+              }
+            });
+          }
+        });
+      } else {
+          $scope.plot.unhighlight();
+      }
+    }
+
+    $scope.resetHighlight = function() {
+      $scope.seriesList.forEach(function(series) {
+        series.highlighted = [];
+      });
       $scope.reload();
     }
 
@@ -298,6 +360,7 @@ perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', 
                                  }
                                  propsHash[partialSeries.project][partialSeries.signature] = data[0];
                                  propsHash[partialSeries.project][partialSeries.signature]['visibility'] = partialSeries.visibility;
+                                 propsHash[partialSeries.project][partialSeries.signature]['highlighted'] = partialSeries.highlighted;
                                });
             })).then(function() {
               var i = 0;
@@ -306,6 +369,7 @@ perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', 
                   var series_summary = seriesSummary(signature, propsHash[projectName][signature], projectName,
                                                     optionCollectionMap, i);
                   series_summary['visibility'] = propsHash[projectName][signature]['visibility'];
+                  series_summary['highlighted'] = propsHash[projectName][signature]['highlighted'];
                   $scope.seriesList.push(series_summary);
                   i++;
                 });
@@ -389,6 +453,7 @@ perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', 
 
             modalInstance.result.then(function(series) {
               series.visibility = true;
+              series.highlighted = [];
               $scope.seriesList.push(series);
               $scope.reload();
             });
