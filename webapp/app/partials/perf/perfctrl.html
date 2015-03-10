@@ -35,8 +35,11 @@
   <div id="graphs">
     <select ng-model="myTimerange" ng-options="timerange.text for timerange in timeranges track by timerange.value" ng-change="timeRangeChanged()">
     </select>
-    <hr/>
     <div id="graph"></div>
+    <div id="graph-bottom">
+        Highlight revision: <input type="text" ng-change="findRevision()" id="findRevText" placeholder="12 character hg revision" ng-model="higlightRevision">
+        <div class="resetHighlightButton" style="display:none;" ng-click="resetHighlight()">&#10006;</div>
+    </div>
   </div>
   <div class="graph-right-padding"></div>
 </div>
