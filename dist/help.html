@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Treeherder Help</title>
-    <link rel="stylesheet" href="css/help.min-b39195e236262d94828e2b859fff0cfe.css" media="screen"/>
+    <link rel="stylesheet" href="css/help.min-6f536371843f63545e74dc3bdbf6fbb2.css" media="screen"/>
     <link id="favicon" type="image/png" rel="shortcut icon" href="img/tree_open.png">
 </head>
 <body id="help">
@@ -142,13 +142,32 @@
                     <td>Toggle in-progress (running/pending) jobs</td></tr>
                     <tr><td class="kbd">u</td>
                     <td>Show only unclassified failures</td></tr>
-                    <tr><td><span class="kbd">ctrl/cmd</span>+<span class="kbd">c</td>
-                    <td>Copy logviewer or raw log icon links on hover</td></tr>
+                </table>
+            </div>
+            <div class="panel-heading"><h3>Copy values on hover</h3></div>
+            <div class="panel-body panel-spacing">
+                <table id="shortcuts">
+                    <tr>
+                      <td><span class="kbd">ctrl/cmd</span>+<span class="kbd">c</td>
+                      <td>Copy job details
+                        <img src="./img/logviewerIconHelp.svg" id="help-logviewer-icon">
+                        </span> logviewer url on hover</td>
+                    </tr>
+                    <tr>
+                      <td><span class="kbd">ctrl/cmd</span>+<span class="kbd">c</td>
+                      <td>Copy job details
+                        <span id="help-raw-log-icon" class="glyphicon glyphicon-align-left">
+                        </span> raw log url on hover</td>
+                    </tr>
+                    <tr>
+                      <td><span class="kbd">ctrl/cmd</span>+<span class="kbd">c</td>
+                      <td>Copy job details <span class="small"><label>Job:</label>
+                        <span id="help-job-name">name</span></span> as raw text on hover
+                      </td>
+                    </tr>
                 </table>
             </div>
         </div>
-
-
     </div>
 </div>
 
