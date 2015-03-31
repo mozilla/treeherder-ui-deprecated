@@ -3,25 +3,24 @@
   <ul>
     <li>Datazilla:
       <ul>
-        <li ng-repeat="(k,v) in line.value.datazilla"><a href="{{::v.url}}" target="_blank">{{::k}}</a>
+        <li ng-repeat="(k,v) in line.value.datazilla">
+          <a href="{{::v.url}}" target="_blank">{{::k}}</a>
         </li>
       </ul>
     </li>
 
     <li>Graphserver:
       <ul>
-        <li ng-repeat="(k,v) in line.value.graphserver">{{::k}}:<a href="{{::v.url}}"
-                                                                 target="_blank">{{::v.result}}</a>
+        <li ng-repeat="(k,v) in line.value.graphserver">{{::k}}:
+          <a href="{{::v.url}}" target="_blank">{{::v.result}}</a>
         </li>
       </ul>
     </li>
+
+    <li ng-repeat="line in job_details"
+        ng-if="line.content_type == 'link' && line.value.substr(-8) == '.sps.zip'">
+      <a href="http://people.mozilla.com/~bgirard/cleopatra/?zippedProfile={{line.url}}"
+         target="_blank">Open {{line.value}} in Cleopatra</a>
+    </li>
   </ul>
 </span>
-
-<ul>
-  <li ng-repeat="line in job_details"
-      ng-if="line.content_type == 'link' && line.value.substr(-8) == '.sps.zip'">
-    <a href="http://people.mozilla.com/~bgirard/cleopatra/?zippedProfile={{line.url}}"
-       target="_blank">Open {{line.value}} in Cleopatra</a>
-  </li>
-</ul>
