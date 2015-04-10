@@ -1,0 +1,21 @@
+<div class="modal-header">
+  <button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+  <h3 class="modal-title">Compare all talos data to a previous revision</h3>
+</div>
+<div class="modal-body">
+  <h4>Original Branch</h4>
+  <select class="form-control" ng-model="originalProject" ng-options="project.name for project in projects">
+  </select>
+  <h4>Original Revision</h4>
+  <input ng-change="verifyOriginalRevision()" ng-model="originalRevision">
+  </select>
+  <h4>New Branch</h4>
+  <select class="form-control" ng-model="newProject" ng-options="project.name for project in projects">
+  </select>
+  <h4>New Revision</h4>
+  <input ng-change="verifyNewRevision()" ng-model="newRevision">
+  </select>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" ng-click="addCompareData()" ng-disabled="compareDataDisabled" ng-model="compareDataDisabled"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</button>
+</div>
