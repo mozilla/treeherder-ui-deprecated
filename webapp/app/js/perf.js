@@ -30,10 +30,34 @@ perf.factory('getSeriesSummary', [ function() {
 }]);
 
 perf.controller('PerfCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', '$location',
-                              '$modal', 'thServiceDomain', '$http', '$q', '$timeout', 'getSeriesSummary',
+                              '$modal', 'thServiceDomain', '$http', '$q', '$timeout', 'getSeriesSummary', 'ThOptionCollectionModel',
   function PerfCtrl($state, $stateParams, $scope, $rootScope, $location, $modal,
-                    thServiceDomain, $http, $q, $timeout, getSeriesSummary) {
+                    thServiceDomain, $http, $q, $timeout, getSeriesSummary, ThOptionCollectionModel) {
+    
+      $scope.seriesList = [];     
 
+     // initialize the list of option collections
+      $scope.master_option_collections = [];
+
+          ThOptionCollectionModel.get_list()
+      .success(function(optCollectionData) {
+      // gather the string representations of option collections
+      var optCollectionMap = {};
+      _.each(optCollectionData, function(optColl) {
+      optCollectionMap[optColl.option_collection_hash] =
+      _.uniq(_.map(optColl.options, function(option) {
+      return option.name;
+      })).sort().join();
+      });
+      // the string representations of the option collections
+      $scope.master_option_collections = _.values(optCollectionMap);
+      // use this to get the hashes for submitting after the
+      // user has selected them by strings
+      $scope.option_collection_hash_map = _.invert(optCollectionMap);
+      $scope.master_option_collections.sort();
+      $scope.form_option_collections = angular.copy($scope.master_option_collections);
+      });
+    
     var availableColors = [ 'red', 'green', 'blue', 'orange', 'purple' ];
 
     $scope.timeranges = [
