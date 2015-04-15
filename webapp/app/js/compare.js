@@ -35,20 +35,9 @@ function stddev(values, avg) {
 // -------------------------------------------------------------------------
 
 
-var comparetalos = angular.module("perf", ['ui.router', 'ui.bootstrap']);
+var compare = angular.module("compare", ['ui.router', 'ui.bootstrap', 'treeherder']);
 
-/* Copied from providers.js */
-comparetalos.provider('thServiceDomain', function() {
-    this.$get = function() {
-        if (window.thServiceDomain) {
-            return window.thServiceDomain;
-        } else {
-            return "";
-        }
-    };
-});
-
-comparetalos.factory('getSeriesSummary', [ function() {
+compare.factory('getSeriesSummary', [ function() {
   return function(signature, signatureProps, optionCollectionMap, pgo, e10s) {
     var platform = signatureProps.machine_platform + " " +
       signatureProps.machine_architecture;
@@ -67,19 +56,19 @@ comparetalos.factory('getSeriesSummary', [ function() {
 
     //Only keep summary signatures, filter in/out e10s and pgo
     if (name.indexOf('summary') <= 0) {
-        return {};
+        return null;
     }
     if (e10s && (name.indexOf('e10s') <= 0)) {
-        return {};
+        return null;
     } else if (!e10s && (name.indexOf('e10s') > 0)) {
-        return {};
+        return null;
     }
 
     //TODO: pgo is linux/windows only- what about osx and android
     if (pgo && (name.indexOf('pgo') <= 1)) {
-        return {};
+        return null;
     } else if (!pgo && (name.indexOf('pgo') > 0)) {
-        return {};
+        return null;
     }
 
     return { name: name, signature: signature, platform: platform,
@@ -87,21 +76,15 @@ comparetalos.factory('getSeriesSummary', [ function() {
   };
 }]);
 
-comparetalos.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', '$location',
+compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', '$location',
                               '$modal', 'thServiceDomain', '$http', '$q', '$timeout', 'getSeriesSummary',
   function CompareCtrl($state, $stateParams, $scope, $rootScope, $location, $modal,
                     thServiceDomain, $http, $q, $timeout, getSeriesSummary) {
 
-    var availableColors = [ 'red', 'green', 'blue', 'orange', 'purple' ];
-
     function displayComparision() {
-//TODO: why do we need so much history?
+      //TODO: why do we need so much history?
       $scope.timeRange = 2592000; // last 30 days
       $scope.testList = [];
-
-//TODO: how to input these variables
-$scope.e10s = false;
-$scope.pgo = false;
 
       var signatureURL = thServiceDomain + '/api/project/' + $scope.originalProject + 
           '/performance-data/0/get_performance_series_summary/?interval=' +
@@ -109,207 +92,79 @@ $scope.pgo = false;
 
       $http.get(signatureURL).then(
         function(response) {
-          var data = response.data;
           var seriesList = [];
-          var selectedSignatures = [];
 
-          var selectedSignaturesCount = 0;
-          Object.keys(data).forEach(function(signature) {
+          Object.keys(response.data).forEach(function(signature) {
             var seriesSummary = getSeriesSummary(signature,
-                                                 data[signature],
+                                                 response.data[signature],
                                                  optionCollectionMap,
-                                                 $scope.pgo,
-                                                 $scope.e10s);
+                                                 $stateParams.pgo,
+                                                 $stateParams.e10s);
 
-            if (seriesSummary == {}) {
-              return;
-            }
-
-            var testname = seriesSummary.name;
-            if ($scope.testList.indexOf(testname) === -1) {
-              $scope.testList.push(testname);
-            }
-
-            // Bug 1153301, query too long
-            if (seriesSummary.signature !== undefined && selectedSignaturesCount < 20) {
+            if (seriesSummary != null && seriesSummary.signature !== undefined) {
               seriesList.push(seriesSummary);
-              selectedSignatures.push(seriesSummary.signature);
-              selectedSignaturesCount++;
+
+              var testname = seriesSummary.name;
+              if ($scope.testList.indexOf(testname) === -1) {
+                $scope.testList.push(testname);
+              }
             }
           });
           $scope.testList.sort();
 
-          var compareResultsMap = {};
-
           // find summary results for all tests/platforms for the original rev
-          var uri2 = thServiceDomain + '/api/project/' +
+          var signatureURL = thServiceDomain + '/api/project/' +
               $scope.originalProject + '/performance-data/0/' +
               'get_performance_data/?interval_seconds=' + $scope.timeRange;
-          selectedSignatures.forEach(function(signature) {
-            uri2 += ('&signatures=' + signature);
-          });
 
           // TODO: figure how how to reduce these maps
           var rawResultsMap = {};
 
-          $http.get(uri2).then(function(response) {
-            response.data.forEach(function(data) {
-              var perfData = data.blob;
-              var geomeans = [];
-              var total = 0;
-              for (var i=0; i < perfData.length; i++) {
-                if (perfData[i].result_set_id != $scope.originalResultSetID) {
-                  continue;
-                }
-
-                geomeans.push(perfData[i].geomean);
-                total += perfData[i].geomean;
-              }
-
-              var avg = total / geomeans.length;
-              var sigma = stddev(geomeans, avg);
-              rawResultsMap[data.series_signature] = {'geomean': avg, 'variation': 2*sigma, 'runs': geomeans.length};
+          $q.all(seriesList.map(function(series) {
+            return $http.get(signatureURL + "&signatures=" + series.signature).then(function(response) {
+              response.data.forEach(function(data) {
+                rawResultsMap[data.series_signature] = calculateStats(data.blob, $scope.originalResultSetID);
+              });
             });
+          })).then(function () {
 
+            // find summary results for all tests/platforms for the original rev
+            var signatureURL = thServiceDomain + '/api/project/' +
+                           $scope.newProject + '/performance-data/0/' +
+                           'get_performance_data/?interval_seconds=' + $scope.timeRange;
 
             //ok, now get the new revision
-            signatureURL = thServiceDomain + '/api/project/' + $scope.newProject + 
+            var signatureListURL = thServiceDomain + '/api/project/' + $scope.newProject + 
               '/performance-data/0/get_performance_series_summary/?interval=' +
               $scope.timeRange;
 
-            $http.get(signatureURL).then(function(response) {
-              var data = response.data;
-              var new_seriesList = [];
-              var new_selectedSignatures = [];
-              var new_selectedSignaturesCount = 0;
-              Object.keys(data).forEach(function(signature) {
+            // TODO: figure how how to reduce these maps
+            var new_rawResultsMap = {};
+            var new_seriesList = [];
+
+
+            $http.get(signatureListURL).then(function(response) {
+              Object.keys(response.data).forEach(function(signature) {
                 var seriesSummary = getSeriesSummary(signature,
-                                                     data[signature],
+                                                     response.data[signature],
                                                      optionCollectionMap,
-                                                     $scope.pgo,
-                                                     $scope.e10s);
+                                                     $stateParams.pgo,
+                                                     $stateParams.e10s);
 
-                if (seriesSummary == {}) {
-                  return;
-                }
-
-                if (seriesSummary.signature !== undefined && new_selectedSignaturesCount < 20) {
+                if (seriesSummary != null && seriesSummary.signature !== undefined) {
                   new_seriesList.push(seriesSummary);
-                  new_selectedSignatures.push(seriesSummary.signature);
-                  new_selectedSignaturesCount++;
                 }
               });
 
-              // find summary results for all tests/platforms for the original rev
-              uri2 = thServiceDomain + '/api/project/' +
-                     $scope.newProject + '/performance-data/0/' +
-                     'get_performance_data/?interval_seconds=' + $scope.timeRange;
-              new_selectedSignatures.forEach(function(signature) {
-                uri2 += ('&signatures=' + signature);
-              });
 
-              // TODO: figure how how to reduce these maps
-              var new_rawResultsMap = {};
-
-              $http.get(uri2).then(function(response) {
-                response.data.forEach(function(data) {
-
-                  var perfData = data.blob;
-                  var geomeans = [];
-                  var total = 0;
-                  for (var i=0; i < perfData.length; i++) {
-                    if (perfData[i].result_set_id != $scope.newResultSetID) {
-                      continue;
-                    }
-
-                    geomeans.push(perfData[i].geomean);
-                    total += perfData[i].geomean;
-                  }
-
-                  var avg = total / geomeans.length;
-                  var sigma = stddev(geomeans, avg);
-                  new_rawResultsMap[data.series_signature] = {'geomean': avg, 'variation': 2*sigma, 'runs': geomeans.length};
+              $q.all(new_seriesList.map(function(series) {
+                return $http.get(signatureURL + "&signatures=" + series.signature).then(function(response) {
+                  response.data.forEach(function(data) {
+                    new_rawResultsMap[data.series_signature] = calculateStats(data.blob, $scope.newResultSetID);
+                  });
                 });
-
-
-
-
-              var counter = 0;
-              for (var t in $scope.testList) {
-                // Remove previous header if we have no data
-                if (counter > 0 && compareResultsMap[(counter-1)].isHeader) {
-                  counter--;
-                }
-
-                //TODO: figure out a cleaner method for making the names a header row
-                compareResultsMap[counter++] = {'name': $scope.testList[t], 'isHeader': true};
-                //TODO; shouldn't this be on new_seriesList and is idx from above == idx here?
-                for (var idx in seriesList) {
-                  if (seriesList[idx].name != $scope.testList[t]) {
-                    continue;
-                  }
-
-                  var cmap = {}
-                  if (seriesList[idx].signature in rawResultsMap) {
-                     cmap['originalGeoMean'] = rawResultsMap[seriesList[idx].signature].geomean.toFixed(2);
-                     cmap['originalRuns'] = new_rawResultsMap[new_seriesList[idx].signature].runs;
-//TODO: \b1 doesn't print out the +- character
-//                     cmap['originalVariation'] = "\B1" + rawResultsMap[seriesList[idx].signature].variation
-                     cmap['originalVariation'] = "+/- " + rawResultsMap[seriesList[idx].signature].variation.toFixed(2);
-                  }
-                  if (new_seriesList[idx].signature in new_rawResultsMap) {
-                     cmap['newGeoMean'] = new_rawResultsMap[new_seriesList[idx].signature].geomean.toFixed(2);
-                     cmap['newRuns'] = new_rawResultsMap[new_seriesList[idx].signature].runs;
-//TODO: \b1 doesn't print out the +- character
-//                     cmap['newVariation'] = "\B1" + rawResultsMap[seriesList[idx].signature].variation
-                     cmap['newVariation'] = "+/- " + rawResultsMap[new_seriesList[idx].signature].variation.toFixed(2);
-                  }
-
-                  if (new_seriesList[idx].signature in new_rawResultsMap && 
-                      seriesList[idx].signature in rawResultsMap) {
-                     cmap['delta'] = (cmap['newGeoMean'] - cmap['originalGeoMean']).toFixed(2);
-                     cmap['deltaPercentage'] = (cmap['delta'] / cmap['originalGeoMean'] * 100).toFixed(2) + ' %';
-
-                    cmap.type = 'data';
-                    //TODO: some tests are reverse, figure out how to account for that
-                    if (cmap.delta < 0) {
-                      cmap.type = 'improvement';
-                    } else if (cmap.delta > 1) {
-                      cmap.type = 'regression';
-                    }
-
-                    //TODO: zoom?  >1 highlighted revision?
-                    var originalSeries = encodeURIComponent(JSON.stringify(
-                                  { project: $scope.originalProject,
-                                    signature: seriesList[idx].signature,
-                                    visible: true}));
-
-                    var newSeries = encodeURIComponent(JSON.stringify(
-                                  { project: $scope.newProject,
-                                    signature: new_seriesList[idx].signature,
-                                    visible: true}));
-
-                    var detailsLink = thServiceDomain + '/perf.html#/graphs?timerange=' +
-                        $scope.timeRange + '&series=' + newSeries;
-
-                    if (seriesList[idx].signature != new_seriesList[idx].signature) {
-                      detailsLink += '&series=' + originalSeries;
-                    }
-
-                    detailsLink += '&highlightedRevision=' + $scope.newRevision;
-
-                    cmap.detailsLink = detailsLink;
-                    cmap.name = seriesList[idx].platform;
-                    cmap.isHeader = false;
-                    compareResultsMap[counter++] = cmap;
-                  }
-                };
-              }
-              $scope.compareResults = Object.keys(compareResultsMap).map(function(k) {
-                return compareResultsMap[k];
-              });
-
-
+              })).then(function () {
+                displayResults(seriesList, rawResultsMap, new_seriesList, new_rawResultsMap);
               });
             });
           });
@@ -317,36 +172,132 @@ $scope.pgo = false;
       );
     }
 
-    function verifyOriginalRevision() {
-      $scope.originalResultSetID = '';
-      var uri = thServiceDomain + '/api/project/' + $scope.originalProject +
-          '/resultset/?format=json&full=false&with_jobs=false&revision=' + 
-          $scope.originalRevision;
-
-      $http.get(uri).then(function(response) {
-        var results = response.data.results;
-        if (results.length > 0) {
-          $scope.originalResultSetID = results[0].id;
+    function calculateStats(perfData, resultSetID) {
+      var geomeans = [];
+      var total = 0;
+      perfData.forEach(function(pdata) {
+        if (pdata.result_set_id != resultSetID) {
+          return null;
         }
+
+        geomeans.push(pdata.geomean);
+        total += pdata.geomean;
+      });
+
+      var avg = total / geomeans.length;
+      var sigma = stddev(geomeans, avg);
+      return {'geomean': avg, 'variation': 2*sigma, 'runs': geomeans.length};
+    }
+
+    function displayResults(seriesList, rawResultsMap, new_seriesList, new_rawResultsMap) {
+      var counter = 0;
+      var compareResultsMap = {};
+
+      $scope.testList.forEach(function(testName) {
+        if (counter > 0 && compareResultsMap[(counter-1)].isHeader) {
+          counter--;
+        }
+
+        //TODO: figure out a cleaner method for making the names a header row
+        compareResultsMap[counter++] = {'name': testName, 'isHeader': true};
+
+        //TODO: need to figure out how to iterate through the old and new series list
+        //      Ideally a seriesList.forEach(...)
+        for (var idx in seriesList) {
+          if (seriesList[idx].name != testName) {
+            continue;
+          }
+
+          var cmap = {};
+          cmap['originalGeoMean'] = rawResultsMap;
+          cmap['newGeoMean'] = new_rawResultsMap;
+
+          if (seriesList[idx].signature in rawResultsMap) {
+             cmap['originalGeoMean'] = rawResultsMap[seriesList[idx].signature].geomean.toFixed(2);
+             cmap['originalRuns'] = rawResultsMap[seriesList[idx].signature].runs;
+//TODO: \b1 doesn't print out the +- character
+//                     cmap['originalVariation'] = "\B1" + rawResultsMap[seriesList[idx].signature].variation
+             cmap['originalVariation'] = "+/- " + rawResultsMap[seriesList[idx].signature].variation.toFixed(2);
+          }
+          if (new_seriesList[idx].signature in new_rawResultsMap) {
+             cmap['newGeoMean'] = new_rawResultsMap[new_seriesList[idx].signature].geomean.toFixed(2);
+             cmap['newRuns'] = new_rawResultsMap[new_seriesList[idx].signature].runs;
+//TODO: \b1 doesn't print out the +- character
+//                     cmap['newVariation'] = "\B1" + rawResultsMap[seriesList[idx].signature].variation
+             cmap['newVariation'] = "+/- " + rawResultsMap[new_seriesList[idx].signature].variation.toFixed(2);
+          }
+
+          if (new_seriesList[idx].signature in new_rawResultsMap && 
+              seriesList[idx].signature in rawResultsMap) {
+             cmap['delta'] = (cmap['newGeoMean'] - cmap['originalGeoMean']).toFixed(2);
+             cmap['deltaPercentage'] = (cmap['delta'] / cmap['originalGeoMean'] * 100).toFixed(2) + ' %';
+
+            cmap.type = 'data';
+            //TODO: some tests are reverse, figure out how to account for that
+            if (cmap.delta < 0) {
+              cmap.type = 'improvement';
+            } else if (cmap.delta > 1) {
+              cmap.type = 'regression';
+            }
+
+            //TODO: zoom?  >1 highlighted revision?
+            var originalSeries = encodeURIComponent(JSON.stringify(
+                          { project: $scope.originalProject,
+                            signature: seriesList[idx].signature,
+                            visible: true}));
+
+            var newSeries = encodeURIComponent(JSON.stringify(
+                          { project: $scope.newProject,
+                            signature: new_seriesList[idx].signature,
+                            visible: true}));
+
+            var detailsLink = thServiceDomain + '/perf.html#/graphs?timerange=' +
+                $scope.timeRange + '&series=' + newSeries;
+
+            if (seriesList[idx].signature != new_seriesList[idx].signature) {
+              detailsLink += '&series=' + originalSeries;
+            }
+
+            detailsLink += '&highlightedRevision=' + $scope.newRevision;
+
+            cmap.detailsLink = detailsLink;
+            cmap.name = seriesList[idx].platform;
+            cmap.isHeader = false;
+            compareResultsMap[counter++] = cmap;
+          }
+
+        };
+      });
+      $scope.compareResults = Object.keys(compareResultsMap).map(function(k) {
+        return compareResultsMap[k];
       });
     }
 
-    function verifyNewRevision() {
-      $scope.newResultSetID = '';
-      var uri = thServiceDomain + '/api/project/' + $scope.newProject +
-          '/resultset/?format=json&full=false&with_jobs=false&revision=' + 
-          $scope.newRevision;
+    //TODO: this doesn't work, no data is displayed when we use it
+    function verifyRevision(project, revision) {
+      var retVal = '';
+      if ((revision != null && revision != '') &&
+          (project != null && project != '')) {
 
-      $http.get(uri).then(function(response) {
-        var results = response.data.results;
-        if (results.length > 0) {
-          $scope.newResultSetID = results[0].id;
-        }
-      });
+        var uri = thServiceDomain + '/api/project/' + project +
+            '/resultset/?format=json&full=false&with_jobs=false&revision=' + 
+            revision;
+
+        $http.get(uri).then(function(response) {
+          var results = response.data.results;
+          if (results.length > 0) {
+            retVal = results[0].id;
+          }
+        });
+      }
+
+      return $q(function(fulfill, reject) {
+                           fulfill(retVal);
+                         });
     }
 
     function updateURL() {
-      $state.transitionTo('comparetalos', { 'originalProject': $scope.originalProject,
+      $state.transitionTo('compare', { 'originalProject': $scope.originalProject,
                             'originalRevision': $scope.originalRevision,
                             'newProject': $scope.newProject,
                             'newRevision': $scope.newRevision},
@@ -363,35 +314,37 @@ $scope.pgo = false;
               return option.name; }).join(" ");
         });
       }).then(function() {
-        
+        if ($stateParams.e10s) {
+          $stateParams.e10s = true;
+        } else {
+          $stateParams.e10s = false;
+        }
+
+        if ($stateParams.pgo) {
+          $stateParams.pgo = true;
+        } else {
+          $stateParams.pgo = false;
+        }
+
+        // TODO: validate projects and revisions
+        $scope.originalProject = '';
         if ($stateParams.originalProject) {
           $scope.originalProject = $stateParams.originalProject;
-        } else {
-          $scope.originalProject = '';
         }
 
-        if ($stateParams.originalRevision) {
-          $scope.originalRevision = $stateParams.originalRevision;
-          if ($scope.originalProject != '') {
-            verifyOriginalRevision();
-          }
-        } else {
-          $scope.originalRevision = '';
-        }
-
+        $scope.newProject = '';
         if ($stateParams.newProject) {
           $scope.newProject = $stateParams.newProject;
-        } else {
-          $scope.newProject = '';
         }
 
+        $scope.newRevision = '';
         if ($stateParams.newRevision) {
           $scope.newRevision = $stateParams.newRevision;
-          if ($scope.newProject != '') {
-            verifyNewRevision();
-          }
-        } else {
-          $scope.newRevision = '';
+        }
+
+        $scope.originalRevision = '';
+        if ($stateParams.originalRevision) {
+          $scope.originalRevision = $stateParams.originalRevision;
         }
 
         $http.get(thServiceDomain + '/api/repository/').then(function(response) {
@@ -424,17 +377,15 @@ $scope.pgo = false;
               $scope.newProject = newProject;
               $scope.newRevision = newRevision;
 
-              displayComparision();
               updateURL();
             });
           };
         });
-
       displayComparision();
       });
   }]);
 
-comparetalos.controller('CompareChooserCtrl', function($scope, $modalInstance,
+compare.controller('CompareChooserCtrl', function($scope, $modalInstance,
                                             $http, projects, optionCollectionMap,
                                             thServiceDomain,
                                             getSeriesSummary, defaultProjectName) {
@@ -465,23 +416,23 @@ comparetalos.controller('CompareChooserCtrl', function($scope, $modalInstance,
   };
 });
 
-comparetalos.config(function($stateProvider, $urlRouterProvider) {
+compare.config(function($stateProvider, $urlRouterProvider) {
   $urlRouterProvider.deferIntercept(); // so we don't reload on url change
 
-  $stateProvider.state('comparetalos', {
+  $stateProvider.state('compare', {
     templateUrl: 'partials/perf/comparectrl.html',
-    url: '/comparetalos?originalProject&originalRevision&newProject&newRevision',
+    url: '/compare?originalProject&originalRevision&newProject&newRevision',
     controller: 'CompareCtrl'
   });
 
-  $urlRouterProvider.otherwise('/comparetalos');
+  $urlRouterProvider.otherwise('/compare');
 })
   // define the interception
   .run(function ($rootScope, $urlRouter, $location, $state) {
     $rootScope.$on('$locationChangeSuccess', function(e, newUrl, oldUrl) {
       // Prevent $urlRouter's default handler from firing
       e.preventDefault();
-      if ($state.current.name !== 'comparetalos') {
+      if ($state.current.name !== 'compare') {
         // here for first time, synchronize
         $urlRouter.sync();
       }
