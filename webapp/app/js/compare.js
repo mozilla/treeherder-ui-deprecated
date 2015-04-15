@@ -273,9 +273,7 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
       });
     }
 
-    //TODO: this doesn't work, no data is displayed when we use it
-    function verifyRevision(project, revision) {
-      var retVal = '';
+    function verifyRevision(project, revision, rsid) {
       if ((revision != null && revision != '') &&
           (project != null && project != '')) {
 
@@ -286,14 +284,16 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
         $http.get(uri).then(function(response) {
           var results = response.data.results;
           if (results.length > 0) {
-            retVal = results[0].id;
+
+            //TODO: remove this hack so we can return the value
+            if (rsid == 'original') {
+              $scope.originalResultSetID = results[0].id;
+            } else {
+              $scope.newResultSetID = results[0].id;
+            }
           }
         });
       }
-
-      return $q(function(fulfill, reject) {
-                           fulfill(retVal);
-                         });
     }
 
     function updateURL() {
@@ -346,6 +346,9 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
         if ($stateParams.originalRevision) {
           $scope.originalRevision = $stateParams.originalRevision;
         }
+
+        verifyRevision($scope.originalProject, $scope.originalRevision, "original");
+        verifyRevision($scope.newProject, $scope.newRevision, "new");
 
         $http.get(thServiceDomain + '/api/repository/').then(function(response) {
           $scope.projects = response.data;
