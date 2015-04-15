@@ -80,10 +80,11 @@
           </li>
           <li ng-show="canCancel()">
             <a title="Cancel this job"
+               class="icon-red"
                href="" prevent-default-on-left-click
                target="_blank"
                ng-click="cancelJob()">
-              <span class="fa fa-times-circle cancel-job-icon dim-half"></span>
+              <span class="fa fa-times-circle cancel-job-icon"></span>
             </a>
           </li>
           <li>
@@ -141,12 +142,21 @@
       <ul class="content-spacer">
         <li class="small">
           <label>Job:</label>
-          <a title="Filter jobs like these"
-             href="{{buildbotJobnameHref}}"
+          <a title="Filter by job data strings"
+             href="{{jobSearchStrHref}}"
              prevent-default-on-left-click
-             ng-click="filterByBuildername(buildbotJobname)"
-             copy-value="{{buildbotJobname}}">
-            {{buildbotJobname}}</a>
+             ng-click="filterByJobSearchStr(jobSearchStr)"
+             copy-value="{{jobSearchStr}}">
+            {{jobSearchStr}}</a>
+        </li>
+        <li class="small">
+          <label>Filter:</label>
+          <a title="Filter by job signature SHA (more precise)"
+             href="{{jobSearchSignatureHref}}"
+             prevent-default-on-left-click
+             ng-click="filterByJobSearchStr(jobSearchSignature)"
+             copy-value="{{jobSearchSignature}}">
+            signature</a>
         </li>
         <li class="small">
           <label>Machine name:</label>
@@ -167,6 +177,8 @@
                  ng-repeat="job_log_url in job_log_urls"
                  title="Open build directory in a new tab"
                  href={{job_log_url.buildUrl}} target="_blank">{{value}}</a>
+              <span ng-switch-when="Job name"
+                 title="{{job.job_type_description}}">{{value}}</span>
               <span ng-switch-default>{{value}}</span>
           </span>
         </li>
