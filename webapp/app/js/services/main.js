@@ -184,12 +184,24 @@ treeherder.factory('thNotify', [
             $log.debug("received message", message);
             var severity = severity || 'info';
             var sticky = sticky || false;
+            var maxNsNotifications = 5;
             thNotify.notifications.push({
                 message: message,
                 severity: severity,
                 sticky: sticky
             });
-            if(!sticky){
+
+            if (!sticky) {
+                if (thNotify.notifications.length > maxNsNotifications) {
+                    /* Replicate shift code to avoid pruning during rapid retriggers
+                     * otheriwse we could use $timeout(thNotify.shift) here */
+                    for(var i=0;i<thNotify.notifications.length; i++) {
+                        if (!thNotify.notifications[i].sticky) {
+                            thNotify.remove(i);
+                            return;
+                        }
+                    }
+                }
                 $timeout(thNotify.shift, 4000, true);
             }
         },
