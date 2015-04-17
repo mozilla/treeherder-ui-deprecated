@@ -37,6 +37,7 @@ function stddev(values, avg) {
 
 var compare = angular.module("compare", ['ui.router', 'ui.bootstrap', 'treeherder']);
 
+//TODO: make getSeriesSummary part of a common library
 compare.factory('getSeriesSummary', [ function() {
   return function(signature, signatureProps, optionCollectionMap, pgo, e10s) {
     var platform = signatureProps.machine_platform + " " +
@@ -77,14 +78,15 @@ compare.factory('getSeriesSummary', [ function() {
 }]);
 
 compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', '$location',
-                              '$modal', 'thServiceDomain', '$http', '$q', '$timeout', 'getSeriesSummary',
-  function CompareCtrl($state, $stateParams, $scope, $rootScope, $location, $modal,
+                              'thServiceDomain', '$http', '$q', '$timeout', 'getSeriesSummary',
+  function CompareCtrl($state, $stateParams, $scope, $rootScope, $location,
                     thServiceDomain, $http, $q, $timeout, getSeriesSummary) {
 
     function displayComparision() {
-      //TODO: why do we need so much history?
+      //TODO: determine the dates of the two revisions and only grab what we need
       $scope.timeRange = 2592000; // last 30 days
       $scope.testList = [];
+      $scope.platformList = [];
 
       var signatureURL = thServiceDomain + '/api/project/' + $scope.originalProject + 
           '/performance-data/0/get_performance_series_summary/?interval=' +
@@ -104,13 +106,15 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
             if (seriesSummary != null && seriesSummary.signature !== undefined) {
               seriesList.push(seriesSummary);
 
-              var testname = seriesSummary.name;
-              if ($scope.testList.indexOf(testname) === -1) {
-                $scope.testList.push(testname);
+              if ($scope.platformList.indexOf(seriesSummary.platform) === -1) {
+                $scope.platformList.push(seriesSummary.platform);
+              }
+
+              if ($scope.testList.indexOf(seriesSummary.name) === -1) {
+                $scope.testList.push(seriesSummary.name);
               }
             }
           });
-          $scope.testList.sort();
 
           // find summary results for all tests/platforms for the original rev
           var signatureURL = thServiceDomain + '/api/project/' +
@@ -124,6 +128,8 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
             return $http.get(signatureURL + "&signatures=" + series.signature).then(function(response) {
               response.data.forEach(function(data) {
                 rawResultsMap[data.series_signature] = calculateStats(data.blob, $scope.originalResultSetID);
+                rawResultsMap[data.series_signature].name = series.name;
+                rawResultsMap[data.series_signature].platform = series.platform;
               });
             });
           })).then(function () {
@@ -138,9 +144,8 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
               '/performance-data/0/get_performance_series_summary/?interval=' +
               $scope.timeRange;
 
-            // TODO: figure how how to reduce these maps
-            var new_rawResultsMap = {};
-            var new_seriesList = [];
+            var newRawResultsMap = {};
+            var newSeriesList = [];
 
 
             $http.get(signatureListURL).then(function(response) {
@@ -152,19 +157,32 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
                                                      $stateParams.e10s);
 
                 if (seriesSummary != null && seriesSummary.signature !== undefined) {
-                  new_seriesList.push(seriesSummary);
+                  newSeriesList.push(seriesSummary);
+
+                  if ($scope.platformList.indexOf(seriesSummary.platform) === -1) {
+                    $scope.platformList.push(seriesSummary.platform);
+                  }
+
+                  if ($scope.testList.indexOf(seriesSummary.name) === -1) {
+                    $scope.testList.push(seriesSummary.name);
+                  }
                 }
               });
+              $scope.testList.sort();
+              $scope.platformList.sort();
 
 
-              $q.all(new_seriesList.map(function(series) {
+              $q.all(newSeriesList.map(function(series) {
                 return $http.get(signatureURL + "&signatures=" + series.signature).then(function(response) {
                   response.data.forEach(function(data) {
-                    new_rawResultsMap[data.series_signature] = calculateStats(data.blob, $scope.newResultSetID);
+                    newRawResultsMap[data.series_signature] = calculateStats(data.blob, $scope.newResultSetID);
+                    newRawResultsMap[data.series_signature].name = series.name;
+                    newRawResultsMap[data.series_signature].platform = series.platform;
                   });
                 });
               })).then(function () {
-                displayResults(seriesList, rawResultsMap, new_seriesList, new_rawResultsMap);
+                $scope.dataLoading = false;
+                displayResults(rawResultsMap, newRawResultsMap);
               });
             });
           });
@@ -172,24 +190,35 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
       );
     }
 
+    //TODO: put this into a generic library
     function calculateStats(perfData, resultSetID) {
       var geomeans = [];
       var total = 0;
       perfData.forEach(function(pdata) {
-        if (pdata.result_set_id != resultSetID) {
-          return null;
+        if (pdata.result_set_id === resultSetID) {
+          geomeans.push(pdata.geomean);
+          total += pdata.geomean;
         }
-
-        geomeans.push(pdata.geomean);
-        total += pdata.geomean;
       });
 
       var avg = total / geomeans.length;
       var sigma = stddev(geomeans, avg);
-      return {'geomean': avg, 'variation': 2*sigma, 'runs': geomeans.length};
+      return {'geomean': avg.toFixed(2), 'stddev': sigma.toFixed(2), 'runs': geomeans.length};
     }
 
-    function displayResults(seriesList, rawResultsMap, new_seriesList, new_rawResultsMap) {
+    //TODO: put this into a generic library
+    function isReverseTest(testName) {
+      var reverseTests = ['dromaeo_dom', 'dromaeo_css', 'v8_7', 'canvasmark'];
+      var found = false;
+      reverseTests.forEach(function(rt) {
+        if (testName.indexOf(rt) >= 0) {
+          found = true;
+        }
+      });
+      return found;
+    }
+
+    function displayResults(rawResultsMap, newRawResultsMap) {
       var counter = 0;
       var compareResultsMap = {};
 
@@ -199,74 +228,77 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
         }
 
         //TODO: figure out a cleaner method for making the names a header row
-        compareResultsMap[counter++] = {'name': testName, 'isHeader': true};
+        compareResultsMap[counter++] = {'name': testName.replace(' summary', ''),
+                                        'isHeader': true, 'isEmpty': true,
+                                        'originalGeoMean': 'Old Rev', 'originalStddev': 'StdDev',
+                                        'newGeoMean': 'New Rev', 'newStddev': 'StdDev',
+                                        'delta': 'Delta', 'deltaPercentage': 'Delta'};
 
-        //TODO: need to figure out how to iterate through the old and new series list
-        //      Ideally a seriesList.forEach(...)
-        for (var idx in seriesList) {
-          if (seriesList[idx].name != testName) {
-            continue;
+
+        $scope.platformList.forEach(function(platform) {
+          var cmap = {'originalGeoMean': NaN, 'originalRuns': 0, 'originalStddev': NaN,
+                      'newGeoMean': NaN, 'newRuns': 0, 'newStddev': NaN,
+                      'delta': NaN, 'deltaPercentage': NaN, 'isEmpty': false,
+                      'isHeader': false, 'isRegression': false, 'isImprovement': false};
+
+          var oldSig = _.find(Object.keys(rawResultsMap), function (sig) {
+            return (rawResultsMap[sig].name == testName && rawResultsMap[sig].platform == platform)});
+          var newSig = _.find(Object.keys(newRawResultsMap), function (sig) {
+            return (newRawResultsMap[sig].name == testName && newRawResultsMap[sig].platform == platform)});
+
+          if (oldSig !== undefined) {
+             var originalData = rawResultsMap[oldSig];
+             cmap.originalGeoMean = originalData.geomean;
+             cmap.originalRuns = originalData.runs;
+             cmap.originalStddev = originalData.stddev;
+             cmap.originalStddevPct = ((originalData.stddev / originalData.geomean) * 100).toFixed(2);
+          }
+          if (newSig !== undefined) {
+             var newData = newRawResultsMap[newSig];
+             cmap.newGeoMean = newData.geomean;
+             cmap.newRuns = newData.runs;
+             cmap.newStddev = newData.stddev;
+             cmap.newStddevPct = ((newData.stddev / newData.geomean) * 100).toFixed(2);
           }
 
-          var cmap = {};
-          cmap['originalGeoMean'] = rawResultsMap;
-          cmap['newGeoMean'] = new_rawResultsMap;
-
-          if (seriesList[idx].signature in rawResultsMap) {
-             cmap['originalGeoMean'] = rawResultsMap[seriesList[idx].signature].geomean.toFixed(2);
-             cmap['originalRuns'] = rawResultsMap[seriesList[idx].signature].runs;
-//TODO: \b1 doesn't print out the +- character
-//                     cmap['originalVariation'] = "\B1" + rawResultsMap[seriesList[idx].signature].variation
-             cmap['originalVariation'] = "+/- " + rawResultsMap[seriesList[idx].signature].variation.toFixed(2);
-          }
-          if (new_seriesList[idx].signature in new_rawResultsMap) {
-             cmap['newGeoMean'] = new_rawResultsMap[new_seriesList[idx].signature].geomean.toFixed(2);
-             cmap['newRuns'] = new_rawResultsMap[new_seriesList[idx].signature].runs;
-//TODO: \b1 doesn't print out the +- character
-//                     cmap['newVariation'] = "\B1" + rawResultsMap[seriesList[idx].signature].variation
-             cmap['newVariation'] = "+/- " + rawResultsMap[new_seriesList[idx].signature].variation.toFixed(2);
-          }
-
-          if (new_seriesList[idx].signature in new_rawResultsMap && 
-              seriesList[idx].signature in rawResultsMap) {
-             cmap['delta'] = (cmap['newGeoMean'] - cmap['originalGeoMean']).toFixed(2);
-             cmap['deltaPercentage'] = (cmap['delta'] / cmap['originalGeoMean'] * 100).toFixed(2) + ' %';
-
-            cmap.type = 'data';
-            //TODO: some tests are reverse, figure out how to account for that
-            if (cmap.delta < 0) {
-              cmap.type = 'improvement';
-            } else if (cmap.delta > 1) {
-              cmap.type = 'regression';
+          if ((cmap.originalRuns == 0 && cmap.newRuns == 0) ||
+              (testName == 'tp5n summary opt')) {
+            // We don't generate numbers for tp5n, just counters
+            cmap.isEmpty = true;
+          } else {
+            cmap.delta = (cmap.newGeoMean - cmap.originalGeoMean).toFixed(2);
+            cmap.deltaPercentage = (cmap.delta / cmap.originalGeoMean * 100).toFixed(2);
+            if (cmap.deltaPercentage > 2.0) {
+              isReverseTest(testName) ? cmap.isImprovement = true : cmap.isRegression = true;
+            } else if (cmap.deltaPercentage < -2.0) {
+              isReverseTest(testName) ? cmap.isRegression = true : cmap.isImprovement = true;
             }
 
-            //TODO: zoom?  >1 highlighted revision?
+            //TODO: do we need zoom?  can we have >1 highlighted revision?
             var originalSeries = encodeURIComponent(JSON.stringify(
                           { project: $scope.originalProject,
-                            signature: seriesList[idx].signature,
+                            signature: oldSig,
                             visible: true}));
 
             var newSeries = encodeURIComponent(JSON.stringify(
                           { project: $scope.newProject,
-                            signature: new_seriesList[idx].signature,
+                            signature: newSig,
                             visible: true}));
 
             var detailsLink = thServiceDomain + '/perf.html#/graphs?timerange=' +
                 $scope.timeRange + '&series=' + newSeries;
 
-            if (seriesList[idx].signature != new_seriesList[idx].signature) {
+            if (oldSig != newSig) {
               detailsLink += '&series=' + originalSeries;
             }
 
             detailsLink += '&highlightedRevision=' + $scope.newRevision;
 
             cmap.detailsLink = detailsLink;
-            cmap.name = seriesList[idx].platform;
-            cmap.isHeader = false;
+            cmap.name = platform;
             compareResultsMap[counter++] = cmap;
           }
-
-        };
+        });
       });
       $scope.compareResults = Object.keys(compareResultsMap).map(function(k) {
         return compareResultsMap[k];
@@ -274,26 +306,22 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
     }
 
     function verifyRevision(project, revision, rsid) {
-      if ((revision != null && revision != '') &&
-          (project != null && project != '')) {
+      var uri = thServiceDomain + '/api/project/' + project +
+          '/resultset/?format=json&full=false&with_jobs=false&revision=' +
+          revision;
 
-        var uri = thServiceDomain + '/api/project/' + project +
-            '/resultset/?format=json&full=false&with_jobs=false&revision=' + 
-            revision;
+      return $http.get(uri).then(function(response) {
+        var results = response.data.results;
+        if (results.length > 0) {
 
-        $http.get(uri).then(function(response) {
-          var results = response.data.results;
-          if (results.length > 0) {
-
-            //TODO: remove this hack so we can return the value
-            if (rsid == 'original') {
-              $scope.originalResultSetID = results[0].id;
-            } else {
-              $scope.newResultSetID = results[0].id;
-            }
+          //TODO: this is a bit hacky to pass in 'original' as a text string
+          if (rsid == 'original') {
+            $scope.originalResultSetID = results[0].id;
+          } else {
+            $scope.newResultSetID = results[0].id;
           }
-        });
-      }
+        }
+      });
     }
 
     function updateURL() {
@@ -305,6 +333,7 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
     }
 
     var optionCollectionMap = {};
+    $scope.dataLoading = true;
 
     $http.get(thServiceDomain + '/api/optioncollectionhash').then(
       function(response) {
@@ -314,110 +343,33 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
               return option.name; }).join(" ");
         });
       }).then(function() {
-        if ($stateParams.e10s) {
-          $stateParams.e10s = true;
-        } else {
-          $stateParams.e10s = false;
-        }
-
-        if ($stateParams.pgo) {
-          $stateParams.pgo = true;
-        } else {
-          $stateParams.pgo = false;
-        }
+        $stateParams.pgo = Boolean($stateParams.pgo);
+        $stateParams.e10s = Boolean($stateParams.e10s);
 
         // TODO: validate projects and revisions
-        $scope.originalProject = '';
-        if ($stateParams.originalProject) {
-          $scope.originalProject = $stateParams.originalProject;
+        $scope.originalProject = $stateParams.originalProject;
+        $scope.newProject = $stateParams.newProject;
+        $scope.newRevision = $stateParams.newRevision;
+        $scope.originalRevision = $stateParams.originalRevision;
+        if ($scope.originalProject == '' ||
+            $scope.newProject == '' ||
+            $scope.originalRevision == '' ||
+            $scope.newRevision == '') {
+          //TODO: get an error to the UI
         }
 
-        $scope.newProject = '';
-        if ($stateParams.newProject) {
-          $scope.newProject = $stateParams.newProject;
-        }
 
-        $scope.newRevision = '';
-        if ($stateParams.newRevision) {
-          $scope.newRevision = $stateParams.newRevision;
-        }
-
-        $scope.originalRevision = '';
-        if ($stateParams.originalRevision) {
-          $scope.originalRevision = $stateParams.originalRevision;
-        }
-
-        verifyRevision($scope.originalProject, $scope.originalRevision, "original");
-        verifyRevision($scope.newProject, $scope.newRevision, "new");
-
-        $http.get(thServiceDomain + '/api/repository/').then(function(response) {
-          $scope.projects = response.data;
-
-          $scope.addCompareData = function() {
-            $scope.compareResults = null
-            var defaultProjectName;
-
-            var modalInstance = $modal.open({
-              templateUrl: 'partials/perf/comparedatachooser.html',
-              controller: 'CompareChooserCtrl',
-              resolve: {
-                projects: function() {
-                  return $scope.projects;
-                },
-                optionCollectionMap: function() {
-                  return optionCollectionMap;
-                },
-                defaultProjectName: function() { return defaultProjectName; }
-              }
+        verifyRevision($scope.originalProject, $scope.originalRevision, "original").then(function () {
+          verifyRevision($scope.newProject, $scope.newRevision, "new").then(function () {
+            $http.get(thServiceDomain + '/api/repository/').then(function(response) {
+              $scope.projects = response.data;
             });
-
-            modalInstance.opened.then(function () {});
-
-            modalInstance.result.then(function(originalProject, originalRevision,
-                                               newProject, newRevision) {
-              $scope.originalProject = originalProject;
-              $scope.originalRevision = originalRevision;
-              $scope.newProject = newProject;
-              $scope.newRevision = newRevision;
-
-              updateURL();
-            });
-          };
+          });
         });
       displayComparision();
       });
   }]);
 
-compare.controller('CompareChooserCtrl', function($scope, $modalInstance,
-                                            $http, projects, optionCollectionMap,
-                                            thServiceDomain,
-                                            getSeriesSummary, defaultProjectName) {
-  $scope.projects = projects;
-  if (defaultProjectName) {
-    $scope.originalProject = _.findWhere(projects, {name: defaultProjectName});
-  } else {
-    $scope.originalProject = projects[0];
-  }
-
-  if (defaultProjectName) {
-    $scope.newProject = _.findWhere(projects, {name: defaultProjectName});
-  } else {
-    $scope.newProject = 'Try';
-  }
-
-  $scope.loadingCompareData = false;
-  $scope.originalRevision = '';
-  $scope.newRevision = '';
-
-  $scope.addCompareData = function () {
-    $modalInstance.close($scope.orignalProject, $scope.originalRevision,
-                         $scope.newProject, $scope.newRevision);
-  };
-
-  $scope.cancel = function () {
-    $modalInstance.dismiss('cancel');
-  };
-});
 
 compare.config(function($stateProvider, $urlRouterProvider) {
   $urlRouterProvider.deferIntercept(); // so we don't reload on url change
