@@ -232,8 +232,8 @@ treeherder.factory('thJobSearchStr', [
         return function(job) {
             return thPlatformName(job.platform) + ' ' +
                 job.platform_option + ' ' +
-                (job.job_group_name === 'unknown'? '': job.job_group_name + ' ') +
-                (job.job_group_symbol === '?'? '': job.job_group_symbol + ' ') +
+                (job.job_group_name === 'unknown' ? '' : job.job_group_name + ' ') +
+                (job.job_group_symbol === '?' ? '' : job.job_group_symbol + ' ') +
                 job.job_type_name + ' ' +
                 job.job_type_symbol;
         };
