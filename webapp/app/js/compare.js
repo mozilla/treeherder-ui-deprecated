@@ -223,13 +223,13 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
       var compareResultsMap = {};
 
       $scope.testList.forEach(function(testName) {
-        if (counter > 0 && compareResultsMap[(counter-1)].isHeader) {
+        if (counter > 0 && compareResultsMap[(counter-1)].headerColumns==2) {
           counter--;
         }
 
         //TODO: figure out a cleaner method for making the names a header row
         compareResultsMap[counter++] = {'name': testName.replace(' summary', ''),
-                                        'isHeader': true, 'isEmpty': true,
+                                        'isEmpty': true, 'isMinor': false, 'headerColumns': 2,
                                         'originalGeoMean': 'Old Rev', 'originalStddev': 'StdDev',
                                         'newGeoMean': 'New Rev', 'newStddev': 'StdDev',
                                         'delta': 'Delta', 'deltaPercentage': 'Delta'};
@@ -237,9 +237,9 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
 
         $scope.platformList.forEach(function(platform) {
           var cmap = {'originalGeoMean': NaN, 'originalRuns': 0, 'originalStddev': NaN,
-                      'newGeoMean': NaN, 'newRuns': 0, 'newStddev': NaN,
+                      'newGeoMean': NaN, 'newRuns': 0, 'newStddev': NaN, 'headerColumns': 1,
                       'delta': NaN, 'deltaPercentage': NaN, 'isEmpty': false,
-                      'isHeader': false, 'isRegression': false, 'isImprovement': false};
+                      'isRegression': false, 'isImprovement': false, 'isMinor': true};
 
           var oldSig = _.find(Object.keys(rawResultsMap), function (sig) {
             return (rawResultsMap[sig].name == testName && rawResultsMap[sig].platform == platform)});
@@ -269,8 +269,10 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
             cmap.delta = (cmap.newGeoMean - cmap.originalGeoMean).toFixed(2);
             cmap.deltaPercentage = (cmap.delta / cmap.originalGeoMean * 100).toFixed(2);
             if (cmap.deltaPercentage > 2.0) {
+              cmap.isMinor = false;
               isReverseTest(testName) ? cmap.isImprovement = true : cmap.isRegression = true;
             } else if (cmap.deltaPercentage < -2.0) {
+              cmap.isMinor = false;
               isReverseTest(testName) ? cmap.isRegression = true : cmap.isImprovement = true;
             }
 
@@ -345,6 +347,7 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
       }).then(function() {
         $stateParams.pgo = Boolean($stateParams.pgo);
         $stateParams.e10s = Boolean($stateParams.e10s);
+        $scope.hideMinorChanges = Boolean($stateParams.hideMinorChanges);
 
         // TODO: validate projects and revisions
         $scope.originalProject = $stateParams.originalProject;
@@ -376,7 +379,7 @@ compare.config(function($stateProvider, $urlRouterProvider) {
 
   $stateProvider.state('compare', {
     templateUrl: 'partials/perf/comparectrl.html',
-    url: '/compare?originalProject&originalRevision&newProject&newRevision',
+    url: '/compare?originalProject&originalRevision&newProject&newRevision&hideMinorChanges&e10s&pgo',
     controller: 'CompareCtrl'
   });
 
