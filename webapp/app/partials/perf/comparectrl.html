@@ -21,15 +21,15 @@
         <p class="help-block">Hover over each entry for more options.</p>
         <table class="table">
           <tbody>
-            <tr ng-class="{'subtest-header': compareResult.isHeader, 'subtest-empty': compareResult.isEmpty && !compareResult.isHeader}" ng-repeat="compareResult in compareResults">
-              <td><a ng-class="{'subtest-empty': compareResult.isHeader}" ng-href="{{compareResult.detailsLink}}">Details</a></td>
-              <td>{{compareResult.name}}</td>
+            <tr ng-class="{'subtest-header': compareResult.headerColumns==2, 'subtest-empty': compareResult.isEmpty && !compareResult.headerColumns==2, 'subtest-empty': (hideMinorChanges && compareResult.isMinor)}" ng-repeat="compareResult in compareResults">
+              <td colspan="{{compareResult.headerColumns}}">{{compareResult.name}}</td>
+              <td ng-class="{'subtest-empty': compareResult.headerColumns==2}"><a ng-href="{{compareResult.detailsLink}}">Details</a></td>
               <td ng-attr-title="runs: {{compareResult.originalRuns}}">{{compareResult.originalGeoMean}}</td>
               <td>+/-{{compareResult.originalStddev}} ({{compareResult.originalStddevPct}}%)</td>
               <td ng-attr-title="runs: {{compareResult.newRuns}}">{{compareResult.newGeoMean}}</td>
               <td>+/-{{compareResult.newStddev}} ({{compareResult.newStddevPct}}%)</td>
-              <td ng-class="{'subtest-regression': compareResult.isRegression, 'subtest-improvement':  compareResult.isImprovement, 'subtest-header': compareResult.isHeader}">{{compareResult.delta}}</td>
-              <td ng-class="{'subtest-regression': compareResult.isRegression, 'subtest-improvement': compareResult.isImprovement, 'subtest-header': compareResult.isHeader}">{{compareResult.deltaPercentage}}%</td>
+              <td ng-class="{'subtest-regression': compareResult.isRegression, 'subtest-improvement':  compareResult.isImprovement}">{{compareResult.delta}}</td>
+              <td ng-class="{'subtest-regression': compareResult.isRegression, 'subtest-improvement': compareResult.isImprovement}">{{compareResult.deltaPercentage}}%</td>
             </tr>
           </tbody>
         </table>
