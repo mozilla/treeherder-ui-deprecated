@@ -165,9 +165,32 @@ to { opacity: 0; }
 }
 
 
+.subtest-header {
+    background-image: linear-gradient(to bottom, #6A7B86, #424F5A);
+    color: white;
+    font-weight: bold;
+}
+
+.subtest-improvement {
+    background-color: green;
+    color: white;
+    font-weight: bold;
+}
+
+.subtest-regression {
+    background-color: red;
+    color: white;
+    font-weight: bold;
+}
+
+.subtest-empty {
+    display: none;
+}
+
 .subtest-result button {
     display: none;
 }
+
 .subtest-result:hover button {
     display: inline-block;
 }
@@ -177,4 +200,16 @@ to { opacity: 0; }
     max-width: 100px;
     text-overflow: ellipsis;
     overflow: hidden;
+}
+
+.compare-improvement {
+  background-color: green;
+  color: white;
+  font-weight: bold;
+}
+
+.compare-regression {
+  background-color: red;
+  color: white;
+  font-weight: bold;
 }
