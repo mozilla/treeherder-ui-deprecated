@@ -133,7 +133,6 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
               });
             });
           })).then(function () {
-
             // find summary results for all tests/platforms for the original rev
             var signatureURL = thServiceDomain + '/api/project/' +
                            $scope.newProject + '/performance-data/0/' +
@@ -146,7 +145,6 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
 
             var newRawResultsMap = {};
             var newSeriesList = [];
-
 
             $http.get(signatureListURL).then(function(response) {
               Object.keys(response.data).forEach(function(signature) {
@@ -171,7 +169,6 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
               $scope.testList.sort();
               $scope.platformList.sort();
 
-
               $q.all(newSeriesList.map(function(series) {
                 return $http.get(signatureURL + "&signatures=" + series.signature).then(function(response) {
                   response.data.forEach(function(data) {
@@ -194,16 +191,14 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
     function calculateStats(perfData, resultSetID) {
       var geomeans = [];
       var total = 0;
-      perfData.forEach(function(pdata) {
-        if (pdata.result_set_id === resultSetID) {
-          geomeans.push(pdata.geomean);
-          total += pdata.geomean;
-        }
+      _.where(perfData, { result_set_id: resultSetID }).forEach(function(pdata) {
+        geomeans.push(pdata.geomean);
+        total += pdata.geomean;
       });
 
       var avg = total / geomeans.length;
       var sigma = stddev(geomeans, avg);
-      return {'geomean': avg.toFixed(2), 'stddev': sigma.toFixed(2), 'runs': geomeans.length};
+      return {geomean: avg.toFixed(2), stddev: sigma.toFixed(2), runs: geomeans.length};
     }
 
     //TODO: put this into a generic library
@@ -246,14 +241,14 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
           var newSig = _.find(Object.keys(newRawResultsMap), function (sig) {
             return (newRawResultsMap[sig].name == testName && newRawResultsMap[sig].platform == platform)});
 
-          if (oldSig !== undefined) {
+          if (oldSig) {
              var originalData = rawResultsMap[oldSig];
              cmap.originalGeoMean = originalData.geomean;
              cmap.originalRuns = originalData.runs;
              cmap.originalStddev = originalData.stddev;
              cmap.originalStddevPct = ((originalData.stddev / originalData.geomean) * 100).toFixed(2);
           }
-          if (newSig !== undefined) {
+          if (newSig) {
              var newData = newRawResultsMap[newSig];
              cmap.newGeoMean = newData.geomean;
              cmap.newRuns = newData.runs;
@@ -354,11 +349,12 @@ compare.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$rootSc
         $scope.newProject = $stateParams.newProject;
         $scope.newRevision = $stateParams.newRevision;
         $scope.originalRevision = $stateParams.originalRevision;
-        if ($scope.originalProject == '' ||
-            $scope.newProject == '' ||
-            $scope.originalRevision == '' ||
-            $scope.newRevision == '') {
+        if (!$scope.originalProject ||
+            !$scope.newProject ||
+            !$scope.originalRevision ||
+            !$scope.newRevision) {
           //TODO: get an error to the UI
+          return;
         }
 
 

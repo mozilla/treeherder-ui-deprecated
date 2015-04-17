@@ -170,16 +170,19 @@ to { opacity: 0; }
     color: white;
     font-weight: bold;
 }
+
 .subtest-improvement {
     background-color: green;
     color: white;
     font-weight: bold;
 }
+
 .subtest-regression {
     background-color: red;
     color: white;
     font-weight: bold;
 }
+
 .subtest-empty {
     display: none;
 }
@@ -187,6 +190,7 @@ to { opacity: 0; }
 .subtest-result button {
     display: none;
 }
+
 .subtest-result:hover button {
     display: inline-block;
 }
