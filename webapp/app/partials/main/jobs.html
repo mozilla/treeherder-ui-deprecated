@@ -51,18 +51,17 @@
     <div class="result-set-body" th-clone-jobs ></div>
 </div>
 
-<div ng-show="result_sets.length == 0 && !isLoadingRsBatch.appending &&
+<div ng-show="result_sets.length != 0 && !isLoadingRsBatch.appending &&
               !isLoadingJobs && locationHasSearchParam('revision')"
               class="result-set-body unknown-message-body">
   <span ng-init="revision=getSearchParamValue('revision')">
-     <span>
-    <div><b>Unknown repository.</b></div>
-    <span>This repository is either unknown to Treeherder or it doesn't exist.
-      If this repository does exist, please
-      <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Tree%20Management&component=Treeherder">
-      file a bug against the Treeherder product in Bugzilla</a> to get it added to the system.
-    </span>
-  </span> 
+     <span>Waiting for a push with revision <strong>{{revision}}</strong></span>
+     <a href="{{currentRepo.url}}/pushloghtml?changeset={{revision}}"
+     target="_blank"
+     title="open revision {{revision}} on {{currentRepo.url}}">(view pushlog)</a>
+     <span class="fa fa-refresh fa-spin"></span>
+     <div>If the push exists, it will appear in a few minutes once it has been processed.
+     </div>
   </span>
 </div>
 
@@ -78,8 +77,7 @@
 </div>
 
 <div ng-show="result_sets.length == 0 && !isLoadingRsBatch.appending &&
-              !isLoadingJobs && !locationHasSearchParam('revision') &&
-              locationHasSearchParam('repo') && !currentRepo.url"
+              !isLoadingJobs && locationHasSearchParam('repo') && !currentRepo.url"
               class="result-set-body unknown-message-body">
   <span>
     <div><b>Unknown repository.</b></div>
