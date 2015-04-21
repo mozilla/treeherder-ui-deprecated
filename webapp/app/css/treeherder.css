@@ -610,6 +610,7 @@ div#bottom-panel {
     display:         flex;
     -webkit-flex-flow: column;
     flex-flow: column;
+    z-index: 1000;
 }
 
 div#bottom-panel .navbar{
@@ -623,7 +624,6 @@ div#bottom-panel .navbar{
     min-height: 33px;
     min-width: initial;
     overflow: hidden;
-    z-index: 100;
 }
 
 div#bottom-panel .navbar-nav > ul{
@@ -1045,7 +1045,7 @@ ul.failure-summary-list li .btn-xs {
 }
 
 #pinboard-controls .dropdown-menu {
-    z-index: 2000;
+    z-index: 1100;
 }
 
 #pinboard-controls .save-btn-dropdown {
@@ -1913,10 +1913,10 @@ div.similar_jobs .left_panel table tr.active > td {
 div.similar_jobs .left_panel table tr { cursor: default; }
 
 #notification_box{
-    position:fixed;
-    top:70px;
-    right:10px;
-    z-index: 1100;
+    position: fixed;
+    top: 70px;
+    right: 10px;
+    z-index: 500;
 }
 
 #notification_box div.alert{
