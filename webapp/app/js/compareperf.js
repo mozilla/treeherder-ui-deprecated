@@ -92,9 +92,10 @@ comparePerf.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$ro
           '/performance-data/0/get_performance_series_summary/?interval=' +
           $scope.timeRange;
 
+      var rawResultsMap = {};
+
       $http.get(signatureURL).then(
         function(response) {
-          var seriesList = [];
 
           Object.keys(response.data).forEach(function(signature) {
             var seriesSummary = getSeriesSummary(signature,
@@ -104,7 +105,10 @@ comparePerf.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$ro
                                                  $stateParams.e10s);
 
             if (seriesSummary != null && seriesSummary.signature !== undefined) {
-              seriesList.push(seriesSummary);
+              rawResultsMap[seriesSummary.signature] = {
+                             name: seriesSummary.name,
+                             platform: seriesSummary.platform
+                           };
 
               if ($scope.platformList.indexOf(seriesSummary.platform) === -1) {
                 $scope.platformList.push(seriesSummary.platform);
@@ -121,15 +125,13 @@ comparePerf.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$ro
               $scope.originalProject + '/performance-data/0/' +
               'get_performance_data/?interval_seconds=' + $scope.timeRange;
 
-          // TODO: figure how how to reduce these maps
-          var rawResultsMap = {};
-
-          $q.all(seriesList.map(function(series) {
-            return $http.get(signatureURL + "&signatures=" + series.signature).then(function(response) {
+          $q.all(Object.keys(rawResultsMap).map(function(signature) {
+            return $http.get(signatureURL + "&signatures=" + signature).then(function(response) {
               response.data.forEach(function(data) {
-                rawResultsMap[data.series_signature] = calculateStats(data.blob, $scope.originalResultSetID);
-                rawResultsMap[data.series_signature].name = series.name;
-                rawResultsMap[data.series_signature].platform = series.platform;
+                var stats = calculateStats(data.blob, $scope.originalResultSetID);
+                rawResultsMap[signature].geomean = stats.geomean;
+                rawResultsMap[signature].stddev = stats.stddev;
+                rawResultsMap[signature].runs = stats.runs;
               });
             });
           })).then(function () {
@@ -144,8 +146,6 @@ comparePerf.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$ro
               $scope.timeRange;
 
             var newRawResultsMap = {};
-            var newSeriesList = [];
-
             $http.get(signatureListURL).then(function(response) {
               Object.keys(response.data).forEach(function(signature) {
                 var seriesSummary = getSeriesSummary(signature,
@@ -155,7 +155,10 @@ comparePerf.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$ro
                                                      $stateParams.e10s);
 
                 if (seriesSummary != null && seriesSummary.signature !== undefined) {
-                  newSeriesList.push(seriesSummary);
+                  newRawResultsMap[seriesSummary.signature] = {
+                                    name: seriesSummary.name,
+                                    platform: seriesSummary.platform
+                                  };
 
                   if ($scope.platformList.indexOf(seriesSummary.platform) === -1) {
                     $scope.platformList.push(seriesSummary.platform);
@@ -169,12 +172,13 @@ comparePerf.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$ro
               $scope.testList.sort();
               $scope.platformList.sort();
 
-              $q.all(newSeriesList.map(function(series) {
-                return $http.get(signatureURL + "&signatures=" + series.signature).then(function(response) {
+              $q.all(Object.keys(newRawResultsMap).map(function(signature) {
+                return $http.get(signatureURL + "&signatures=" + signature).then(function(response) {
                   response.data.forEach(function(data) {
-                    newRawResultsMap[data.series_signature] = calculateStats(data.blob, $scope.newResultSetID);
-                    newRawResultsMap[data.series_signature].name = series.name;
-                    newRawResultsMap[data.series_signature].platform = series.platform;
+                    var stats = calculateStats(data.blob, $scope.newResultSetID);
+                    newRawResultsMap[signature].geomean = stats.geomean;
+                    newRawResultsMap[signature].stddev = stats.stddev;
+                    newRawResultsMap[signature].runs = stats.runs;
                   });
                 });
               })).then(function () {
@@ -214,27 +218,16 @@ comparePerf.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$ro
     }
 
     function displayResults(rawResultsMap, newRawResultsMap) {
-      var counter = 0;
-      var compareResultsMap = {};
+      $scope.compareResults = {};
 
       $scope.testList.forEach(function(testName) {
-        if (counter > 0 && compareResultsMap[(counter-1)].headerColumns==2) {
-          counter--;
-        }
-
-        //TODO: figure out a cleaner method for making the names a header row
-        compareResultsMap[counter++] = {'name': testName.replace(' summary', ''),
-                                        'isEmpty': true, 'isMinor': false, 'headerColumns': 2,
-                                        'originalGeoMean': 'Old Rev', 'originalStddev': 'StdDev',
-                                        'newGeoMean': 'New Rev', 'newStddev': 'StdDev',
-                                        'delta': 'Delta', 'deltaPercentage': 'Delta'};
-
+        $scope.compareResults[testName] = [];
 
         $scope.platformList.forEach(function(platform) {
-          var cmap = {'originalGeoMean': NaN, 'originalRuns': 0, 'originalStddev': NaN,
-                      'newGeoMean': NaN, 'newRuns': 0, 'newStddev': NaN, 'headerColumns': 1,
-                      'delta': NaN, 'deltaPercentage': NaN, 'isEmpty': false,
-                      'isRegression': false, 'isImprovement': false, 'isMinor': true};
+          var cmap = {originalGeoMean: NaN, originalRuns: 0, originalStddev: NaN,
+                      newGeoMean: NaN, newRuns: 0, newStddev: NaN,
+                      delta: NaN, deltaPercentage: NaN, isEmpty: false,
+                      isRegression: false, isImprovement: false, isMinor: true};
 
           var oldSig = _.find(Object.keys(rawResultsMap), function (sig) {
             return (rawResultsMap[sig].name == testName && rawResultsMap[sig].platform == platform)});
@@ -271,7 +264,7 @@ comparePerf.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$ro
               isReverseTest(testName) ? cmap.isRegression = true : cmap.isImprovement = true;
             }
 
-            //TODO: do we need zoom?  can we have >1 highlighted revision?
+            //TODO: can we have >1 highlighted revision?
             var originalSeries = encodeURIComponent(JSON.stringify(
                           { project: $scope.originalProject,
                             signature: oldSig,
@@ -293,12 +286,9 @@ comparePerf.controller('CompareCtrl', [ '$state', '$stateParams', '$scope', '$ro
 
             cmap.detailsLink = detailsLink;
             cmap.name = platform;
-            compareResultsMap[counter++] = cmap;
+            $scope.compareResults[testName].push(cmap);
           }
         });
-      });
-      $scope.compareResults = Object.keys(compareResultsMap).map(function(k) {
-        return compareResultsMap[k];
       });
     }
 
