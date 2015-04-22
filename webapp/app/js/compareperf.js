@@ -298,3 +298,12 @@ perf.controller('CompareResultsCtrl', [
       displayComparision();
       });
   }]);
+
+perf.controller('CompareSubtestResultsCtrl', [
+  '$state', '$stateParams', '$scope', '$rootScope', '$location',
+  'thServiceDomain', '$http', '$q', '$timeout', 'getSeriesSummary', 'math',
+  function CompareSubtestResultsCtrl($state, $stateParams, $scope, $rootScope,
+                                     $location, thServiceDomain, $http, $q,
+                                     $timeout, getSeriesSummary, math) {
+    // fill me
+  }]);

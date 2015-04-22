@@ -1,0 +1,29 @@
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Perfherder</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li><a href="#/graphs">Graphs</a></li>
+      <li class="active"><a href="#/comparechooser">Compare</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container-fluid">
+  <div id="subtest-summary">
+    <h4>Subtest Summary for Revision {{selectedDataPoint.revision}}</h4>
+    <p class="help-block">Hover over each entry for more options.</p>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Page</th><th>Mean</th><th>Change from Previous Revision</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="subtest-result" ng-repeat="subtestResult in subtestResults">
+          <td>{{subtestResult.test}} <button class="btn btn-xs" ng-click="addSeries(subtestResult.projectName, subtestResult.signature)"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add series to graph</button></td><td>{{subtestResult.value}}</td><td>{{subtestResult.dvalue}} ({{subtestResult.dpercent}}%)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
