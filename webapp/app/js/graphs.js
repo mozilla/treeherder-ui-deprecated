@@ -5,9 +5,11 @@
 "use strict";
 
 perf.controller('GraphsCtrl', [ '$state', '$stateParams', '$scope', '$rootScope', '$location',
-                              '$modal', 'thServiceDomain', '$http', '$q', '$timeout', 'getSeriesSummary', 'ThOptionCollectionModel',
+                              '$modal', 'thServiceDomain', '$http', '$q', '$timeout', 'getSeriesSummary',
+                              'ThOptionCollectionModel', 'calculateStats',
   function GraphsCtrl($state, $stateParams, $scope, $rootScope, $location, $modal,
-                    thServiceDomain, $http, $q, $timeout, getSeriesSummary, ThOptionCollectionModel) {
+                    thServiceDomain, $http, $q, $timeout, getSeriesSummary,
+                    ThOptionCollectionModel, calculateStats) {
 
     var availableColors = [ 'red', 'green', 'blue', 'orange', 'purple' ];
 
@@ -720,7 +722,7 @@ perf.controller('TestChooserCtrl', function($scope, $modalInstance, $http,
                                             projects, optionCollectionMap,
                                             timeRange, thServiceDomain,
                                             getSeriesSummary, defaultProjectName,
-                                            defaultPlatform) {
+                                            defaultPlatform, getSeriesLists) {
   $scope.timeRange = timeRange;
   $scope.projects = projects;
   if (defaultProjectName) {
@@ -747,63 +749,49 @@ perf.controller('TestChooserCtrl', function($scope, $modalInstance, $http,
     $scope.loadingTestData = true;
     $scope.platformList = [];
 
-    $http.get(thServiceDomain + '/api/project/' + $scope.selectedProject.name +
-              '/performance-data/0/get_performance_series_summary/?interval=' +
-              $scope.timeRange).then(
-                function(response) {
-                  var data = response.data;
-                  var seriesList = [];
-                  Object.keys(data).forEach(function(signature) {
-                    var seriesSummary = getSeriesSummary(signature,
-                                                         data[signature],
-                                                         optionCollectionMap);
+    //TODO: duplicate function names?
+    getSeriesLists($scope.selectedProject.name, $scope.timeRange, optionCollectionMap, {}).then(
+    function(seriesData) {
+      $scope.platformList = seriesData.platformList;
+      $scope.platformList.sort();
+      $scope.selectedPlatform = defaultPlatform ||
+        $scope.platformList[0];
 
-                    var platform = seriesSummary.platform;
-                    if ($scope.platformList.indexOf(platform) === -1) {
-                      $scope.platformList.push(platform);
-                    }
+      $scope.updateTestSelector = function() {
+        var filteredSeriesList = seriesData.seriesList.filter(
+          function(series) {
+            return (series.platform === $scope.selectedPlatform);
+          }).sort(function(a, b) { return a.name > b.name; });
 
-                    seriesList.push(seriesSummary);
-                  });
-                  $scope.platformList.sort();
-                  $scope.selectedPlatform = defaultPlatform ||
-                    $scope.platformList[0];
+        var signatures = new Bloodhound({
+          datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+          queryTokenizer: Bloodhound.tokenizers.whitespace,
+          limit: 100,
+          local: filteredSeriesList
+        });
 
-                  $scope.updateTestSelector = function() {
-                    var filteredSeriesList = seriesList.filter(
-                      function(series) {
-                        return (series.platform === $scope.selectedPlatform);
-                      }).sort(function(a, b) { return a.name > b.name; });
+        // kicks off the loading/processing of `local` and `prefetch`
+        signatures.initialize();
 
-                    var signatures = new Bloodhound({
-                      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
-                      queryTokenizer: Bloodhound.tokenizers.whitespace,
-                      limit: 100,
-                      local: filteredSeriesList
-                    });
+        if (testInputCreated) {
+          $('.typeahead').typeahead('destroy');
+        }
 
-                    // kicks off the loading/processing of `local` and `prefetch`
-                    signatures.initialize();
+        $('.typeahead').typeahead(null, {
+          name: 'signatures',
+          displayKey: 'name',
+          source: signatures.ttAdapter(),
+          limit: 100
+        }).on('typeahead:selected', function(obj, datum) {
+          $scope.selectedSeries = datum;
+          $scope.addTestDataDisabled = false;
+        });
+        testInputCreated = true;
+      }
+      $scope.updateTestSelector();
 
-                    if (testInputCreated) {
-                      $('.typeahead').typeahead('destroy');
-                    }
-
-                    $('.typeahead').typeahead(null, {
-                      name: 'signatures',
-                      displayKey: 'name',
-                      source: signatures.ttAdapter(),
-                      limit: 100
-                    }).on('typeahead:selected', function(obj, datum) {
-                      $scope.selectedSeries = datum;
-                      $scope.addTestDataDisabled = false;
-                    });
-                    testInputCreated = true;
-                  }
-                  $scope.updateTestSelector();
-
-                  $scope.loadingTestData = false;
-                });
+      $scope.loadingTestData = false;
+    });
   };
 
   $modalInstance.updateTestInput = $scope.updateTestInput;
