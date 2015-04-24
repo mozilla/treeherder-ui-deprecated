@@ -100,6 +100,11 @@ treeherder.directive('thWatchedRepoInfoDropDown', [
                     scope.message_of_the_day = newVal.message_of_the_day;
                 }
             }, true);
+            if (attrs.rules) {
+              scope.treeRules = attrs.rules;
+            } else {
+              scope.treeRules = "https://wiki.mozilla.org/Tree_Rules";
+            }
         },
         templateUrl: 'partials/main/thWatchedRepoInfoDropDown.html'
     };
