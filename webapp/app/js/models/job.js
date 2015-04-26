@@ -66,10 +66,14 @@ treeherder.factory('ThJobModel', [
                         return new ThJobModel(job_obj);
                     });
                 }
+
                 // next_pages_jobs is wrapped in a $q.when call because it could be
                 // either a promise or a value
-                return $q.when(next_pages_jobs).then(function(maybe_job_list){
-                    return  item_list.concat(maybe_job_list);
+                return $q.when(next_pages_jobs).then(function(maybe_job_list) {
+                    for (var i = 0, n = maybe_job_list.length; i < n; i++) {
+                        item_list.push(maybe_job_list[i]);
+                    }
+                    return  item_list;
                 })
         });
     };
