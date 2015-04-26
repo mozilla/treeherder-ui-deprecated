@@ -10,9 +10,11 @@ treeherder.factory('ThJobModel', [
     // ThJobModel is the js counterpart of job
 
     var ThJobModel = function(data) {
-        // creates a new instance of ThJobModel
-        // using the provided properties
-        angular.extend(this, data);
+        if (typeof data === "object" && data !== null) {
+            for (var k in data) {
+                this[k] = data[k];
+            }
+        }
     };
 
     ThJobModel.prototype.get_current_eta = function(){
