@@ -4789,7 +4789,7 @@ jQuery.event = {
 		}
 
 		// Create a writable copy of the event object and normalize some properties
-		var i, prop, copy,
+		var i, copy,
 			type = event.type,
 			originalEvent = event,
 			fixHook = this.fixHooks[ type ];
@@ -4806,8 +4806,18 @@ jQuery.event = {
 
 		i = copy.length;
 		while ( i-- ) {
-			prop = copy[ i ];
-			event[ prop ] = originalEvent[ prop ];
+			(function () {
+				var prop = copy[ i ];
+				var ev = event;
+				var oe = originalEvent;
+				Object.defineProperty(ev, prop, {
+					configurable: true,
+					get: function () { return oe[prop]; },
+					set: function (v) {
+						Object.defineProperty(ev, prop, { value: v });
+					},
+				});
+			}());
 		}
 
 		// Support: Cordova 2.5 (WebKit) (#13255)
