@@ -91,10 +91,11 @@ perf.controller('CompareResultsCtrl', [
             return;
           }
 
-          var detailsLink = thServiceDomain + '/perf.html#/comparesubtest?';
-          ['originalProject', 'originalRevision', 'newProject', 'newRevision'].forEach(function(p) {
-            detailsLink += p + "=" + $scope[p] + "&";
-          });
+          var detailsLink = 'perf.html#/comparesubtest?';
+          ['originalProject', 'originalRevision', 'newProject', 'newRevision'].forEach(
+            function(p) {
+              detailsLink += p + "=" + $scope[p] + "&";
+            });
           detailsLink += "originalSignature=" + oldSig + "&newSignature=" + newSig;
 
           cmap.detailsLink = detailsLink;
