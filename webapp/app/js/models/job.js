@@ -55,9 +55,19 @@ treeherder.factory('ThJobModel', [
                 if(_.has(response.data, 'job_property_names')){
                     // the results came as list of fields
                     //we need to convert them to objects
-                    item_list = _.map(response.data.results, function(elem){
-                        var job_obj = _.object(response.data.job_property_names, elem);
-                        return new ThJobModel(job_obj);
+                    item_list = $q(function (resolve) {
+                        var models = [];
+
+                        _.each(response.data.results, function(elem){
+                            enqueue(function () {
+                                var job_obj = _.object(response.data.job_property_names, elem);
+                                models.push(new ThJobModel(job_obj));
+                            });
+                        });
+
+                        enqueue(function () {
+                            resolve(models);
+                        });
                     });
                 }else{
                     item_list = _.map(response.data.results, function(job_obj){
@@ -66,9 +76,11 @@ treeherder.factory('ThJobModel', [
                 }
                 // next_pages_jobs is wrapped in a $q.when call because it could be
                 // either a promise or a value
-                return $q.when(next_pages_jobs).then(function(maybe_job_list){
-                    return  item_list.concat(maybe_job_list);
-                })
+                return $q.when(item_list).then(function(item_list) {
+                    return $q.when(next_pages_jobs).then(function(maybe_job_list){
+                        return  item_list.concat(maybe_job_list);
+                    });
+                });
         });
     };
 
