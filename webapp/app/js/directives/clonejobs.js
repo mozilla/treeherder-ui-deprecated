@@ -579,7 +579,7 @@ treeherder.directive('thCloneJobs', [
 
             platformKey = ThResultSetStore.getPlatformKey(
                 value.platformName, value.platformOption
-                );
+            );
 
             rowEl = document.getElementById(platformId);
 
@@ -591,7 +591,7 @@ treeherder.directive('thCloneJobs', [
 
                 var tableEl = document.getElementById(
                     value.resultsetAggregateId
-                    );
+                );
 
                 rowEl.prop('id', platformId);
 
@@ -600,7 +600,7 @@ treeherder.directive('thCloneJobs', [
                 //Add platforms
                 platformTdEl = $( platformInterpolator(
                     {'name':platformName, 'option':option, 'id':platformId }
-                    ) );
+                ) );
 
                 rowEl.append(platformTdEl);
 
@@ -609,7 +609,7 @@ treeherder.directive('thCloneJobs', [
                 renderJobTableRow(
                     rowEl, jobTdEl, value.jobGroups, this.resultStatusFilters,
                     value.resultsetId, platformKey, true
-                    );
+                );
 
                 //Determine appropriate place to append row for this
                 //platform name
@@ -623,7 +623,7 @@ treeherder.directive('thCloneJobs', [
                 renderJobTableRow(
                     $(rowEl), jobTdEl, value.jobGroups, this.resultStatusFilters,
                     value.resultsetId, platformKey, true
-                    );
+                );
             }
         }, this);
     };
@@ -852,11 +852,10 @@ treeherder.directive('thCloneJobs', [
                       in the UI. Use defer to avoid rendering jankiness
                       here.
                      **************/
-                    _.defer(
-                        generateJobElements,
+                    requestAnimationFrame(generateJobElements.bind(null,
                         resultsetAggregateId,
                         rsMap[resultSetId].rs_obj,
-                        scope.resultStatusFilters);
+                        scope.resultStatusFilters));
                 }
             });
     };
@@ -865,65 +864,69 @@ treeherder.directive('thCloneJobs', [
         resultsetAggregateId, resultset, resultStatusFilters){
 
         var tableEl = $('#' + resultsetAggregateId);
+        tableEl.hide();
 
         var waitSpanEl = $(tableEl).prev();
         $(waitSpanEl).css('display', 'none');
 
-        var name, option, platformId, platformKey, row, platformTd, jobTdEl,
-            statusList, j;
-        for(j=0; j<resultset.platforms.length; j++){
-
-            platformId = thAggregateIds.getPlatformRowId(
-                $rootScope.repoName,
-                resultset.id,
-                resultset.platforms[j].name,
-                resultset.platforms[j].option
+        resultset.platforms.forEach(function(platform) {
+            enqueue(function() {
+                var platformId = thAggregateIds.getPlatformRowId(
+                    $rootScope.repoName,
+                    resultset.id,
+                    platform.name,
+                    platform.option
                 );
 
-            row = $('#' + platformId);
+                var row = $('#' + platformId);
 
-            if( $(row).prop('tagName') !== 'TR' ){
-                // First time the row is being created
-                row = $('<tr></tr>');
-                row.prop('id', platformId);
-            }else{
-                // Clear and re-write the div content if it
-                // already exists
-                $(row).empty();
-            }
+                if( $(row).prop('tagName') !== 'TR' ){
+                    // First time the row is being created
+                    row = $(document.createElement('tr'));
+                    row.prop('id', platformId);
+                }else{
+                    // Clear and re-write the div content if it
+                    // already exists
+                    $(row).empty();
+                }
 
-            name = thPlatformName(resultset.platforms[j].name);
-            option = resultset.platforms[j].option;
+                var name = thPlatformName(platform.name);
+                var option = platform.option;
 
-            //Add platforms
-            platformTd = platformInterpolator(
-                {
-                    'name':name, 'option':option,
-                    'id':thAggregateIds.getPlatformRowId(
-                        resultset.id,
-                        resultset.platforms[j].name,
-                        resultset.platforms[j].option
+                //Add platforms
+                var platformTd = platformInterpolator(
+                    {
+                        'name':name, 'option':option,
+                        'id':thAggregateIds.getPlatformRowId(
+                            resultset.id,
+                            platform.name,
+                            platform.option
                         )
                     }
                 );
 
-            row.append(platformTd);
+                row.append(platformTd);
 
-            // Render the row of job data
-            jobTdEl = $( thCloneHtml.get('jobTdClone').text );
+                // Render the row of job data
+                var jobTdEl = $( thCloneHtml.get('jobTdClone').text );
 
-            platformKey = ThResultSetStore.getPlatformKey(
-                resultset.platforms[j].name, resultset.platforms[j].option
+                var platformKey = ThResultSetStore.getPlatformKey(
+                    platform.name, platform.option
                 );
 
-            renderJobTableRow(
-                row, jobTdEl, resultset.platforms[j].groups,
-                resultStatusFilters, resultset.id,
-                platformKey, true
+                renderJobTableRow(
+                    row, jobTdEl, platform.groups,
+                    resultStatusFilters, resultset.id,
+                    platformKey, true
                 );
 
-            tableEl.append(row);
-        }
+                tableEl.append(row);
+            });
+        });
+
+        enqueue(function () {
+            tableEl.show();
+        });
     };
 
     var linker = function(scope, element, attrs){
