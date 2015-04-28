@@ -163,8 +163,9 @@ perf.factory('isReverseTest', [ function() {
 }]);
 
 
-perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries', 'math', 'isReverseTest',
-  function($q, $http, thServiceDomain, PhSeries, math, isReverseTest) {
+perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
+             'math', 'isReverseTest', 'phTimeRanges',
+  function($q, $http, thServiceDomain, PhSeries, math, isReverseTest, phTimeRanges) {
   return {
     getCounterMap: function(testName, originalData, newData) {
       var cmap = {originalGeoMean: NaN, originalRuns: 0, originalStddev: NaN,
@@ -223,8 +224,8 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries', 'math'
       timeRange = Math.round(now - timeRange);
 
       //now figure out which predefined set of data we can query from
-      var intervals = [86400, 604800, 1209600, 2592000, 5184000, 7776000];
-      return _.find(intervals, function(i) { return timeRange <= i });
+      var timeRange = _.find(phTimeRanges, function(i) { return timeRange <= i.value });
+      return timeRange.value;
     },
 
     getResultsMap: function(projectName, seriesList, timeRange, resultSetIds) {
@@ -233,8 +234,7 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries', 'math'
         'get_performance_data/?interval_seconds=' + timeRange;
 
       var resultsMap = {};
-      var chunks = _.chunk(seriesList, 20);
-      return $q.all(chunks.map(function(seriesChunk) {
+      return $q.all(_.chunk(seriesList, 20).map(function(seriesChunk) {
         var signatures = "";
         seriesChunk.forEach(function(series) {
             signatures += "&signatures=" + series.signature;
