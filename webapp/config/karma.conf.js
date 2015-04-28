@@ -26,6 +26,7 @@ module.exports = function (config) {
             'app/js/filters.js',
             'app/js/providers.js',
             'app/js/values.js',
+            'app/js/enqueue.js',
             'app/js/logviewer.js',
             'app/js/treeherder_app.js',
             'app/js/controllers/**/*.js',
