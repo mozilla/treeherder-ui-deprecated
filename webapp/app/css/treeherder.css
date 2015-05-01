@@ -403,6 +403,10 @@ th-watched-repo {
     margin-left: -0.2em;
 }
 
+.job-details-count {
+    font-size: 0.75em;
+}
+
 .result-set {
     padding-bottom: 0px;
     margin-left: 0;
@@ -734,8 +738,6 @@ div#bottom-panel .navbar.navbar-dark .navbar-nav > li.active a:focus {
 
 #bottom-left-panel em.testfail{ color:red;}
 
-#bottom-left-panel .printlines{padding-bottom: 5px;}
-
 #bottom-left-bottom {
     overflow: auto;
 }
@@ -800,8 +802,12 @@ ul.failure-summary-list li .btn-xs {
     background: #ffffff;
 }
 
-.failure-summary-line {
+.job-tabs-content {
     padding: 2px 4px 0px;
+}
+
+.job-tabs-divider {
+    border-left: 1px solid lightgrey;
 }
 
 .failure-summary-bugs {
