@@ -981,6 +981,10 @@ ul.failure-summary-list li .btn-xs {
     margin-top: 5px;
 }
 
+.classification-comment {
+    color: #777;
+}
+
 .classification-comment-preload-txt {
     position: relative;
     top: -17px;

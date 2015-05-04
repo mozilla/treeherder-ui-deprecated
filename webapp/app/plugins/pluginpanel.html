@@ -117,9 +117,9 @@
              title="Bug {{bug.bug_id}}"><em> {{bug.bug_id}}</em></a>
         </li>
         <li ng-if="classifications[0].note.length > 0"><em>{{classifications[0].note}}</em></li>
-        <li class="revision-comment">
+        <li class="classification-comment">
           {{classifications[0].note_timestamp*1000|date:'EEE MMM d, H:mm:ss'}}</li>
-        <li class="revision-comment">
+        <li class="classification-comment">
           {{classifications[0].who}}</li>
       </ul>
       <ul class="list-unstyled">
