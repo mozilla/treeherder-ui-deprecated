@@ -82,6 +82,14 @@ perf.factory('PhSeries', ['$http', 'thServiceDomain', function($http, thServiceD
           });
 
         if (seriesSummary) {
+          if (!seriesSummary.subtestSignatures) {
+            seriesSummary = _.find(lists.seriesList,
+              function(series) {
+                return _.find(series.subtestSignatures, function(series) {
+                  return series == targetSignature;
+                });
+              });
+          }
           subtestSignatures = seriesSummary.subtestSignatures;
           suiteName = seriesSummary.name;
         }
@@ -210,6 +218,7 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
     getCompareClasses: function(cr, type) {
       if (cr.hideMinorChanges && cr.isMinor) return 'subtest-empty';
       if (cr.isEmpty) return 'subtest-empty';
+      if (type == 'row' && cr.highlightedTest) return 'active subtest-bold';
       if (type == 'row') return '';
       if (type == 'bar' && cr.isRegression) return 'bar-regression';
       if (type == 'bar' && cr.isImprovement) return 'bar-improvement';
