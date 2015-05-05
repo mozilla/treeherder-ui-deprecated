@@ -759,6 +759,7 @@ div#bottom-panel .navbar.navbar-dark .navbar-nav > li.active a:focus {
     flex: 1;
     display: -webkit-flex;
     display: flex;
+    overflow: auto;
 }
 
 #bottom-center-bottom > * {
@@ -783,7 +784,6 @@ div#bottom-panel .navbar.navbar-dark .navbar-nav > li.active a:focus {
 }
 
 #bottom-center-panel ul.failure-summary-list{
-    overflow: auto;
     width: 100%;
     margin-bottom: 0;
 }
