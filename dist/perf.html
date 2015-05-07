@@ -1,20 +1,31 @@
 <!DOCTYPE html>
 <html ng-app="perf">
 <head>
-    <title>Perfherder Graphs</title>
-    <link rel="stylesheet" href="css/perf.min-d1a54c313bf78432bdbfaec56e7ccc17.css" media="screen"/>
-    <link id="favicon" type="image/png" rel="shortcut icon" href="img/tree_open.png">
+    <title>Perfherder</title>
+    <link rel="stylesheet" href="css/perf.min-07444b580007c57cfb8ff44507c0946f.css" media="screen"/>
+    <link id="favicon" type="image/png" rel="shortcut icon" href="img/line_chart.png">
     <style>
     </style>
 </head>
 <body>
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Perfherder</a>
+      </div>
+      <ul class="nav navbar-nav">
+        <li ng-class="{active: $state.includes('graphs')}"><a href="#/graphs">Graphs</a></li>
+        <li ng-class="{active: $state.current.name.indexOf('compare') >= 0}"><a href="#/comparechooser">Compare</a></li>
+      </ul>
+    </div>
+  </nav>
 
   <section ui-view>
   </section>
 
   <script src="js/config/local.conf.js"></script>
 
-  <script src="js/perf.min-186bba6115e6cd544b987a8914f10917.js"></script>
+  <script src="js/perf.min-92a0259e20d71e11beaedae5b4968bab.js"></script>
 
 </body>
 </html>
