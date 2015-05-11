@@ -5,9 +5,9 @@
 "use strict";
 
 treeherder.controller('BugsPluginCtrl', [
-    '$scope', 'ThLog', 'ThJobArtifactModel','$q', 'thTabs',
+    '$scope', 'ThLog', 'ThJobArtifactModel','$q', 'thTabs', '$timeout',
     function BugsPluginCtrl(
-        $scope, ThLog, ThJobArtifactModel, $q, thTabs) {
+        $scope, ThLog, ThJobArtifactModel, $q, thTabs, $timeout) {
 
         var $log = new ThLog(this.constructor.name);
 
@@ -19,7 +19,6 @@ treeherder.controller('BugsPluginCtrl', [
 
         // update function triggered by the plugins controller
         thTabs.tabs.failureSummary.update = function() {
-
             var newValue = thTabs.tabs.failureSummary.contentId;
             $scope.suggestions = [];
             if (angular.isDefined(newValue)) {
@@ -62,6 +61,12 @@ treeherder.controller('BugsPluginCtrl', [
                             suggestions.push(suggestion);
                         });
                         $scope.suggestions = suggestions;
+                        $scope.bugSuggestionsLoaded = true;
+                    } else {
+                        $scope.bugSuggestionsLoaded = false;
+
+                        // set a timer to re-run update() after 5 seconds
+                        $timeout(thTabs.tabs.failureSummary.update, 5000);
                     }
                 })
                 .finally(function () {
