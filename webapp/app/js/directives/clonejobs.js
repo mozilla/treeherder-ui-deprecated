@@ -211,6 +211,9 @@ treeherder.directive('thCloneJobs', [
 
         var hText, key, resultState, job, jobStatus, jobBtn, l;
         var jobBtnArray = [];
+        var jobText = ""
+
+        var selectedJob = null;
 
         for(l=0; l<jgObj.jobs.length; l++){
 
@@ -255,26 +258,43 @@ treeherder.directive('thCloneJobs', [
 
             jobStatus.title = hText;
 
-            jobBtn = $( jobBtnInterpolator(jobStatus));
-            jobBtnArray.push(jobBtn);
-            // add a zero-width space between spans so they can wrap
-            jobBtnArray.push(' ');
-
-            showHideJob(jobBtn, job.visible);
+            var buttonClasses = [jobStatus.btnClass];
+            if (job.visible)
+              buttonClasses.push("filter-shown");
 
             //If the job is currently selected make sure to re-apply
             //the job selection styles
             if( !_.isEmpty(lastJobSelected.job) &&
                 (lastJobSelected.job.id === job.id)){
+              buttonClasses.push(largeBtnCls);
+              buttonClasses.push(selectedBtnCls);
 
-                setSelectJobStyles(jobBtn);
-
-                //Update the selected job element to the current one
-                ThResultSetStore.setSelectedJob(
-                    $rootScope.repoName, jobBtn, job);
+              //setSelectJobStyles(jobBtn);
+                selectedJob = { job: job, status: jobStatus };
             }
+
+
+            jobText += ('<span class="btn job-btn btn-xs ' + buttonClasses.join(" ") +
+                        '" data-jmkey=' + '"' + jobStatus.key +
+                        '" ignore-job-clear-on-click ' + 'title="' + jobStatus.title +
+                        '">' + jobStatus.value + '</span> ');
+
+/*
+            jobBtn = $( jobBtnInterpolator(jobStatus));
+            jobBtnArray.push(jobBtn);
+            // add a zero-width space between spans so they can wrap
+            jobBtnArray.push(' ');
+            showHideJob(jobBtn, job.visible);
+*/
+
         }
-        jobTdEl.append(jobBtnArray);
+        jobTdEl.html(jobText);
+        if (selectedJob) {
+          //Update the selected job element to the current one
+          ThResultSetStore.setSelectedJob(
+            $rootScope.repoName, $("[data-jmkey='" + selectedJob.status.key + "']"),
+            selectedJob.job);
+        }
 
         return jobsShown;
     };
@@ -428,9 +448,6 @@ treeherder.directive('thCloneJobs', [
     var renderJobTableRow = function(
         row, jobTdEl, jobGroups, resultStatusFilters, resultsetId,
         platformKey){
-
-        //Empty the job column before populating it
-        jobTdEl.empty();
 
         var resultSetMap = ThResultSetStore.getResultSetsMap($rootScope.repoName);
 
