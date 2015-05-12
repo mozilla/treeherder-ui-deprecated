@@ -91,9 +91,9 @@ perf.controller('CompareResultsCtrl', [
     function displayResults(rawResultsMap, newRawResultsMap) {
       $scope.compareResults = {};
       $scope.titles = {};
-      window.document.title = ($scope.originalRevision + " (" + $scope.originalProject.name + 
-                              ") " + "to " + $scope.newRevision + " (" + 
-                              $scope.newProject.name + ")");
+      window.document.title = ("Comparison between " + $scope.originalRevision + 
+                              " (" + $scope.originalProject.name + ") " + 
+                              "and " + $scope.newRevision + " (" + $scope.newProject.name + ")");
 
       $scope.testList.forEach(function(testName) {
         $scope.titles[testName] = testName.replace('summary ', '');

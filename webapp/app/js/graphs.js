@@ -434,6 +434,8 @@ perf.controller('GraphsCtrl', [
           notify: false});
       window.document.title = ($scope.seriesList[0].name + " " + $scope.seriesList[0].platform + 
                           " (" + $scope.seriesList[0].projectName + ")");
+      if ($scope.seriesList.length > 1)
+        window.document.title += " and others";
     }
 
     function getSeriesData(series) {
