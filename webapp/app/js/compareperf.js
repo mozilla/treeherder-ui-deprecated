@@ -91,7 +91,9 @@ perf.controller('CompareResultsCtrl', [
     function displayResults(rawResultsMap, newRawResultsMap) {
       $scope.compareResults = {};
       $scope.titles = {};
-      window.document.title = "Perfherder Compare Revisions";
+      window.document.title = ($scope.originalRevision + " (" + $scope.originalProject.name + 
+                              ") " + "to " + $scope.newRevision + " (" + 
+                              $scope.newProject.name + ")");
 
       $scope.testList.forEach(function(testName) {
         $scope.titles[testName] = testName.replace('summary ', '');

@@ -250,7 +250,7 @@ perf.controller('GraphsCtrl', [
 
         $scope.plot.setupGrid();
         $scope.plot.draw();
-        updateURL();
+        updateDocument();
       });
     }
 
@@ -405,7 +405,7 @@ perf.controller('GraphsCtrl', [
       $scope.zoom = {};
       deselectDataPoint();
 
-      updateURL();
+      updateDocument();
       // refetch and re-render all graph data
       $q.all($scope.seriesList.map(getSeriesData)).then(function() {
         plotGraph();
@@ -414,7 +414,7 @@ perf.controller('GraphsCtrl', [
 
     $scope.repoName = $stateParams.projectId;
 
-    function updateURL() {
+    function updateDocument() {
       $state.transitionTo('graphs', {
         timerange: $scope.myTimerange.value,
         series: $scope.seriesList.map(function(series) {
@@ -432,6 +432,8 @@ perf.controller('GraphsCtrl', [
       }, {location: true, inherit: true,
           relative: $state.$current,
           notify: false});
+      window.document.title = ($scope.seriesList[0].name + " " + $scope.seriesList[0].platform + 
+                          " (" + $scope.seriesList[0].projectName + ")");
     }
 
     function getSeriesData(series) {
@@ -529,7 +531,7 @@ perf.controller('GraphsCtrl', [
         $scope.zoom = {};
       }
       $scope.highlightRevision();
-      updateURL();
+      updateDocument();
       plotGraph();
       if ($scope.selectedDataPoint) {
         showTooltip($scope.selectedDataPoint);
@@ -537,7 +539,7 @@ perf.controller('GraphsCtrl', [
     };
 
     $scope.showHideSeries = function(signature) {
-      updateURL();
+      updateDocument();
       plotGraph();
     }
 
@@ -548,7 +550,7 @@ perf.controller('GraphsCtrl', [
 
     $scope.updateHighlightedRevisions = function() {
       // update url
-      updateURL();
+      updateDocument();
       plotGraph();
     };
 
@@ -631,7 +633,7 @@ perf.controller('GraphsCtrl', [
               if (!$scope.zoom) {
                 $scope.zoom = {};
               }
-              updateURL();
+              updateDocument();
               getSeriesData(series).then(function() {
                 plotGraph();
               });
