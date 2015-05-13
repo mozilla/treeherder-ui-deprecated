@@ -837,30 +837,32 @@ treeherder.factory('ThResultSetStore', [
                     return;
                 }
 
-                ThResultSetModel.getResultSetJobs(
+                var jobPromiseList = ThResultSetModel.getResultSetJobs(
                     resultsets,
                     repoName,
                     exclusionProfile
-                ).then(function(resultSetJobList){
-                    // get the last modified of each resultset
-                    var lastJobUpdateList = _.map(resultSetJobList, getLastModifiedJob);
-                    // and then get the last modified of them
-                    var lastJobModified = getLastModifiedJob(lastJobUpdateList);
-                    if(lastJobModified){
-                        lastJobUpdate = new Date(lastJobModified.last_modified+'Z');
-                        // subtract 3 seconds to take in account a possible delay
-                        // between the job requests
-                        lastJobUpdate.setSeconds(lastJobUpdate.getSeconds()-3);
-                    }
+                );
+                $q.all([
+                    jobPromiseList,
+                    _.map(jobPromiseList, function(jobPromise) {
+                        return jobPromise.then(function(jobs) {
+                            return mapResultSetJobs(repoName, jobs);
+                        });
+                    })]).then(function(resultSetJobList){
+                        // get the last modified of each resultset
+                        var lastJobUpdateList = _.map(resultSetJobList,
+                                                      getLastModifiedJob);
+                        // and then get the last modified of them
+                        var lastJobModified = getLastModifiedJob(lastJobUpdateList);
+                        if(lastJobModified){
+                            lastJobUpdate = new Date(lastJobModified.last_modified+'Z');
+                            // subtract 3 seconds to take in account a possible delay
+                            // between the job requests
+                            lastJobUpdate.setSeconds(lastJobUpdate.getSeconds()-3);
+                        }
 
-                    // register the job poller after we have mapped all the
-                    // jobs to result sets
-                    $q.all(_.map(resultSetJobList, function(jobs) {
-                        return mapResultSetJobs(repoName, jobs);
-                    })).then(function() {
                         registerJobsPoller();
                     });
-                });
             });
     };
 
