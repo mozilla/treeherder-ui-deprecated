@@ -116,8 +116,7 @@ treeherder.factory('ThResultSetModel', ['$rootScope', '$http', '$location', '$q'
         },
 
         getResultSetJobs: function(resultSets, repoName, exclusionProfile){
-            var jobsPromiseList = [];
-            _.each(
+            return $q.all(_.map(
                 resultSets.results,
                 function(rs, index){
                     var params = {
@@ -128,10 +127,9 @@ treeherder.factory('ThResultSetModel', ['$rootScope', '$http', '$location', '$q'
                     if(exclusionProfile){
                         params.exclusion_profile = exclusionProfile;
                     }
-                    jobsPromiseList.push(ThJobModel.get_list(repoName, params, {fetch_all: true}));
+                    return ThJobModel.get_list(repoName, params, {fetch_all: true});
                 }
-            );
-            return jobsPromiseList;
+            ));
         },
 
         getRevisions: function(projectName, resultSetId) {

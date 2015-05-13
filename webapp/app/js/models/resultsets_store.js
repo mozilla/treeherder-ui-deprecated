@@ -837,12 +837,11 @@ treeherder.factory('ThResultSetStore', [
                     return;
                 }
 
-                var jobsPromiseList = ThResultSetModel.getResultSetJobs(
+                ThResultSetModel.getResultSetJobs(
                     resultsets,
                     repoName,
                     exclusionProfile
-                );
-                $q.all(jobsPromiseList).then(function(resultSetJobList){
+                ).then(function(resultSetJobList){
                     // get the last modified of each resultset
                     var lastJobUpdateList = _.map(resultSetJobList, getLastModifiedJob);
                     // and then get the last modified of them
@@ -853,21 +852,14 @@ treeherder.factory('ThResultSetStore', [
                         // between the job requests
                         lastJobUpdate.setSeconds(lastJobUpdate.getSeconds()-3);
                     }
-                });
-                /*
-                * this list of promises will tell us when the
-                * mapResultSetJobs function will be applied to all the jobs
-                * ie when we can register the job poller
-                */
-                var mapResultSetJobsPromiseList = _.map(
-                    jobsPromiseList,
-                    function(jobsPromise){
-                        return jobsPromise.then(function(jobs){
-                            return mapResultSetJobs(repoName, jobs);
-                        });
-                });
-                $q.all(mapResultSetJobsPromiseList).then(function(){
-                    registerJobsPoller();
+
+                    // register the job poller after we have mapped all the
+                    // jobs to result sets
+                    $q.all(_.map(resultSetJobList, function(jobs) {
+                        return mapResultSetJobs(repoName, jobs);
+                    })).then(function() {
+                        registerJobsPoller();
+                    });
                 });
             });
     };
