@@ -231,37 +231,51 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
       return cr.className;
     },
 
+
+
     // Aggregates two sets of values into a "comparison object" which is later used
     // to display a single line of comparison at compareperf.js .
-    // Some of the values are not used by the callers (e.g. new[/old]Min[/Max] ).
-    getCounterMap: function(testName, originalData, newData) {
-      var cmap = {originalGeoMean: 0, originalRuns: 0, originalStddev: 0,
-                  newGeoMean: 0, newRuns: 0, newStddev: 0, delta: 0,
-                  deltaPercentage: 0, barGraphMargin: 0, isEmpty: false,
-                  isRegression: false, isImprovement: false, isMinor: true};
+    getCounterMap: function getDisplayLineData(testName, originalData, newData) {
 
+      // Aggregate for a single set of values
+      function aggregateSet(values) {
+        var stddev = math.stddev(values),
+            geomean = math.geomean(values);
+
+        return {
+          runs: values.length,
+          geomean: geomean,
+          stddev: stddev,
+          stddevPct: math.percentOf(stddev, geomean)
+        };
+      }
+      var cmap = {originalGeoMean: 0, originalRuns: 0, originalStddev: 0,
+                  newGeoMean:      0, newRuns:      0, newStddev:      0,
+                  delta: 0, deltaPercentage: 0, barGraphMargin: 0,
+                  isEmpty: false, isRegression: false, isImprovement: false, isMinor: true};
+
+      // Data on each set
       if (originalData) {
-         cmap.originalGeoMean = originalData.geomean;
-         cmap.originalRuns = originalData.runs;
-         cmap.originalStddev = originalData.stddev;
-         cmap.originalStddevPct = ((originalData.stddev / originalData.geomean) * 100);
-         cmap.originalMin = originalData.minVal;
-         cmap.originalMax = originalData.maxVal;
+        var orig = aggregateSet(originalData.values);
+        cmap.originalGeoMean = orig.geomean;
+        cmap.originalRuns = orig.runs;
+        cmap.originalStddev = orig.stddev;
+        cmap.originalStddevPct = orig.stddevPct;
       }
       if (newData) {
-         cmap.newGeoMean = newData.geomean;
-         cmap.newRuns = newData.runs;
-         cmap.newStddev = newData.stddev;
-         cmap.newStddevPct = ((newData.stddev / newData.geomean) * 100);
-         cmap.newMin = newData.minVal;
-         cmap.newMax = newData.maxVal;
+        var newd = aggregateSet(newData.values);
+        cmap.newGeoMean = newd.geomean;
+        cmap.newRuns = newd.runs;
+        cmap.newStddev = newd.stddev;
+        cmap.newStddevPct = newd.stddevPct;
       }
 
+      // Data on the relation between the sets
       if (cmap.originalRuns == 0 && cmap.newRuns == 0) {
         cmap.isEmpty = true;
       } else if (cmap.newGeoMean > 0 && cmap.originalGeoMean > 0) {
         cmap.delta = (cmap.newGeoMean - cmap.originalGeoMean);
-        cmap.deltaPercentage = (cmap.delta / cmap.originalGeoMean * 100);
+        cmap.deltaPercentage = math.percentOf(cmap.delta, cmap.originalGeoMean);
         cmap.barGraphMargin = 50 - Math.min(50, Math.abs(Math.round(cmap.deltaPercentage) / 2));
 
         cmap.marginDirection = 'right';
@@ -276,7 +290,10 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
           }
         }
 
-        cmap.className = getClassName(cmap.originalMin, cmap.originalMax, cmap.originalGeoMean, cmap.newGeoMean, testName);
+        var oldmin = math.min(originalData.values),
+            oldmax = math.max(originalData.values);
+        cmap.className = getClassName(oldmin, oldmax, cmap.originalGeoMean, cmap.newGeoMean, testName);
+
         cmap.isRegression = (cmap.className == 'compare-regression');
         cmap.isImprovement = (cmap.className == 'compare-improvement');
         cmap.isMinor = (cmap.className == "");
@@ -353,17 +370,11 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 
                 var seriesData = _.find(seriesChunk, {'signature': data.series_signature});
 
-                var avg = math.average(values);
-                var stddev = math.stddev(values, avg);
-
                 resultsMap[resultSetId][data.series_signature] = {
-                                               geomean: avg, // geomean is not average...
-                                               minVal: Math.min.apply(Math, values),
-                                               maxVal: Math.max.apply(Math, values),
-                                               stddev: stddev,
-                                               runs: values.length,
+                                               platform: seriesData.platform,
                                                name: seriesData.name,
-                                               platform: seriesData.platform};
+                                               values: values
+                };
               });
             });
           })
@@ -403,6 +414,24 @@ perf.factory('math', [ function() {
       return true;
     },
 
+    percentOf: function(a, b) {
+      return 100 * a / b;
+    },
+
+    min: function(values) {
+      if (!self.isSetValid(1, values))
+        return 0;
+
+      return Math.min.apply(Math, values);
+    },
+
+    max: function(values) {
+      if (!self.isSetValid(1, values))
+        return 0;
+
+      return Math.max.apply(Math, values);
+    },
+
     average: function(values) {
       if (!self.isSetValid(1, values))
         return 0;
@@ -428,6 +457,9 @@ perf.factory('math', [ function() {
     stddev: function(values, avg) {
       if (!self.isSetValid(2, values))
         return 0;
+
+      if (!avg)
+        avg = self.geomean(values);
 
       return Math.sqrt(
         values.map(function (v) { return Math.pow(v - avg, 2); })
