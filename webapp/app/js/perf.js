@@ -231,6 +231,9 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
       return cr.className;
     },
 
+    // Aggregates two sets of values into a "comparison object" which is later used
+    // to display a single line of comparison at compareperf.js .
+    // Some of the values are not used by the callers (e.g. new[/old]Min[/Max] ).
     getCounterMap: function(testName, originalData, newData) {
       var cmap = {originalGeoMean: 0, originalRuns: 0, originalStddev: 0,
                   newGeoMean: 0, newRuns: 0, newStddev: 0, delta: 0,
@@ -334,27 +337,31 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
                 resultsMap[resultSetId] = {};
               }
               response.data.forEach(function(data) {
-                var means = [];
+                // Aggregates data from the server on a single group of values which
+                // will be compared later to another group. Ends up with an object
+                // with description (name/platform) and values.
+                // The values are later processed at getCounterMap as the data arguments.
+                var values = [];
                 _.where(data.blob, { result_set_id: resultSetId }).forEach(function(pdata) {
                   //summary series have geomean, individual pages have mean
                   if (pdata.geomean === undefined) {
-                    means.push(pdata.mean);
+                    values.push(pdata.mean);
                   } else {
-                    means.push(pdata.geomean);
+                    values.push(pdata.geomean);
                   }
                 });
 
                 var seriesData = _.find(seriesChunk, {'signature': data.series_signature});
 
-                var total = _.reduce(means, function(mean, total) { return total + mean; })
-                var avg = total / means.length;
-                var sigma = math.stddev(means, avg);
+                var avg = math.average(values);
+                var stddev = math.stddev(values, avg);
 
-                resultsMap[resultSetId][data.series_signature] = {geomean: avg,
-                                               minVal: Math.min.apply(Math, means),
-                                               maxVal: Math.max.apply(Math, means),
-                                               stddev: sigma,
-                                               runs: means.length,
+                resultsMap[resultSetId][data.series_signature] = {
+                                               geomean: avg, // geomean is not average...
+                                               minVal: Math.min.apply(Math, values),
+                                               maxVal: Math.max.apply(Math, values),
+                                               stddev: stddev,
+                                               runs: values.length,
                                                name: seriesData.name,
                                                platform: seriesData.platform};
               });
@@ -368,22 +375,59 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 }]);
 
 
+// For all those functions - 0 indicates a missing value both in input and output.
+// This is consistent with the talos data where a measurement is always positive,
+// and a missing value can end up as 0.
 perf.factory('math', [ function() {
 
-  return {
-    /**
-     * Compute the standard deviation for an array of values.
-     *
-     * @param values
-     *        An array of numbers.
-     * @param avg
-     *        Average of the values.
-     * @return a number (the standard deviation)
-     */
-    stddev: function(values, avg) {
-      if (values.length <= 1) {
-        return 0;
+    function badValues(msg) {
+      console.log("Warning: " + msg);
+    };
+
+  // self - allow math functions to reference other math functions via `self`
+  var self = {
+
+    isSetValid: function(minValues, values) {
+      if (!values || (minValues && !values.length) || values.length < minValues) {
+        badValues("Math set invalid - empty or too small:" + values);
+        return false;
       }
+
+      for (var i = 0; i < values.length; i++) {
+        if (!values[i]) {
+          badValues("Math set invalid - includes 0: " + values);
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    average: function(values) {
+      if (!self.isSetValid(1, values))
+        return 0;
+
+      var rv = 0;
+      for (var i = 0; i < values.length; i++)
+        rv += values[i];
+
+      return rv / values.length;
+    },
+
+    geomean: function(values) {
+      if (!self.isSetValid(1, values))
+        return 0;
+
+      var rv = 1;
+      for (var i = 0; i < values.length; i++) {
+          rv *= values[i];
+      }
+      return Math.pow(rv, 1 / values.length);
+    },
+
+    stddev: function(values, avg) {
+      if (!self.isSetValid(2, values))
+        return 0;
 
       return Math.sqrt(
         values.map(function (v) { return Math.pow(v - avg, 2); })
@@ -396,6 +440,8 @@ perf.factory('math', [ function() {
       return Math.round(number * 100) / 100;
     }
   };
+
+  return self;
 }]);
 
 
