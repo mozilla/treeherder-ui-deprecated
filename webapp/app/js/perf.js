@@ -187,37 +187,40 @@ perf.factory('isReverseTest', [ function() {
 perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
              'math', 'isReverseTest', 'phTimeRanges',
   function($q, $http, thServiceDomain, PhSeries, math, isReverseTest, phTimeRanges) {
-  var getClassName = function(baselineMin, baselineMax, baselineAvg, currentAvg, test) {
-    var range = math.trimFloat((baselineMax - baselineMin) / 2);
-    if (isReverseTest(test)) {
-      if (currentAvg < baselineAvg - range) {
-        if (currentAvg < baselineMin) {
-          return "compare-regression";
-        }
-        // Still more than the min value we got out of the baseline, so we could
-        // be OK still, but there could be a regression here too.
-        return "compare-notsure";
-      }
-      else if (currentAvg > baselineMax) {
-        return "compare-improvement";
-      }
+
+  // Default stddev if we only have one value - 15%. Used at t_test.
+  var STDDEV_DEFAULT_FACTOR = 0.15;
+
+  var DIFF_CARE_MIN = 1.015; // We don't care about less than 1.5% diff
+  var T_VALUE_CARE_MIN = 0.5; // Observations
+  var T_VALUE_CONFIDENT = 1; // Observations. Weirdly nice that ended up as 0.5 and 1...
+
+  function getClassName(newIsBetter, oldVal, newVal, abs_t_value) {
+    // NOTE: we care about general ratio rather than how much is new compared
+    // to old - this could end up with slightly higher or lower threshold
+    // in practice than indicated by DIFF_CARE_MIN. E.g.:
+    // - If old is 10 and new is 5, then new = old -50%
+    // - If old is 5 and new is 10, then new = old + 100%
+    // And if the threshold was 75% then one would matter and the other wouldn't.
+    // Instead, we treat both cases as 2.0 (general ratio), and both would matter
+    // if our threshold was 75% (i.e. DIFF_CARE_MIN = 1.75).
+    var ratio = newVal / oldVal;
+    if (ratio < 1) {
+      ratio = 1 / ratio; // Direction agnostic and always >= 1.
+    }
+
+    if (ratio < DIFF_CARE_MIN || abs_t_value < T_VALUE_CARE_MIN) {
       return "";
     }
 
-    // We have a 'smaller is better' test.
-    if (currentAvg > baselineAvg + range) {
-      if (currentAvg > baselineMax) {
-        return "compare-regression";
-      }
-      // Still less than the max value we got out of the baseline, so we could be
-      // OK still, but there could be a regression here.
-      return "compare-notsure";
+    if (abs_t_value < T_VALUE_CONFIDENT) {
+      // Since we (currently) have only one return value to indicate uncertainty,
+      // let's use it for regressions only. (Improvement would just not be marked).
+      return newIsBetter ? "" : "compare-notsure";
     }
-    else if (currentAvg < baselineMin) {
-      return "compare-improvement";
-    }
-    return "";
-  };
+
+    return newIsBetter ? "compare-improvement" : "compare-regression";
+  }
 
   return {
     getCompareClasses: function(cr, type) {
@@ -249,28 +252,37 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
           stddevPct: math.percentOf(stddev, geomean)
         };
       }
+
       var cmap = {originalGeoMean: 0, originalRuns: 0, originalStddev: 0,
                   newGeoMean:      0, newRuns:      0, newStddev:      0,
                   delta: 0, deltaPercentage: 0, barGraphMargin: 0,
                   isEmpty: false, isRegression: false, isImprovement: false, isMinor: true};
 
       // Data on each set
+
+      // cmap.*Runs is the number of runs plus the runs values for display.
       if (originalData) {
         var orig = aggregateSet(originalData.values);
         cmap.originalGeoMean = orig.geomean;
-        cmap.originalRuns = orig.runs;
+        cmap.originalRuns = orig.runs + "  <  " + originalData.values.join("   ") + "  >";;
         cmap.originalStddev = orig.stddev;
         cmap.originalStddevPct = orig.stddevPct;
       }
       if (newData) {
         var newd = aggregateSet(newData.values);
         cmap.newGeoMean = newd.geomean;
-        cmap.newRuns = newd.runs;
+        cmap.newRuns = newd.runs + "  <  " + newData.values.join("   ") + "  >";;
         cmap.newStddev = newd.stddev;
         cmap.newStddevPct = newd.stddevPct;
       }
 
       // Data on the relation between the sets
+      // "Normal" tests are "lower is better". Reversed is.. reversed.
+      var isReverse = isReverseTest(testName);
+      var newIsBetter = cmap.originalGeoMean > cmap.newGeoMean;
+      if (isReverse)
+        newIsBetter = !newIsBetter;
+
       if (cmap.originalRuns == 0 && cmap.newRuns == 0) {
         cmap.isEmpty = true;
       } else if (cmap.newGeoMean > 0 && cmap.originalGeoMean > 0) {
@@ -278,25 +290,15 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
         cmap.deltaPercentage = math.percentOf(cmap.delta, cmap.originalGeoMean);
         cmap.barGraphMargin = 50 - Math.min(50, Math.abs(Math.round(cmap.deltaPercentage) / 2));
 
-        cmap.marginDirection = 'right';
-        if (cmap.deltaPercentage > 0) {
-          cmap.marginDirection = 'left';
-        }
-        if (isReverseTest(testName)) {
-         if (cmap.marginDirection == 'left') {
-            cmap.marginDirection = 'right';
-          } else {
-            cmap.marginDirection = 'left';
-          }
-        }
+        cmap.marginDirection = newIsBetter ? 'right' : 'left';
 
-        var oldmin = math.min(originalData.values),
-            oldmax = math.max(originalData.values);
-        cmap.className = getClassName(oldmin, oldmax, cmap.originalGeoMean, cmap.newGeoMean, testName);
+        var abs_t_value = Math.abs(math.t_test(originalData.values, newData.values, STDDEV_DEFAULT_FACTOR));
+        cmap.className = getClassName(newIsBetter, cmap.originalGeoMean, cmap.newGeoMean, abs_t_value);
 
         cmap.isRegression = (cmap.className == 'compare-regression');
         cmap.isImprovement = (cmap.className == 'compare-improvement');
         cmap.isMinor = (cmap.className == "");
+        cmap.confidence = abs_t_value;  // For display. What's the unit?
       }
       return cmap;
     },
@@ -418,20 +420,6 @@ perf.factory('math', [ function() {
       return 100 * a / b;
     },
 
-    min: function(values) {
-      if (!self.isSetValid(1, values))
-        return 0;
-
-      return Math.min.apply(Math, values);
-    },
-
-    max: function(values) {
-      if (!self.isSetValid(1, values))
-        return 0;
-
-      return Math.max.apply(Math, values);
-    },
-
     average: function(values) {
       if (!self.isSetValid(1, values))
         return 0;
@@ -464,6 +452,46 @@ perf.factory('math', [ function() {
       return Math.sqrt(
         values.map(function (v) { return Math.pow(v - avg, 2); })
           .reduce(function (a, b) { return a + b; }) / (values.length - 1));
+    },
+
+    // If a set has only one value, assume average-ish-plus sddev, which
+    // will manifest as smaller t-value the less items there are at the group
+    // (so quite small for 1 value). This default value is a parameter.
+    // C/T mean control/test group (in our case original/new data).
+    // Assumption: all the values are positive.
+    t_test: function(valuesC, valuesT, stddev_default_factor) {
+        // We must have at least one value at each set
+        if (!self.isSetValid(1, valuesC) || !self.isSetValid(1, valuesT))
+          return 0;
+
+        var avgC = self.geomean(valuesC);
+        var avgT = self.geomean(valuesT);
+
+        var lenC = valuesC.length,
+            lenT = valuesT.length;
+
+        // Start with fixed stddev percentage, refine if we can
+        var stddevC = stddev_default_factor * avgC,
+            stddevT = stddev_default_factor * avgT;
+
+        if (lenC > 1) {
+          stddevC = self.stddev(valuesC);
+        }
+        if (lenT > 1) {
+          stddevT = self.stddev(valuesT);
+        }
+
+        var delta = avgT - avgC;
+        var stdDiffErr = (
+          Math.sqrt(
+            stddevC * stddevC / lenC // control-variance / control-size
+            +
+            stddevT * stddevT / lenT // ...
+          )
+        );
+
+        console.log("Set1: " + valuesC.join(",") + "  Set2: " + valuesT.join(", ") + "t-test: " + delta / stdDiffErr);
+        return delta / stdDiffErr;
     },
 
     trimFloat: function(number) {
