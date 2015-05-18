@@ -242,14 +242,18 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 
       // Some statistics for a single set of values
       function analyzeSet(values) {
-        var stddev = math.stddev(values),
-            geomean = math.geomean(values);
+        var average = math.average(values),
+            stddev = math.stddev(values, average);
+
 
         return {
           runs: values.length,
-          geomean: geomean,
+
+          // Called 'geomeans' because each value is a geomean (of the subtests)
+          // but we then average those values plainly.
+          geomean: average,
           stddev: stddev,
-          stddevPct: math.percentOf(stddev, geomean)
+          stddevPct: math.percentOf(stddev, average)
         };
       }
 
@@ -421,6 +425,18 @@ perf.factory('math', [ function() {
     return 100 * a / b;
   }
 
+  function average(values) {
+    if (!isSetValid(1, values)) {
+      return 0;
+    }
+
+    var rv = 0;
+    for (var i = 0; i < values.length; i++) {
+        rv += values[i];
+    }
+    return rv / values.length;
+  }
+
   function geomean(values) {
     if (!isSetValid(1, values)) {
       return 0;
@@ -439,7 +455,7 @@ perf.factory('math', [ function() {
     }
 
     if (!avg)
-      avg = geomean(values);
+      avg = average(values);
 
     return Math.sqrt(
       values.map(function (v) { return Math.pow(v - avg, 2); })
@@ -452,38 +468,38 @@ perf.factory('math', [ function() {
   // C/T mean control/test group (in our case original/new data).
   // Assumption: all the values are positive.
   function t_test(valuesC, valuesT, stddev_default_factor) {
-      // We must have at least one value at each set
-      if (!isSetValid(1, valuesC) || !isSetValid(1, valuesT)) {
-        return 0;
-      }
+    // We must have at least one value at each set
+    if (!isSetValid(1, valuesC) || !isSetValid(1, valuesT)) {
+      return 0;
+    }
 
-      var avgC = geomean(valuesC);
-      var avgT = geomean(valuesT);
+    var avgC = average(valuesC);
+    var avgT = average(valuesT);
 
-      var lenC = valuesC.length,
-          lenT = valuesT.length;
+    var lenC = valuesC.length,
+        lenT = valuesT.length;
 
-      // Start with fixed stddev percentage, refine if we can
-      var stddevC = stddev_default_factor * avgC,
-          stddevT = stddev_default_factor * avgT;
+    // Start with fixed stddev percentage, refine if we can
+    var stddevC = stddev_default_factor * avgC,
+        stddevT = stddev_default_factor * avgT;
 
-      if (lenC > 1) {
-        stddevC = stddev(valuesC);
-      }
-      if (lenT > 1) {
-        stddevT = stddev(valuesT);
-      }
+    if (lenC > 1) {
+      stddevC = stddev(valuesC, avgC);
+    }
+    if (lenT > 1) {
+      stddevT = stddev(valuesT, avgT);
+    }
 
-      var delta = avgT - avgC;
-      var stdDiffErr = (
-        Math.sqrt(
-          stddevC * stddevC / lenC // control-variance / control-size
-          +
-          stddevT * stddevT / lenT // ...
-        )
-      );
+    var delta = avgT - avgC;
+    var stdDiffErr = (
+      Math.sqrt(
+        stddevC * stddevC / lenC // control-variance / control-size
+        +
+        stddevT * stddevT / lenT // ...
+      )
+    );
 
-      return delta / stdDiffErr;
+    return delta / stdDiffErr;
   }
 
   function trimFloat(number) {
@@ -496,6 +512,7 @@ perf.factory('math', [ function() {
   return {
     isSetValid: isSetValid,
     percentOf: percentOf,
+    average: average,
     geomean: geomean,
     stddev: stddev,
     t_test: t_test,
