@@ -240,8 +240,8 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
     // to display a single line of comparison at compareperf.js .
     getCounterMap: function getDisplayLineData(testName, originalData, newData) {
 
-      // Aggregate for a single set of values
-      function aggregateSet(values) {
+      // Some statistics for a single set of values
+      function analyzeSet(values) {
         var stddev = math.stddev(values),
             geomean = math.geomean(values);
 
@@ -262,14 +262,14 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 
       // cmap.*Runs is the number of runs plus the runs values for display.
       if (originalData) {
-        var orig = aggregateSet(originalData.values);
+        var orig = analyzeSet(originalData.values);
         cmap.originalGeoMean = orig.geomean;
         cmap.originalRuns = orig.runs + "  <  " + originalData.values.join("   ") + "  >";;
         cmap.originalStddev = orig.stddev;
         cmap.originalStddevPct = orig.stddevPct;
       }
       if (newData) {
-        var newd = aggregateSet(newData.values);
+        var newd = analyzeSet(newData.values);
         cmap.newGeoMean = newd.geomean;
         cmap.newRuns = newd.runs + "  <  " + newData.values.join("   ") + "  >";;
         cmap.newStddev = newd.stddev;
@@ -393,115 +393,114 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 // and a missing value can end up as 0.
 perf.factory('math', [ function() {
 
-    function badValues(msg) {
+  function badValues(msg) {
+    try {
       console.log("Warning: " + msg);
-    };
-
-  // self - allow math functions to reference other math functions via `self`
-  var self = {
-
-    isSetValid: function(minValues, values) {
-      if (!values || (minValues && !values.length) || values.length < minValues) {
-        badValues("Math set invalid - empty or too small:" + values);
-        return false;
-      }
-
-      for (var i = 0; i < values.length; i++) {
-        if (!values[i]) {
-          badValues("Math set invalid - includes 0: " + values);
-          return false;
-        }
-      }
-
-      return true;
-    },
-
-    percentOf: function(a, b) {
-      return 100 * a / b;
-    },
-
-    average: function(values) {
-      if (!self.isSetValid(1, values))
-        return 0;
-
-      var rv = 0;
-      for (var i = 0; i < values.length; i++)
-        rv += values[i];
-
-      return rv / values.length;
-    },
-
-    geomean: function(values) {
-      if (!self.isSetValid(1, values))
-        return 0;
-
-      var rv = 1;
-      for (var i = 0; i < values.length; i++) {
-          rv *= values[i];
-      }
-      return Math.pow(rv, 1 / values.length);
-    },
-
-    stddev: function(values, avg) {
-      if (!self.isSetValid(2, values))
-        return 0;
-
-      if (!avg)
-        avg = self.geomean(values);
-
-      return Math.sqrt(
-        values.map(function (v) { return Math.pow(v - avg, 2); })
-          .reduce(function (a, b) { return a + b; }) / (values.length - 1));
-    },
-
-    // If a set has only one value, assume average-ish-plus sddev, which
-    // will manifest as smaller t-value the less items there are at the group
-    // (so quite small for 1 value). This default value is a parameter.
-    // C/T mean control/test group (in our case original/new data).
-    // Assumption: all the values are positive.
-    t_test: function(valuesC, valuesT, stddev_default_factor) {
-        // We must have at least one value at each set
-        if (!self.isSetValid(1, valuesC) || !self.isSetValid(1, valuesT))
-          return 0;
-
-        var avgC = self.geomean(valuesC);
-        var avgT = self.geomean(valuesT);
-
-        var lenC = valuesC.length,
-            lenT = valuesT.length;
-
-        // Start with fixed stddev percentage, refine if we can
-        var stddevC = stddev_default_factor * avgC,
-            stddevT = stddev_default_factor * avgT;
-
-        if (lenC > 1) {
-          stddevC = self.stddev(valuesC);
-        }
-        if (lenT > 1) {
-          stddevT = self.stddev(valuesT);
-        }
-
-        var delta = avgT - avgC;
-        var stdDiffErr = (
-          Math.sqrt(
-            stddevC * stddevC / lenC // control-variance / control-size
-            +
-            stddevT * stddevT / lenT // ...
-          )
-        );
-
-        console.log("Set1: " + valuesC.join(",") + "  Set2: " + valuesT.join(", ") + "t-test: " + delta / stdDiffErr);
-        return delta / stdDiffErr;
-    },
-
-    trimFloat: function(number) {
-      if (number === undefined)
-        return 'N/A';
-      return Math.round(number * 100) / 100;
+    } catch (e) { // In case we don't have console.log
     }
   };
 
-  return self;
+  // returns true if there are at least minValues values and none of them is 0
+  function isSetValid(minValues, values) {
+    if (!values || (minValues && !values.length) || values.length < minValues) {
+      badValues("Math set invalid - empty or too small:" + values);
+      return false;
+    }
+
+    for (var i = 0; i < values.length; i++) {
+      if (!values[i]) {
+        badValues("Math set invalid - includes 0: " + values);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function percentOf(a, b) {
+    return 100 * a / b;
+  }
+
+  function geomean(values) {
+    if (!isSetValid(1, values)) {
+      return 0;
+    }
+
+    var rv = 1;
+    for (var i = 0; i < values.length; i++) {
+        rv *= values[i];
+    }
+    return Math.pow(rv, 1 / values.length);
+  }
+
+  function stddev(values, avg) {
+    if (!isSetValid(2, values)) {
+      return 0;
+    }
+
+    if (!avg)
+      avg = geomean(values);
+
+    return Math.sqrt(
+      values.map(function (v) { return Math.pow(v - avg, 2); })
+        .reduce(function (a, b) { return a + b; }) / (values.length - 1));
+  }
+
+  // If a set has only one value, assume average-ish-plus sddev, which
+  // will manifest as smaller t-value the less items there are at the group
+  // (so quite small for 1 value). This default value is a parameter.
+  // C/T mean control/test group (in our case original/new data).
+  // Assumption: all the values are positive.
+  function t_test(valuesC, valuesT, stddev_default_factor) {
+      // We must have at least one value at each set
+      if (!isSetValid(1, valuesC) || !isSetValid(1, valuesT)) {
+        return 0;
+      }
+
+      var avgC = geomean(valuesC);
+      var avgT = geomean(valuesT);
+
+      var lenC = valuesC.length,
+          lenT = valuesT.length;
+
+      // Start with fixed stddev percentage, refine if we can
+      var stddevC = stddev_default_factor * avgC,
+          stddevT = stddev_default_factor * avgT;
+
+      if (lenC > 1) {
+        stddevC = stddev(valuesC);
+      }
+      if (lenT > 1) {
+        stddevT = stddev(valuesT);
+      }
+
+      var delta = avgT - avgC;
+      var stdDiffErr = (
+        Math.sqrt(
+          stddevC * stddevC / lenC // control-variance / control-size
+          +
+          stddevT * stddevT / lenT // ...
+        )
+      );
+
+      return delta / stdDiffErr;
+  }
+
+  function trimFloat(number) {
+    if (number === undefined)
+      return 'N/A';
+    return Math.round(number * 100) / 100;
+  }
+
+
+  return {
+    isSetValid: isSetValid,
+    percentOf: percentOf,
+    geomean: geomean,
+    stddev: stddev,
+    t_test: t_test,
+    trimFloat: trimFloat
+  }; // 'math'
 }]);
 
 
