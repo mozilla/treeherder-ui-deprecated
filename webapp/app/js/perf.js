@@ -235,8 +235,6 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
       return cr.className;
     },
 
-
-
     // Aggregates two sets of values into a "comparison object" which is later used
     // to display a single line of comparison.
     // The result object has the following properties:
@@ -264,7 +262,6 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 
       // Some statistics for a single set of values
       function analyzeSet(values) {
-
         var average = math.average(values),
             stddev = math.stddev(values, average);
 
