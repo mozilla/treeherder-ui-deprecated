@@ -188,10 +188,11 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
              'math', 'isReverseTest', 'phTimeRanges',
   function($q, $http, thServiceDomain, PhSeries, math, isReverseTest, phTimeRanges) {
 
-  // Default stddev if we only have one value - 15%. Used at t_test.
+  // Used for t_test: default stddev if both sets have only a single value - 15%.
+  // Should be rare case and it's unreliable, but at least have something.
   var STDDEV_DEFAULT_FACTOR = 0.15;
 
-  var DIFF_CARE_MIN = 1.015; // We don't care about less than 1.5% diff
+  var RATIO_CARE_MIN = 1.015; // We don't care about less than ~1.5% diff
   var T_VALUE_CARE_MIN = 0.5; // Observations
   var T_VALUE_CONFIDENT = 1; // Observations. Weirdly nice that ended up as 0.5 and 1...
 
@@ -209,7 +210,7 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
       ratio = 1 / ratio; // Direction agnostic and always >= 1.
     }
 
-    if (ratio < DIFF_CARE_MIN || abs_t_value < T_VALUE_CARE_MIN) {
+    if (ratio < RATIO_CARE_MIN || abs_t_value < T_VALUE_CARE_MIN) {
       return "";
     }
 
@@ -240,20 +241,27 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
     // to display a single line of comparison at compareperf.js .
     getCounterMap: function getDisplayLineData(testName, originalData, newData) {
 
+      function numericCompare(a, b) {
+        return a < b ? -1 : a > b ? 1 : 0;
+      }
+
       // Some statistics for a single set of values
       function analyzeSet(values) {
+
         var average = math.average(values),
             stddev = math.stddev(values, average);
 
-
         return {
-          runs: values.length,
-
           // Called 'geomeans' because each value is a geomean (of the subtests)
           // but we then average those values plainly.
           geomean: average,
           stddev: stddev,
-          stddevPct: math.percentOf(stddev, average)
+          stddevPct: math.percentOf(stddev, average),
+
+          // Value for display on mouse hover. We use slice to keep the original
+          // values at their original order in case the order is important elsewhere.
+          runs: "" + values.length
+                   + "  <  " + values.slice().sort(numericCompare).join("   ") + "  >"
         };
       }
 
@@ -268,14 +276,14 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
       if (originalData) {
         var orig = analyzeSet(originalData.values);
         cmap.originalGeoMean = orig.geomean;
-        cmap.originalRuns = orig.runs + "  <  " + originalData.values.join("   ") + "  >";;
+        cmap.originalRuns = orig.runs;
         cmap.originalStddev = orig.stddev;
         cmap.originalStddevPct = orig.stddevPct;
       }
       if (newData) {
         var newd = analyzeSet(newData.values);
         cmap.newGeoMean = newd.geomean;
-        cmap.newRuns = newd.runs + "  <  " + newData.values.join("   ") + "  >";;
+        cmap.newRuns = newd.runs;
         cmap.newStddev = newd.stddev;
         cmap.newStddevPct = newd.stddevPct;
       }
@@ -422,7 +430,7 @@ perf.factory('math', [ function() {
   }
 
   function percentOf(a, b) {
-    return 100 * a / b;
+    return b ? 100 * a / b : 0;
   }
 
   function average(values) {
@@ -479,15 +487,17 @@ perf.factory('math', [ function() {
     var lenC = valuesC.length,
         lenT = valuesT.length;
 
-    // Start with fixed stddev percentage, refine if we can
-    var stddevC = stddev_default_factor * avgC,
-        stddevT = stddev_default_factor * avgT;
+    // Use actual stddev if possible, or stddev_default_factor if one sample
+    var stddevC = (lenC > 1 ? stddev(valuesC, avgC) : stddev_default_factor * avgC),
+        stddevT = (lenT > 1 ? stddev(valuesT, avgT) : stddev_default_factor * avgT);
 
-    if (lenC > 1) {
-      stddevC = stddev(valuesC, avgC);
-    }
-    if (lenT > 1) {
-      stddevT = stddev(valuesT, avgT);
+    // If one of the sets has only a single sample, assume its stddev is
+    // the same as that of the other set (in percentage). If both sets
+    // have only one sample, both will use stddev_default_factor.
+    if (lenC == 1) {
+      stddevC = valuesC[0] * stddevT / avgT;
+    } else if (lenT == 1) {
+      stddevT = valuesT[0] * stddevC / avgC;
     }
 
     var delta = avgT - avgC;
