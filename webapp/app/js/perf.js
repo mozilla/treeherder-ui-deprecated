@@ -225,7 +225,7 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 
   return {
     getCompareClasses: function(cr, type) {
-      if (cr.hideMinorChanges && cr.isMinor) return 'subtest-empty';
+      if (cr.hideMinorChanges && !cr.isMeaningful) return 'subtest-empty';
       if (cr.isEmpty) return 'subtest-empty';
       if (type == 'row' && cr.highlightedTest) return 'active subtest-highlighted';
       if (type == 'row') return '';
@@ -238,7 +238,24 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 
 
     // Aggregates two sets of values into a "comparison object" which is later used
-    // to display a single line of comparison at compareperf.js .
+    // to display a single line of comparison.
+    // The result object has the following properties:
+    // - .isEmpty: true if no data for either side.
+    // If !isEmpty, for originalData/newData (if the data exists)
+    // - .[original|new]GeoMean    // Average of the values (where each is a geomean)
+    // - .[original|new]Stddev     // stddev
+    // - .[original|new]StddevPct  // stddev as percentage of the average
+    // - .[original|new]Runs       // Display data: number of runs and their values
+    // If both originalData/newData exist, comparison data:
+    // - .delta
+    // - .deltaPercentage
+    // - .confidence               // t-test value
+    // - .isMeaningful             // for highlighting - bool over t-test threshold
+    // And some data to help formatting of the comparison:
+    // - .isImprovement
+    // - .isRegression
+    // - .className
+    // - .barGraphMargin
     getCounterMap: function getDisplayLineData(testName, originalData, newData) {
 
       function numericCompare(a, b) {
@@ -265,10 +282,8 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
         };
       }
 
-      var cmap = {originalGeoMean: 0, originalRuns: 0, originalStddev: 0,
-                  newGeoMean:      0, newRuns:      0, newStddev:      0,
-                  delta: 0, deltaPercentage: 0, barGraphMargin: 0,
-                  isEmpty: true, isRegression: false, isImprovement: false, isMinor: true};
+      // Eventually the result object, after setting properties as required.
+      var cmap = { isEmpty: true };
 
       // It's possible to get an object with empty values, so check for that too.
       var hasOrig = originalData && originalData.values.length;
@@ -315,7 +330,7 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 
       cmap.isRegression = (cmap.className == 'compare-regression');
       cmap.isImprovement = (cmap.className == 'compare-improvement');
-      cmap.isMinor = (cmap.className == "");
+      cmap.isMeaningful = (cmap.className != "");
 
       return cmap;
     },
@@ -517,28 +532,20 @@ perf.factory('math', [ function() {
     return delta / stdDiffErr;
   }
 
-  function trimFloat(number) {
-    if (number === undefined)
-      return 'N/A';
-    return Math.round(number * 100) / 100;
-  }
-
-
   return {
     isSetValid: isSetValid,
     percentOf: percentOf,
     average: average,
     geomean: geomean,
     stddev: stddev,
-    t_test: t_test,
-    trimFloat: trimFloat
+    t_test: t_test
   }; // 'math'
 }]);
 
 
 perf.filter('displayPrecision', function() {
   return function(input) {
-    if (!input) {
+    if (isNaN(input)) {
       return "N/A";
     }
 
