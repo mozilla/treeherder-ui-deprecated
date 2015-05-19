@@ -245,15 +245,16 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
     // - .[original|new]StddevPct  // stddev as percentage of the average
     // - .[original|new]Runs       // Display data: number of runs and their values
     // If both originalData/newData exist, comparison data:
+    // - .isImprovement
+    // - .isRegression
     // - .delta
     // - .deltaPercentage
     // - .confidence               // t-test value
     // - .isMeaningful             // for highlighting - bool over t-test threshold
     // And some data to help formatting of the comparison:
-    // - .isImprovement
-    // - .isRegression
     // - .className
     // - .barGraphMargin
+    // - .marginDirection
     getCounterMap: function getDisplayLineData(testName, originalData, newData) {
 
       function numericCompare(a, b) {
