@@ -260,58 +260,63 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 
           // Value for display on mouse hover. We use slice to keep the original
           // values at their original order in case the order is important elsewhere.
-          runs: "" + values.length
-                   + "  <  " + values.slice().sort(numericCompare).join("   ") + "  >"
+          displayRuns: "" + values.length
+                          + "  <  " + values.slice().sort(numericCompare).join("   ") + "  >"
         };
       }
 
       var cmap = {originalGeoMean: 0, originalRuns: 0, originalStddev: 0,
                   newGeoMean:      0, newRuns:      0, newStddev:      0,
                   delta: 0, deltaPercentage: 0, barGraphMargin: 0,
-                  isEmpty: false, isRegression: false, isImprovement: false, isMinor: true};
+                  isEmpty: true, isRegression: false, isImprovement: false, isMinor: true};
 
-      // Data on each set
+      // It's possible to get an object with empty values, so check for that too.
+      var hasOrig = originalData && originalData.values.length;
+      var hasNew  = newData && newData.values.length;
 
-      // cmap.*Runs is the number of runs plus the runs values for display.
-      if (originalData) {
+      if (!hasOrig && !hasNew)
+        return cmap; // No data for either side
+
+      cmap.isEmpty = false;
+
+      if (hasOrig) {
         var orig = analyzeSet(originalData.values);
         cmap.originalGeoMean = orig.geomean;
-        cmap.originalRuns = orig.runs;
+        cmap.originalRuns = orig.displayRuns;
         cmap.originalStddev = orig.stddev;
         cmap.originalStddevPct = orig.stddevPct;
       }
-      if (newData) {
+      if (hasNew) {
         var newd = analyzeSet(newData.values);
         cmap.newGeoMean = newd.geomean;
-        cmap.newRuns = newd.runs;
+        cmap.newRuns = newd.displayRuns;
         cmap.newStddev = newd.stddev;
         cmap.newStddevPct = newd.stddevPct;
       }
 
-      // Data on the relation between the sets
+      if (!hasOrig || !hasNew)
+        return cmap; // No comparison, just display for one side.
+
+      // Compare the sides.
       // "Normal" tests are "lower is better". Reversed is.. reversed.
-      var isReverse = isReverseTest(testName);
-      var newIsBetter = cmap.originalGeoMean > cmap.newGeoMean;
-      if (isReverse)
+      cmap.delta = (cmap.newGeoMean - cmap.originalGeoMean);
+      var newIsBetter = cmap.delta < 0; // New value is lower than orig value
+      if (isReverseTest(testName))
         newIsBetter = !newIsBetter;
 
-      if (cmap.originalRuns == 0 && cmap.newRuns == 0) {
-        cmap.isEmpty = true;
-      } else if (cmap.newGeoMean > 0 && cmap.originalGeoMean > 0) {
-        cmap.delta = (cmap.newGeoMean - cmap.originalGeoMean);
-        cmap.deltaPercentage = math.percentOf(cmap.delta, cmap.originalGeoMean);
-        cmap.barGraphMargin = 50 - Math.min(50, Math.abs(Math.round(cmap.deltaPercentage) / 2));
+      cmap.deltaPercentage = math.percentOf(cmap.delta, cmap.originalGeoMean);
 
-        cmap.marginDirection = newIsBetter ? 'right' : 'left';
+      cmap.barGraphMargin = 50 - Math.min(50, Math.abs(Math.round(cmap.deltaPercentage) / 2));
+      cmap.marginDirection = newIsBetter ? 'right' : 'left';
 
-        var abs_t_value = Math.abs(math.t_test(originalData.values, newData.values, STDDEV_DEFAULT_FACTOR));
-        cmap.className = getClassName(newIsBetter, cmap.originalGeoMean, cmap.newGeoMean, abs_t_value);
+      var abs_t_value = Math.abs(math.t_test(originalData.values, newData.values, STDDEV_DEFAULT_FACTOR));
+      cmap.className = getClassName(newIsBetter, cmap.originalGeoMean, cmap.newGeoMean, abs_t_value);
+      cmap.confidence = abs_t_value;
 
-        cmap.isRegression = (cmap.className == 'compare-regression');
-        cmap.isImprovement = (cmap.className == 'compare-improvement');
-        cmap.isMinor = (cmap.className == "");
-        cmap.confidence = abs_t_value;  // For display. What's the unit?
-      }
+      cmap.isRegression = (cmap.className == 'compare-regression');
+      cmap.isImprovement = (cmap.className == 'compare-improvement');
+      cmap.isMinor = (cmap.className == "");
+
       return cmap;
     },
 
