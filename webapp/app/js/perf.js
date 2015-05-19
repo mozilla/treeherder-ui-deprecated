@@ -250,6 +250,7 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
     // - .delta
     // - .deltaPercentage
     // - .confidence               // t-test value
+    // - .confidenceText           // 'low'/'med'/'high'
     // - .isMeaningful             // for highlighting - bool over t-test threshold
     // And some data to help formatting of the comparison:
     // - .className
@@ -325,6 +326,9 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
       var abs_t_value = Math.abs(math.t_test(originalData.values, newData.values, STDDEV_DEFAULT_FACTOR));
       cmap.className = getClassName(newIsBetter, cmap.originalGeoMean, cmap.newGeoMean, abs_t_value);
       cmap.confidence = abs_t_value;
+      cmap.confidenceText = abs_t_value < T_VALUE_CARE_MIN ? "low" :
+                            abs_t_value < T_VALUE_CONFIDENT ? "med" :
+                            "high";
 
       cmap.isRegression = (cmap.className == 'compare-regression');
       cmap.isImprovement = (cmap.className == 'compare-improvement');
@@ -423,23 +427,24 @@ perf.factory('PhCompare', [ '$q', '$http', 'thServiceDomain', 'PhSeries',
 // and a missing value can end up as 0.
 perf.factory('math', [ function() {
 
-  function badValues(msg) {
-    try {
-      console.log("Warning: " + msg);
-    } catch (e) { // In case we don't have console.log
-    }
-  };
-
-  // returns true if there are at least minValues values and none of them is 0
+  // returns true if there are at least minValues values and none of them is 0.
+  // The "not 0" part is talos-specific.
   function isSetValid(minValues, values) {
+    function warn(text) {
+      try {
+        console.log("Warning: " + text);
+      } catch (e) { // In case we don't have console.log
+      }
+    };
+
     if (!values || (minValues && !values.length) || values.length < minValues) {
-      badValues("Math set invalid - empty or too small:" + values);
+      warn("Math set invalid - empty or too small:" + values);
       return false;
     }
 
     for (var i = 0; i < values.length; i++) {
       if (!values[i]) {
-        badValues("Math set invalid - includes 0: " + values);
+        warn("Math set invalid - includes 0: " + values);
         return false;
       }
     }
@@ -456,23 +461,8 @@ perf.factory('math', [ function() {
       return 0;
     }
 
-    var rv = 0;
-    for (var i = 0; i < values.length; i++) {
-        rv += values[i];
-    }
-    return rv / values.length;
-  }
+    return _.sum(values) / values.length;
 
-  function geomean(values) {
-    if (!isSetValid(1, values)) {
-      return 0;
-    }
-
-    var rv = 1;
-    for (var i = 0; i < values.length; i++) {
-        rv *= values[i];
-    }
-    return Math.pow(rv, 1 / values.length);
   }
 
   function stddev(values, avg) {
@@ -531,10 +521,8 @@ perf.factory('math', [ function() {
   }
 
   return {
-    isSetValid: isSetValid,
     percentOf: percentOf,
     average: average,
-    geomean: geomean,
     stddev: stddev,
     t_test: t_test
   }; // 'math'
